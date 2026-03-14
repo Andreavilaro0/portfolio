@@ -16,16 +16,29 @@ interface DeskSceneProps {
   onEnterPortfolio: () => void
 }
 
-function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete }: {
+function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete, onProgress }: {
   onLoaded: () => void
   onEnterPortfolio: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
+  onProgress: (p: number) => void
 }) {
   const { scene, nodes } = useGLTF('/models/desk-scene-web.glb', undefined, undefined, (loader) => {
     loader.setMeshoptDecoder(MeshoptDecoder as any)
   })
   const hasLoaded = useRef(false)
+
+  useEffect(() => {
+    const manager = THREE.DefaultLoadingManager
+    manager.onProgress = (_url, loaded, total) => {
+      if (total > 0) {
+        onProgress(Math.round((loaded / total) * 100))
+      }
+    }
+    return () => {
+      manager.onProgress = () => {}
+    }
+  }, [onProgress])
 
   useEffect(() => {
     if (!hasLoaded.current && scene) {
@@ -138,6 +151,7 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onEnter
           onEnterPortfolio={onEnterPortfolio}
           mode={mode}
           onIntroComplete={onIntroComplete}
+          onProgress={onProgress}
         />
       </Suspense>
     </Canvas>
