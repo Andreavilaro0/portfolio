@@ -2,11 +2,14 @@
 
 import { Suspense, useEffect, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, Html } from '@react-three/drei'
+import { useGLTF, Html, OrbitControls } from '@react-three/drei'
 import { MeshoptDecoder } from 'meshoptimizer'
 import * as THREE from 'three'
 import { CameraRig } from './CameraRig'
+import { DeskInteractions } from './DeskInteractions'
 import type { ExperienceMode } from './ExperienceWrapper'
+
+const DEBUG = false // TEMPORARY — set true for debug helpers
 
 interface DeskSceneProps {
   mode: ExperienceMode
@@ -44,10 +47,57 @@ function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete, onProgress }
     if (!hasLoaded.current && scene) {
       hasLoaded.current = true
 
+      // DEBUG: Log scene graph
+      if (DEBUG) {
+        console.group('🔍 SCENE DEBUG')
+        console.log('Scene children count:', scene.children.length)
+
+        const nodeNames: string[] = []
+        const meshNames: string[] = []
+        scene.traverse((child) => {
+          nodeNames.push(`${child.type}: "${child.name}"`)
+          if (child instanceof THREE.Mesh) {
+            meshNames.push(child.name)
+          }
+        })
+        console.log('All nodes:', nodeNames)
+        console.log('All mesh names:', meshNames)
+        console.log('Available node keys from useGLTF:', Object.keys(nodes))
+
+        // Bounding box of entire scene
+        const box = new THREE.Box3().setFromObject(scene)
+        const size = box.getSize(new THREE.Vector3())
+        const center = box.getCenter(new THREE.Vector3())
+        console.log('Scene bounding box:')
+        console.log('  min:', box.min.toArray().map(v => v.toFixed(2)))
+        console.log('  max:', box.max.toArray().map(v => v.toFixed(2)))
+        console.log('  size:', size.toArray().map(v => v.toFixed(2)))
+        console.log('  center:', center.toArray().map(v => v.toFixed(2)))
+
+        // Check for monitor
+        const monitorNode = nodes.monitor_main
+        if (monitorNode) {
+          const monBox = new THREE.Box3().setFromObject(monitorNode)
+          const monCenter = monBox.getCenter(new THREE.Vector3())
+          console.log('✅ monitor_main FOUND')
+          console.log('  position:', (monitorNode as any).position?.toArray().map((v: number) => v.toFixed(2)))
+          console.log('  bounding center:', monCenter.toArray().map(v => v.toFixed(2)))
+        } else {
+          console.warn('❌ monitor_main NOT FOUND in nodes')
+          // Try to find anything with "monitor" in name
+          scene.traverse((child) => {
+            if (child.name.toLowerCase().includes('monitor') || child.name.toLowerCase().includes('screen')) {
+              console.log('  Found similar:', child.name, child.type, (child as any).position?.toArray())
+            }
+          })
+        }
+        console.groupEnd()
+      }
+
       // Fix dome normals if needed (environment_dome with inward normals)
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          if (child.name === 'environment_dome') {
+          if (child.name === 'environment_dome' || child.name === 'mega_sphere_L') {
             child.material.side = THREE.BackSide
           }
           // Enable shadows
@@ -58,7 +108,7 @@ function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete, onProgress }
 
       onLoaded()
     }
-  }, [scene, onLoaded])
+  }, [scene, nodes, onLoaded])
 
   return (
     <>
@@ -84,10 +134,12 @@ function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete, onProgress }
         distance={20}
       />
 
-      {/* Monitor CTA — visible in seated mode */}
-      {mode === 'seated' && nodes.monitor_main && (
+      <DeskInteractions scene={scene} />
+
+      {/* Monitor CTA — DEBUG: always visible to test positioning */}
+      {(DEBUG || (mode === 'seated' && nodes.monitor_main)) && (
         <Html
-          position={[0, 8.5, -6]}
+          position={[-0.23, 8.39, 2.6]}
           center
           distanceFactor={8}
           style={{ pointerEvents: 'auto' }}
@@ -123,7 +175,17 @@ function Scene({ onLoaded, onEnterPortfolio, mode, onIntroComplete, onProgress }
         </Html>
       )}
 
-      <CameraRig mode={mode} onIntroComplete={onIntroComplete} />
+      {/* DEBUG: helpers for scene exploration */}
+      {DEBUG && (
+        <>
+          <axesHelper args={[10]} />
+          <gridHelper args={[50, 50, '#444', '#222']} />
+          <OrbitControls makeDefault />
+        </>
+      )}
+
+      {/* CameraRig disabled during debug — OrbitControls above replaces it */}
+      {!DEBUG && <CameraRig mode={mode} onIntroComplete={onIntroComplete} />}
     </>
   )
 }
@@ -133,10 +195,10 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onEnter
     <Canvas
       style={{ width: '100%', height: '100%', background: '#0A0A0A' }}
       camera={{
-        fov: 50,
+        fov: 40,
         near: 0.1,
         far: 200,
-        position: [0, 12, 12],
+        position: [0, 12, -12],
       }}
       gl={{
         antialias: true,
