@@ -1,13 +1,7 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { ScrollReveal } from './ScrollReveal'
 import { CountUp } from './CountUp'
-
-const SplineScene = dynamic(
-  () => import('./SplineScene').then((m) => ({ default: m.SplineScene })),
-  { ssr: false }
-)
 
 export function AboutSection() {
   return (
@@ -19,77 +13,85 @@ export function AboutSection() {
         flexWrap: 'wrap',
         alignItems: 'center',
         overflow: 'hidden',
+        padding: 'clamp(48px, 8vh, 96px) clamp(32px, 6vw, 96px)',
       }}
     >
-      {/* Left — About */}
-      <div
-        style={{
-          flex: '1 1 480px',
-          padding: 'clamp(48px, 8vh, 96px) clamp(32px, 6vw, 96px)',
-        }}
-      >
+      <div style={{ flex: '1 1 480px', maxWidth: '600px' }}>
         <ScrollReveal>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
             <span className="label">00</span>
-            <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-              The Cook
-            </span>
-            <span className="label">/ Background</span>
-            <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+            <span className="badge badge-violet">About</span>
+            <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
           </div>
         </ScrollReveal>
 
         <ScrollReveal delay={100}>
-          <p
+          <h2
             style={{
-              fontSize: 'clamp(1rem, 1.4vw, 1.2rem)',
-              lineHeight: 1.8,
-              color: 'var(--color-cocoa)',
-              maxWidth: '480px',
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(3rem, 6vw, 6rem)',
+              lineHeight: 0.95,
+              color: 'var(--color-text)',
+              margin: '0 0 24px 0',
             }}
           >
-            No espero a que me enseñen — busco los retos. Hackatones, competiciones
-            de robótica, proyectos personales. Cada oportunidad de construir algo
-            es una oportunidad de aprender.
-          </p>
+            MEXICANA.<br />
+            INGENIERA.<br />
+            <span style={{ color: 'var(--color-pink)' }}>BUILDER.</span>
+          </h2>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <p
             style={{
-              fontSize: 'clamp(1rem, 1.4vw, 1.2rem)',
+              fontSize: 'clamp(1rem, 1.4vw, 1.15rem)',
               lineHeight: 1.8,
-              color: 'var(--color-cocoa)',
+              color: 'var(--color-muted)',
               maxWidth: '480px',
-              marginTop: '20px',
             }}
           >
-            Vengo de gestionar un negocio familiar en México. Esa experiencia me
-            enseñó a resolver problemas reales, tratar con clientes y entregar
-            resultados — no solo ejercicios de clase.
+            Gestioné un negocio familiar en México antes de tocar una línea
+            de código. En 2022 todo cambió. Me mudé a Madrid, entré a
+            ingeniería, y desde entonces: hackathones ganados, finalista
+            nacional en robótica, IA que ayuda a gente real.
           </p>
         </ScrollReveal>
 
-        {/* Stats */}
+        <ScrollReveal delay={250}>
+          <p
+            style={{
+              fontSize: 'clamp(1rem, 1.4vw, 1.15rem)',
+              lineHeight: 1.8,
+              color: 'var(--color-muted)',
+              maxWidth: '480px',
+              marginTop: '16px',
+            }}
+          >
+            No espero a que me enseñen — busco los retos. Cada oportunidad
+            de construir algo es una oportunidad de aprender.
+          </p>
+        </ScrollReveal>
+
         <ScrollReveal delay={300}>
-          <div style={{ display: 'flex', gap: '48px', marginTop: '40px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '24px', marginTop: '32px', flexWrap: 'wrap' }}>
             {[
               { number: '4°', label: 'Semestre' },
               { number: '10+', label: 'Tecnologías' },
               { number: '2028', label: 'Graduación' },
             ].map((stat) => (
-              <div key={stat.label}>
-                <div>
-                  <CountUp
-                    value={stat.number}
-                    style={{
-                      fontFamily: 'var(--font-display)',
-                      fontSize: '2rem',
-                      fontWeight: 900,
-                      color: 'var(--color-espresso)',
-                    }}
-                  />
-                </div>
+              <div
+                key={stat.label}
+                className="card"
+                style={{ padding: '16px 24px', textAlign: 'center' }}
+              >
+                <CountUp
+                  value={stat.number}
+                  style={{
+                    fontFamily: 'var(--font-display)',
+                    fontSize: '2.5rem',
+                    color: 'var(--color-text)',
+                  }}
+                />
                 <div className="label" style={{ marginTop: '4px' }}>
                   {stat.label}
                 </div>
@@ -99,30 +101,55 @@ export function AboutSection() {
         </ScrollReveal>
       </div>
 
-      {/* Right — Spline 3D card */}
-      <div
-        style={{
-          flex: '1 1 480px',
-          height: '80vh',
-          minHeight: '400px',
-          position: 'relative',
-          borderRadius: '12px',
-          overflow: 'hidden',
-        }}
-      >
-        <SplineScene scene="https://prod.spline.design/AQwbVOvzQrArzTHZ/scene.splinecode" />
+      {/* Right side — photo + stickers */}
+      <ScrollReveal delay={150}>
         <div
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100px',
-            height: '100%',
-            background: 'linear-gradient(90deg, #0a0a0a, transparent)',
-            pointerEvents: 'none',
+            flex: '1 1 400px',
+            minHeight: '400px',
+            position: 'relative',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
-        />
-      </div>
+        >
+          {/* Photo */}
+          <div
+            style={{
+              position: 'relative',
+              border: '4px solid var(--color-border)',
+              boxShadow: '10px 10px 0px var(--color-text)',
+              overflow: 'hidden',
+              maxWidth: '360px',
+              width: '100%',
+            }}
+          >
+            <img
+              src="/images/andrea.png"
+              alt="Andrea Avila"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+              }}
+            />
+          </div>
+
+          {/* Stickers around photo */}
+          <div className="sticker" style={{ top: '2%', right: '5%', '--rotation': '-5deg', background: 'var(--color-lime)' } as React.CSSProperties}>
+            REACT + TYPESCRIPT
+          </div>
+          <div className="sticker" style={{ bottom: '15%', left: '0%', '--rotation': '4deg', background: 'var(--color-pink)', color: '#fff' } as React.CSSProperties}>
+            PYTHON
+          </div>
+          <div className="sticker" style={{ top: '40%', right: '0%', '--rotation': '7deg', background: 'var(--color-violet)', color: '#fff' } as React.CSSProperties}>
+            C++ / ARDUINO
+          </div>
+          <div className="sticker" style={{ bottom: '5%', right: '10%', '--rotation': '-3deg', background: 'var(--color-cyan)' } as React.CSSProperties}>
+            THREE.JS
+          </div>
+        </div>
+      </ScrollReveal>
     </section>
   )
 }

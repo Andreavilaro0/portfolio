@@ -42,11 +42,8 @@ export function Footer() {
       {/* Section label */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
         <span className="label">05</span>
-        <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-          Contact
-        </span>
-        <span className="label">/ Open Kitchen</span>
-        <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+        <span className="badge badge-lime">Contact</span>
+        <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
       </div>
 
       {/* Main content — two columns */}
@@ -67,18 +64,17 @@ export function Footer() {
             custom={0}
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(2.5rem, 5vw, 5rem)',
-              fontWeight: 900,
+              fontSize: 'clamp(3rem, 6vw, 6rem)',
               lineHeight: 0.95,
-              letterSpacing: '-0.04em',
-              color: 'var(--color-espresso)',
+              color: 'var(--color-text)',
               margin: 0,
+              textTransform: 'uppercase',
             }}
           >
-            Ready to cook
+            LET&apos;S BUILD
             <br />
-            <span style={{ color: 'var(--color-terracotta)' }}>
-              something new?
+            <span style={{ color: 'var(--color-pink)' }}>
+              SOMETHING
             </span>
           </motion.h2>
 
@@ -90,7 +86,7 @@ export function Footer() {
             style={{
               fontSize: 'clamp(0.95rem, 1.3vw, 1.15rem)',
               lineHeight: 1.7,
-              color: 'var(--color-cocoa)',
+              color: 'var(--color-muted)',
               marginTop: '24px',
               maxWidth: '420px',
             }}
@@ -113,20 +109,22 @@ export function Footer() {
               fontSize: '12px',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
-              color: 'var(--color-warm-white)',
-              background: 'var(--color-terracotta)',
+              color: '#fff',
+              background: 'var(--color-pink)',
               textDecoration: 'none',
               padding: '14px 32px',
-              borderRadius: '8px',
-              transition: 'opacity 0.2s, transform 0.2s',
+              borderRadius: '0px',
+              border: '3px solid var(--color-text)',
+              boxShadow: '4px 4px 0px var(--color-text)',
+              transition: 'box-shadow 0.2s, transform 0.2s',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.opacity = '0.85'
-              e.currentTarget.style.transform = 'translateY(-1px)'
+              e.currentTarget.style.boxShadow = '6px 6px 0px var(--color-text)'
+              e.currentTarget.style.transform = 'translate(-2px, -2px)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.opacity = '1'
-              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '4px 4px 0px var(--color-text)'
+              e.currentTarget.style.transform = 'translate(0, 0)'
             }}
           >
             Enviar Mensaje
@@ -151,19 +149,19 @@ export function Footer() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.06)',
+                borderBottom: '3px solid var(--color-border)',
                 textDecoration: 'none',
                 transition: 'border-color 0.2s',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(201,107,60,0.4)'
+                e.currentTarget.style.borderColor = 'var(--color-pink)'
                 const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement
-                if (arrow) arrow.style.color = 'var(--color-terracotta)'
+                if (arrow) arrow.style.color = 'var(--color-pink)'
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.06)'
+                e.currentTarget.style.borderColor = 'var(--color-border)'
                 const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement
-                if (arrow) arrow.style.color = 'var(--color-steam-grey)'
+                if (arrow) arrow.style.color = 'var(--color-muted)'
               }}
             >
               <span
@@ -171,7 +169,7 @@ export function Footer() {
                   fontFamily: 'var(--font-code)',
                   fontSize: '13px',
                   letterSpacing: '0.05em',
-                  color: 'var(--color-cocoa)',
+                  color: 'var(--color-text)',
                   transition: 'color 0.2s',
                 }}
               >
@@ -181,7 +179,7 @@ export function Footer() {
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '14px',
-                  color: 'var(--color-steam-grey)',
+                  color: 'var(--color-muted)',
                   transition: 'color 0.2s',
                 }}
               >
@@ -192,13 +190,13 @@ export function Footer() {
 
           {/* Info panel */}
           <div
-            className="glass-card"
+            className="card"
             style={{
               marginTop: '32px',
               padding: '16px',
             }}
           >
-            <div className="label" style={{ color: 'var(--color-sage-green)', marginBottom: '12px' }}>
+            <div className="label" style={{ color: 'var(--color-violet)', marginBottom: '12px' }}>
               info
             </div>
             {[
@@ -218,8 +216,8 @@ export function Footer() {
                   letterSpacing: '0.05em',
                 }}
               >
-                <span style={{ color: 'var(--color-steam-grey)', textTransform: 'uppercase' }}>{row.k}</span>
-                <span style={{ color: row.accent ? 'var(--color-sage-green)' : 'var(--color-cocoa)' }}>{row.v}</span>
+                <span style={{ color: 'var(--color-muted)', textTransform: 'uppercase' }}>{row.k}</span>
+                <span style={{ color: row.accent ? 'var(--color-lime)' : 'var(--color-text)' }}>{row.v}</span>
               </div>
             ))}
           </div>
@@ -231,7 +229,7 @@ export function Footer() {
         style={{
           marginTop: '64px',
           paddingTop: '16px',
-          borderTop: '1px dashed rgba(255,255,255,0.08)',
+          borderTop: '3px solid var(--color-text)',
           display: 'flex',
           flexWrap: 'wrap',
           justifyContent: 'space-between',

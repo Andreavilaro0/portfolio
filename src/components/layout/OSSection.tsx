@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ScrollReveal } from './ScrollReveal'
+import { LaptopMockup } from '../ui/LaptopMockup'
 
 const processes = [
   { pid: 1024, name: 'init', state: 'running', mem: '2.1MB', cpu: '0.1%' },
@@ -54,11 +55,9 @@ export function OSSection() {
           <ScrollReveal>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
               <span className="label">04</span>
-              <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-                Kernel
-              </span>
+              <span className="badge badge-violet">Kernel</span>
               <span className="label">/ OS Simulation</span>
-              <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+              <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
             </div>
           </ScrollReveal>
 
@@ -66,17 +65,15 @@ export function OSSection() {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                fontWeight: 900,
-                lineHeight: 1.05,
-                letterSpacing: '-0.03em',
-                color: 'var(--color-espresso)',
+                fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                color: 'var(--color-text)',
                 margin: 0,
+                textTransform: 'uppercase',
               }}
             >
-              Sistemas
-              <br />
-              Operativos
+              SISTEMAS<br />OPERATIVOS
             </h2>
           </ScrollReveal>
 
@@ -85,7 +82,7 @@ export function OSSection() {
               style={{
                 fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-cocoa)',
+                color: 'var(--color-muted)',
                 marginTop: '20px',
               }}
             >
@@ -113,7 +110,7 @@ export function OSSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-terracotta)',
+                color: 'var(--color-pink)',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',
@@ -126,95 +123,88 @@ export function OSSection() {
           </ScrollReveal>
         </div>
 
-        {/* Right — Process table (terminal-style but warm) */}
-        <div
-          style={{
-            flex: '1 1 400px',
-            background: 'var(--color-espresso)',
-            borderRadius: '12px',
-            overflow: 'hidden',
-          }}
-        >
-          {/* Window bar */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 14px',
-              background: 'rgba(0,0,0,0.2)',
-              borderBottom: '1px solid rgba(255,255,255,0.06)',
-            }}
-          >
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ff5f56' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ffbd2e' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#27c93f' }} />
-            <span style={{ marginLeft: '8px', fontFamily: 'var(--font-code)', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
-              process_monitor — htop
-            </span>
-          </div>
-
-          <div style={{ padding: '16px', fontFamily: 'var(--font-code)', fontSize: '12px', overflowX: 'auto' }}>
-            {/* Header */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '60px 120px 80px 70px 60px',
-                gap: '8px',
-                color: 'rgba(255,255,255,0.3)',
-                paddingBottom: '8px',
-                borderBottom: '1px solid rgba(255,255,255,0.08)',
-                marginBottom: '4px',
-                minWidth: '390px',
-              }}
-            >
-              <span>PID</span>
-              <span>NAME</span>
-              <span>STATE</span>
-              <span>MEM</span>
-              <span>CPU</span>
-            </div>
-
-            {/* Rows */}
-            {processes.map((proc, i) => (
+        {/* Right — Laptop mockup with terminal */}
+        <div style={{ flex: '1 1 400px' }}>
+          <LaptopMockup>
+            <div style={{ width: '100%', height: '100%', background: '#1A1A1A', padding: '16px', fontFamily: 'var(--font-code)', fontSize: '11px', overflowX: 'auto' }}>
+              {/* Terminal header */}
               <div
-                key={proc.pid}
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '60px 120px 80px 70px 60px',
-                  gap: '8px',
-                  padding: '6px 0',
-                  opacity: i < visibleRows ? 1 : 0,
-                  transform: i < visibleRows ? 'translateX(0)' : 'translateX(-10px)',
-                  transition: 'opacity 0.3s ease, transform 0.3s ease',
-                  minWidth: '390px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  marginBottom: '12px',
                 }}
               >
-                <span style={{ color: 'rgba(255,255,255,0.25)' }}>{proc.pid}</span>
-                <span style={{ color: 'rgba(255,255,255,0.65)' }}>{proc.name}</span>
-                <span
-                  style={{
-                    color:
-                      proc.state === 'running'
-                        ? '#7a9a6d'
-                        : proc.state === 'waiting'
-                          ? '#c96b3c'
-                          : '#a8a099',
-                  }}
-                >
-                  {proc.state}
-                </span>
-                <span style={{ color: 'rgba(255,255,255,0.35)' }}>{proc.mem}</span>
-                <span
-                  style={{
-                    color: parseFloat(proc.cpu) > 5 ? '#c96b3c' : 'rgba(255,255,255,0.35)',
-                  }}
-                >
-                  {proc.cpu}
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF2D9B' }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#BEFF00' }} />
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7B2FFF' }} />
+                <span style={{ marginLeft: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
+                  process_monitor — htop
                 </span>
               </div>
-            ))}
-          </div>
+
+              {/* Table header */}
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '50px 100px 70px 60px 50px',
+                  gap: '6px',
+                  color: 'rgba(255,255,255,0.3)',
+                  paddingBottom: '6px',
+                  borderBottom: '1px solid rgba(255,255,255,0.08)',
+                  marginBottom: '4px',
+                  fontSize: '10px',
+                }}
+              >
+                <span>PID</span>
+                <span>NAME</span>
+                <span>STATE</span>
+                <span>MEM</span>
+                <span>CPU</span>
+              </div>
+
+              {/* Rows */}
+              {processes.map((proc, i) => (
+                <div
+                  key={proc.pid}
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '50px 100px 70px 60px 50px',
+                    gap: '6px',
+                    padding: '4px 0',
+                    opacity: i < visibleRows ? 1 : 0,
+                    transform: i < visibleRows ? 'translateX(0)' : 'translateX(-10px)',
+                    transition: 'opacity 0.3s ease, transform 0.3s ease',
+                    fontSize: '10px',
+                  }}
+                >
+                  <span style={{ color: 'rgba(255,255,255,0.25)' }}>{proc.pid}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>{proc.name}</span>
+                  <span
+                    style={{
+                      color:
+                        proc.state === 'running'
+                          ? '#BEFF00'
+                          : proc.state === 'waiting'
+                            ? '#FFD700'
+                            : 'rgba(255,255,255,0.4)',
+                    }}
+                  >
+                    {proc.state}
+                  </span>
+                  <span style={{ color: 'rgba(255,255,255,0.35)' }}>{proc.mem}</span>
+                  <span
+                    style={{
+                      color: parseFloat(proc.cpu) > 5 ? '#FF2D9B' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {proc.cpu}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </LaptopMockup>
         </div>
       </div>
     </section>

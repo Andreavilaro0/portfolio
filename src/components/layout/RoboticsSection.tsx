@@ -23,7 +23,7 @@ export function RoboticsSection() {
         {/* Left — 3D Robot */}
         <ScrollReveal>
           <div
-            className="glass-card"
+            className="card"
             style={{
               flex: '1 1 400px',
               aspectRatio: '4 / 3',
@@ -42,11 +42,9 @@ export function RoboticsSection() {
           <ScrollReveal>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
               <span className="label">03</span>
-              <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-                Zumo
-              </span>
+              <span className="badge badge-cyan">Zumo</span>
               <span className="label">/ Robotics</span>
-              <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+              <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
             </div>
           </ScrollReveal>
 
@@ -54,33 +52,22 @@ export function RoboticsSection() {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2rem, 3.5vw, 3.5rem)',
-                fontWeight: 900,
-                lineHeight: 1.05,
-                letterSpacing: '-0.03em',
-                color: 'var(--color-espresso)',
+                fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                color: 'var(--color-text)',
                 margin: 0,
+                textTransform: 'uppercase',
               }}
             >
-              ASTI
-              <br />
-              Robotics
+              ASTI<br />ROBOTICS
             </h2>
           </ScrollReveal>
 
           <ScrollReveal delay={150}>
-            <p
-              style={{
-                fontFamily: 'var(--font-code)',
-                fontSize: '12px',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                color: 'var(--color-terracotta)',
-                marginTop: '12px',
-              }}
-            >
+            <span className="badge badge-lime" style={{ marginTop: '12px' }}>
               Finalista Nacional
-            </p>
+            </span>
           </ScrollReveal>
 
           <ScrollReveal delay={200}>
@@ -88,7 +75,7 @@ export function RoboticsSection() {
               style={{
                 fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-cocoa)',
+                color: 'var(--color-muted)',
                 marginTop: '20px',
               }}
             >
@@ -100,10 +87,10 @@ export function RoboticsSection() {
 
           <ScrollReveal delay={250}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-cocoa)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
                 → Finalista nacional
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-cocoa)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
                 → Desarrollo de software del robot
               </div>
             </div>
@@ -127,7 +114,7 @@ export function RoboticsSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-terracotta)',
+                color: 'var(--color-pink)',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',

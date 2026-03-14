@@ -1,12 +1,7 @@
 'use client'
 
-import dynamic from 'next/dynamic'
 import { ScrollReveal } from './ScrollReveal'
-
-const SplineScene = dynamic(
-  () => import('./SplineScene').then((m) => ({ default: m.SplineScene })),
-  { ssr: false }
-)
+import { LaptopMockup } from '../ui/LaptopMockup'
 
 export function CivicAidSection() {
   return (
@@ -24,15 +19,13 @@ export function CivicAidSection() {
       <ScrollReveal>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
           <span className="label">01</span>
-          <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-            Clara
-          </span>
+          <span className="badge badge-pink">Clara</span>
           <span className="label">/ AI Voice Assistant</span>
-          <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+          <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
         </div>
       </ScrollReveal>
 
-      {/* Two columns: info left, 3D right */}
+      {/* Two columns: info left, mockup right */}
       <div
         style={{
           display: 'flex',
@@ -47,17 +40,15 @@ export function CivicAidSection() {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2rem, 4vw, 4rem)',
-                fontWeight: 900,
-                lineHeight: 1.05,
-                letterSpacing: '-0.03em',
-                color: 'var(--color-espresso)',
+                fontSize: 'clamp(2.5rem, 5vw, 5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                color: 'var(--color-text)',
                 margin: 0,
+                textTransform: 'uppercase',
               }}
             >
-              Clara —
-              <br />
-              CivicAid Voice
+              CLARA —<br />CIVICAID VOICE
             </h2>
           </ScrollReveal>
 
@@ -66,7 +57,7 @@ export function CivicAidSection() {
               style={{
                 fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-cocoa)',
+                color: 'var(--color-muted)',
                 marginTop: '20px',
                 maxWidth: '480px',
               }}
@@ -90,7 +81,7 @@ export function CivicAidSection() {
                   style={{
                     fontFamily: 'var(--font-code)',
                     fontSize: '12px',
-                    color: 'var(--color-cocoa)',
+                    color: 'var(--color-muted)',
                     letterSpacing: '0.03em',
                   }}
                 >
@@ -119,7 +110,7 @@ export function CivicAidSection() {
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '12px',
-                  color: 'var(--color-terracotta)',
+                  color: 'var(--color-pink)',
                   textDecoration: 'none',
                   letterSpacing: '0.05em',
                   transition: 'opacity 0.2s',
@@ -136,13 +127,13 @@ export function CivicAidSection() {
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '12px',
-                  color: 'var(--color-steam-grey)',
+                  color: 'var(--color-muted)',
                   textDecoration: 'none',
                   letterSpacing: '0.05em',
                   transition: 'color 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-terracotta)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-steam-grey)')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-pink)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted)')}
               >
                 [github]
               </a>
@@ -150,20 +141,23 @@ export function CivicAidSection() {
           </ScrollReveal>
         </div>
 
-        {/* Right — Spline 3D computer */}
+        {/* Right — Laptop mockup with live site */}
         <ScrollReveal delay={200}>
-          <div
-            className="glass-card"
-            style={{
-              flex: '1 1 400px',
-              aspectRatio: '4 / 3',
-              minHeight: '300px',
-              position: 'relative',
-              overflow: 'hidden',
-              padding: 0,
-            }}
-          >
-            <SplineScene scene="https://prod.spline.design/S4UfUfH4Mi-TCEg3/scene.splinecode" />
+          <div style={{ flex: '1 1 400px' }}>
+            <LaptopMockup>
+              <iframe
+                src="https://andreavilaro0.github.io/civicaid-voice/"
+                title="Clara — CivicAid Voice"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  border: 'none',
+                  display: 'block',
+                }}
+                loading="lazy"
+                sandbox="allow-scripts allow-same-origin"
+              />
+            </LaptopMockup>
           </div>
         </ScrollReveal>
       </div>

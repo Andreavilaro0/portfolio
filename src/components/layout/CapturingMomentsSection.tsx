@@ -1,6 +1,7 @@
 'use client'
 
 import { ScrollReveal } from './ScrollReveal'
+import { BrowserMockup } from '../ui/BrowserMockup'
 
 export function CapturingMomentsSection() {
   return (
@@ -17,15 +18,13 @@ export function CapturingMomentsSection() {
       <ScrollReveal>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
           <span className="label">02</span>
-          <span className="label" style={{ color: 'var(--color-sage-green)' }}>
-            Lens
-          </span>
+          <span className="badge badge-cyan">Lens</span>
           <span className="label">/ Photography Portfolio</span>
-          <div style={{ flex: 1, height: 0, borderTop: '1px dashed rgba(255,255,255,0.08)' }} />
+          <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
         </div>
       </ScrollReveal>
 
-      {/* Two columns: info left, video right */}
+      {/* Two columns: info left, browser mockup right */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'center' }}>
         {/* Left — Info */}
         <div style={{ flex: '1 1 400px', maxWidth: '560px' }}>
@@ -33,17 +32,15 @@ export function CapturingMomentsSection() {
             <h2
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2rem, 4vw, 4rem)',
-                fontWeight: 900,
-                lineHeight: 1.05,
-                letterSpacing: '-0.03em',
-                color: 'var(--color-espresso)',
+                fontSize: 'clamp(2.5rem, 5vw, 5rem)',
+                lineHeight: 1,
+                letterSpacing: '-0.02em',
+                color: 'var(--color-text)',
                 margin: 0,
+                textTransform: 'uppercase',
               }}
             >
-              Capturing
-              <br />
-              Moments
+              CAPTURING<br />MOMENTS
             </h2>
           </ScrollReveal>
 
@@ -52,7 +49,7 @@ export function CapturingMomentsSection() {
               style={{
                 fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-cocoa)',
+                color: 'var(--color-muted)',
                 marginTop: '20px',
                 maxWidth: '480px',
               }}
@@ -65,10 +62,10 @@ export function CapturingMomentsSection() {
 
           <ScrollReveal delay={300}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-cocoa)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
                 → Diseño editorial responsive
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-cocoa)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
                 → Animaciones scroll-based
               </div>
             </div>
@@ -92,7 +89,7 @@ export function CapturingMomentsSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-terracotta)',
+                color: 'var(--color-pink)',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',
@@ -105,26 +102,20 @@ export function CapturingMomentsSection() {
           </ScrollReveal>
         </div>
 
-        {/* Right — Video showcase */}
+        {/* Right — Browser mockup with video */}
         <ScrollReveal delay={150}>
-          <div
-            className="glass-card"
-            style={{
-              flex: '1 1 400px',
-              overflow: 'hidden',
-              aspectRatio: '16 / 10',
-              padding: 0,
-            }}
-          >
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            >
-              <source src="/videos/plantilla-showcase.mp4" type="video/mp4" />
-            </video>
+          <div style={{ flex: '1 1 400px' }}>
+            <BrowserMockup url="andreavilaro0.github.io/plantilla">
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              >
+                <source src="/videos/plantilla-showcase.mp4" type="video/mp4" />
+              </video>
+            </BrowserMockup>
           </div>
         </ScrollReveal>
       </div>

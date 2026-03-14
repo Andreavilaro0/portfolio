@@ -1,134 +1,195 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { useGSAP } from '@gsap/react'
+import gsap from 'gsap'
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (delay: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.7,
-      delay,
-      ease: [0.33, 1, 0.68, 1] as [number, number, number, number],
-    },
-  }),
-}
+gsap.registerPlugin()
 
 export function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(() => {
+    if (!containerRef.current) return
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+    // Stickers fly in from random directions
+    const stickers = gsap.utils.toArray<HTMLElement>('.hero-sticker')
+    stickers.forEach((s, i) => {
+      const angle = Math.random() * Math.PI * 2
+      const dist = 200
+      gsap.set(s, {
+        x: Math.cos(angle) * dist,
+        y: Math.sin(angle) * dist,
+        opacity: 0,
+        rotation: (Math.random() - 0.5) * 40,
+        scale: 0.5,
+      })
+      tl.to(s, {
+        x: 0, y: 0, opacity: 1,
+        rotation: parseFloat(s.dataset.rotation || '0'),
+        scale: 1,
+        duration: 0.6,
+      }, 0.8 + i * 0.08)
+    })
+
+    // Name clips in
+    tl.fromTo('.hero-name',
+      { clipPath: 'inset(0 100% 0 0)' },
+      { clipPath: 'inset(0 0% 0 0)', duration: 0.8, ease: 'power4.inOut' },
+      0
+    )
+
+    // Subtitle fades up
+    tl.fromTo('.hero-subtitle',
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5 },
+      0.6
+    )
+
+    // Scroll indicator
+    tl.fromTo('.hero-scroll',
+      { opacity: 0 },
+      { opacity: 1, duration: 0.4 },
+      1.2
+    )
+  }, { scope: containerRef })
+
   return (
-    <section className="relative w-full overflow-hidden" aria-label="Hero — Andrea's Kitchen">
-      <a href="#projects" className="skip-link">
-        Skip to projects
-      </a>
+    <section ref={containerRef} className="relative" aria-label="Hero">
+      <a href="#projects" className="skip-link">Skip to projects</a>
 
-      {/* Wood grain counter strip with bottom fade */}
-      <div className="relative">
-        <div className="wood-grain h-[200px] w-full" />
+      <div
+        className="relative w-full min-h-screen overflow-hidden flex items-center justify-center"
+        style={{ background: 'var(--color-bg)' }}
+      >
+        {/* Decorative shapes */}
         <div
-          className="absolute bottom-0 left-0 w-full h-16"
-          style={{
-            background: 'linear-gradient(180deg, transparent 0%, var(--color-cream) 100%)',
-          }}
+          className="absolute top-[10%] left-[5%] w-32 h-32 rounded-full"
+          style={{ background: 'var(--color-pink)', opacity: 0.15 }}
+          aria-hidden="true"
         />
-      </div>
-
-      {/* Hero content */}
-      <div className="max-w-3xl mx-auto px-6 py-20 text-center">
-        <motion.h1
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0}
-          className="text-5xl md:text-7xl lg:text-8xl mb-5 leading-[1.1]"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-espresso)', fontWeight: 900 }}
-        >
-          Andrea&apos;s Kitchen
-        </motion.h1>
-
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.15}
-          className="text-xl md:text-2xl mb-6"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-espresso)', fontWeight: 600 }}
-        >
-          Recipes for Digital Products
-        </motion.p>
-
-        {/* Herb sprig divider — draws on with stroke animation */}
-        <motion.svg
-          className="mx-auto mb-8"
-          width="80"
-          height="16"
-          viewBox="0 0 80 16"
-          fill="none"
+        <div
+          className="absolute bottom-[15%] right-[8%] w-48 h-48"
+          style={{ background: 'var(--color-lime)', opacity: 0.12 }}
           aria-hidden="true"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <motion.path
-            d="M4 8 C20 2, 30 14, 40 8 C50 2, 60 14, 76 8"
-            stroke="var(--color-sage-green)"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            fill="none"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.8, delay: 0.5, ease: 'easeInOut' }}
-          />
-          <motion.circle
-            cx="40"
-            cy="8"
-            r="2"
-            fill="var(--color-sage-green)"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.3, delay: 1.0 }}
-          />
-        </motion.svg>
-
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.4}
-          className="text-lg md:text-xl leading-relaxed max-w-2xl mx-auto mb-10"
-          style={{ color: 'var(--color-cocoa)' }}
-        >
-          Full stack developer based in Madrid.
-          I take raw ingredients — React, Python, Three.js —
-          and turn them into experiences people actually enjoy.
-        </motion.p>
-
-        <motion.p
-          variants={fadeUp}
-          initial="hidden"
-          animate="visible"
-          custom={0.6}
-          className="label tracking-widest"
-        >
-          Browse the menu below.
-        </motion.p>
-
-        <motion.svg
-          className="mx-auto mt-6"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--color-steam-grey)"
-          strokeWidth="2"
-          strokeLinecap="round"
+        />
+        <div
+          className="absolute top-[30%] right-[15%] w-24 h-24 rounded-full"
+          style={{ background: 'var(--color-violet)', opacity: 0.1 }}
           aria-hidden="true"
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
+        />
+
+        {/* Name — ENORMOUS */}
+        <div className="relative z-10 text-center px-4">
+          <h1
+            className="hero-name"
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(4rem, 15vw, 14rem)',
+              lineHeight: 0.9,
+              letterSpacing: '-0.02em',
+              color: 'var(--color-text)',
+              fontWeight: 400,
+            }}
+          >
+            ANDREA<br />AVILA
+          </h1>
+
+          <p
+            className="hero-subtitle mt-4"
+            style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: 'clamp(0.7rem, 1.2vw, 0.9rem)',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'var(--color-muted)',
+            }}
+          >
+            Full Stack Developer — Madrid
+          </p>
+        </div>
+
+        {/* Stickers / Badges flotantes */}
+        <div
+          className="hero-sticker badge badge-pink absolute top-[12%] right-[10%] z-20"
+          data-rotation="-5"
+          style={{ transform: 'rotate(-5deg)' }}
         >
-          <path d="M12 5v14M5 12l7 7 7-7" />
-        </motion.svg>
+          FULL STACK
+        </div>
+        <div
+          className="hero-sticker badge badge-lime absolute bottom-[20%] left-[8%] z-20"
+          data-rotation="3"
+          style={{ transform: 'rotate(3deg)' }}
+        >
+          MADRID, ES
+        </div>
+        <div
+          className="hero-sticker badge badge-violet absolute top-[25%] left-[12%] z-20"
+          data-rotation="-8"
+          style={{ transform: 'rotate(-8deg)' }}
+        >
+          4° SEM
+        </div>
+        <div
+          className="hero-sticker badge badge-cyan absolute bottom-[25%] right-[12%] z-20"
+          data-rotation="6"
+          style={{ transform: 'rotate(6deg)' }}
+        >
+          MX → ES
+        </div>
+
+        {/* Micro data labels */}
+        <div
+          className="absolute top-6 left-6 z-20"
+          style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            color: 'var(--color-muted)',
+            letterSpacing: '0.1em',
+          }}
+        >
+          40.4168°N, 3.7038°W
+        </div>
+        <div
+          className="absolute top-6 right-6 z-20"
+          style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            color: 'var(--color-muted)',
+            letterSpacing: '0.1em',
+          }}
+        >
+          © 2026
+        </div>
+
+        {/* Scroll indicator */}
+        <div className="hero-scroll absolute bottom-8 left-1/2 -translate-x-1/2 z-30 text-center">
+          <p
+            style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: '10px',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: 'var(--color-muted)',
+              marginBottom: '8px',
+            }}
+          >
+            scroll
+          </p>
+          <div
+            style={{
+              width: '1px',
+              height: '40px',
+              background: 'var(--color-text)',
+              margin: '0 auto',
+            }}
+          />
+        </div>
       </div>
     </section>
   )
