@@ -4,8 +4,6 @@ import { useRef } from 'react'
 import { useGSAP } from '@gsap/react'
 import gsap from 'gsap'
 
-gsap.registerPlugin()
-
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null)
 
