@@ -6,22 +6,25 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import type { ExperienceMode } from './ExperienceWrapper'
 
-// Camera positions from handoff.json
-// Blender Z-up → Three.js Y-up conversion: Blender(X,Y,Z) → Three.js(X,Z,-Y)
-// But glTF exporter already converts, so we test both and use what works.
-// These are starting estimates — will be tuned visually.
+// Camera positions extracted from GLB scene anchors (inspect-glb.mjs)
+// GLB node positions (glTF exporter already handled coordinate conversion):
+//   CAMERA_INTRO_START:   pos [0, 12, -12]     → looks toward desk at origin
+//   CAMERA_SEATED_MAIN:   pos [0, 8.63, -2.2]  → looks toward monitor at Z=+2.6
+//   CAMERA_MONITOR_FOCUS: pos [0, 8.63, -2.5]  → focused on monitor
+//   monitor_main:         pos [-0.23, 8.39, 2.6]
+//   desk.001:             pos [0, 3.29, 0]
 const CAMERAS = {
   intro: {
-    position: new THREE.Vector3(0, 12, 12),
-    lookAt: new THREE.Vector3(0, 2, 0),
+    position: new THREE.Vector3(0, 12, -12),
+    lookAt: new THREE.Vector3(0, 5, 0),
   },
   seated: {
-    position: new THREE.Vector3(0, 8.63, -2.2),
-    lookAt: new THREE.Vector3(0, 6.5, -8),
+    position: new THREE.Vector3(0, 9.5, -5),
+    lookAt: new THREE.Vector3(0, 7, 2),
   },
   monitorFocus: {
     position: new THREE.Vector3(0, 8.63, -2.5),
-    lookAt: new THREE.Vector3(0, 7, -10),
+    lookAt: new THREE.Vector3(-0.23, 8.39, 2.6), // monitor_main position
   },
 }
 
