@@ -41,16 +41,13 @@ export function ExperienceWrapper() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
-  // Sync overlay visibility with mode
+  // Sync overlay visibility with mode — show immediately, CSS opacity handles cross-fade
   useEffect(() => {
     if (mode === 'seated') {
-      // Delay to let camera arrive first
-      const timer = setTimeout(() => setActiveScreen('portfolio'), 800)
-      return () => clearTimeout(timer)
+      setActiveScreen('portfolio')
     }
     if (mode === 'macbook') {
-      const timer = setTimeout(() => setActiveScreen('arcade'), 800)
-      return () => clearTimeout(timer)
+      setActiveScreen('arcade')
     }
   }, [mode])
 
@@ -59,13 +56,11 @@ export function ExperienceWrapper() {
   const onIntroComplete = useCallback(() => setMode('seated'), [])
 
   const goToMacbook = useCallback(() => {
-    setActiveScreen('none') // fade out portfolio
-    setTimeout(() => setMode('macbook'), 600) // then move camera
+    setMode('macbook')
   }, [])
 
   const goToSeated = useCallback(() => {
-    setActiveScreen('none') // fade out arcade
-    setTimeout(() => setMode('seated'), 600) // then move camera
+    setMode('seated')
   }, [])
 
   if (isMobile) {
