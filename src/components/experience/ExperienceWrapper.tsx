@@ -95,8 +95,8 @@ export function ExperienceWrapper() {
 
   const vw = typeof window !== 'undefined' ? window.innerWidth : 1920
   const vh = typeof window !== 'undefined' ? window.innerHeight : 1080
-  const clampedMonitor = clampRect(monitorRect, vw * 0.65, vh * 0.55)
-  const clampedMacbook = clampRect(macbookRect, vw * 0.55, vh * 0.5)
+  const clampedMonitor = clampRect(monitorRect, vw * 0.75, vh * 0.65)
+  const clampedMacbook = clampRect(macbookRect, vw * 0.65, vh * 0.55)
   const hasMonitorRect = clampedMonitor !== null
   const hasArcadeRect = clampedMacbook !== null
 

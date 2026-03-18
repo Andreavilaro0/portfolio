@@ -12,18 +12,18 @@ import type { ExperienceMode } from './ExperienceWrapper'
 const CAMERAS = {
   // Intro: very far, high and wide — dramatic fly-in to first person
   intro: {
-    position: new THREE.Vector3(0, 18, -40),
-    lookAt: new THREE.Vector3(0, 10.29, 2.04),
+    position: new THREE.Vector3(0, 16, -35),
+    lookAt: new THREE.Vector3(0, 9.5, 1.0),
   },
-  // Seated: pulled back enough so monitor fits within ~70% of viewport width
+  // Seated: far enough to see full monitor + desk objects around it
   seated: {
-    position: new THREE.Vector3(0, 11.5, -7.0),
-    lookAt: new THREE.Vector3(0, 10.29, 2.04),
+    position: new THREE.Vector3(0, 11.0, -9.0),
+    lookAt: new THREE.Vector3(0, 9.5, 1.0),
   },
-  // MacBook: from Blender Camera_MacBook, looking at macbook center
+  // MacBook: far enough to see full laptop screen + some context
   macbook: {
-    position: new THREE.Vector3(-4.63, 8.0, -6.0),
-    lookAt: new THREE.Vector3(-4.63, 7.5, -1.1),
+    position: new THREE.Vector3(-4.63, 8.5, -7.5),
+    lookAt: new THREE.Vector3(-4.63, 7.2, -1.1),
   },
 }
 

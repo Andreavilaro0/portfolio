@@ -216,8 +216,8 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
     <>
       <primitive object={scene} />
 
-      {/* Lighting */}
-      <ambientLight ref={ambientRef} intensity={0.25} color="#F0E8FF" />
+      {/* Lighting — neutral warm, no pink */}
+      <ambientLight ref={ambientRef} intensity={0.3} color="#F5F3F0" />
       <directionalLight
         position={[-4, 12, -6]}
         intensity={2.0}
@@ -231,8 +231,8 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         shadow-camera-near={0.5}
         shadow-camera-far={30}
       />
-      <directionalLight position={[5, 6, -4]} intensity={0.5} color="#E0D0FF" />
-      <pointLight position={[0, 8, 4]} intensity={0.8} color="#FF2D9B" distance={15} />
+      <directionalLight position={[5, 6, -4]} intensity={0.4} color="#F0EDE8" />
+      <pointLight position={[0, 8, 4]} intensity={0.3} color="#FFF5F0" distance={15} />
       <spotLight
         ref={macbookSpotRef}
         position={[-3.5, 12, -3.5]}
@@ -272,7 +272,7 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
-      camera={{ fov: 35, near: 0.1, far: 200, position: [0, 12, -12] }}
+      camera={{ fov: 45, near: 0.1, far: 200, position: [0, 12, -12] }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       shadows
     >
