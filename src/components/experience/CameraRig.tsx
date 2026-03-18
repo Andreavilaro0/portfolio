@@ -6,30 +6,30 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import type { ExperienceMode } from './ExperienceWrapper'
 
-// Camera positions based on exact Blender bounding boxes:
-// Monitor screen center: (0, -2.04, 10.29), size 7.2 x 4.1
-// MacBook center: (-4.63, 1.10, 7.50), size 3.05 x 2.05
+// Camera positions from Blender cameras (verified 2026-03-18):
+// Monitor screen center (Three.js): (0, 10.293, 2.04), size 7.2 x 4.1
+// MacBook center (Three.js): (-4.633, 7.500, -1.101), size 3.05 x 2.05
 const CAMERAS = {
-  // Intro: far back, slightly above monitor looking down
+  // Intro: very far, high and wide — dramatic fly-in to first person
   intro: {
-    position: new THREE.Vector3(0, 13, -18),
-    lookAt: new THREE.Vector3(0, 10.0, 2),
+    position: new THREE.Vector3(0, 18, -40),
+    lookAt: new THREE.Vector3(0, 10.29, 2.04),
   },
-  // Seated: first-person view, slightly above screen center looking down
+  // Seated: from Blender Camera_Seated, slightly above for natural desk gaze
   seated: {
-    position: new THREE.Vector3(0, 10.8, -6.5),
-    lookAt: new THREE.Vector3(0, 10.0, 2),
+    position: new THREE.Vector3(0, 10.8, -4.0),
+    lookAt: new THREE.Vector3(0, 10.29, 2.04),
   },
-  // MacBook: slightly above looking down at tilted lid
+  // MacBook: from Blender Camera_MacBook, looking at macbook center
   macbook: {
-    position: new THREE.Vector3(-4.63, 8.0, -4.5),
-    lookAt: new THREE.Vector3(-4.63, 7.3, 1.1),
+    position: new THREE.Vector3(-4.63, 8.0, -6.0),
+    lookAt: new THREE.Vector3(-4.63, 7.5, -1.1),
   },
 }
 
-// Midpoint for curved transition between screens
-const TRANSITION_MID = new THREE.Vector3(-1.5, 9.5, -5.0)
-const TRANSITION_MID_LOOKAT = new THREE.Vector3(-2.0, 9.0, 1.5)
+// Midpoint for curved transition between screens (elevated arc)
+const TRANSITION_MID = new THREE.Vector3(-2.3, 11.0, -5.0)
+const TRANSITION_MID_LOOKAT = new THREE.Vector3(-2.3, 9.0, 0.5)
 
 interface CameraRigProps {
   mode: ExperienceMode
@@ -79,13 +79,13 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
 
     introTween.current = gsap.to(proxy, {
       t: 1,
-      duration: 3.5,
-      ease: 'power3.inOut',
+      duration: 5.0,
+      ease: 'power2.inOut',
       onUpdate: () => {
         const t = proxy.t
-        // Position: lerp from far+high to close+lower (crane + dolly)
+        // Smooth S-curve fly-in: far+high → close+seated
         camera.position.lerpVectors(CAMERAS.intro.position, CAMERAS.seated.position, t)
-        // LookAt: fixed at the seated target for stability
+        // LookAt: fixed at the seated target for rock-solid stability
         camera.lookAt(CAMERAS.seated.lookAt)
       },
       onComplete: () => {

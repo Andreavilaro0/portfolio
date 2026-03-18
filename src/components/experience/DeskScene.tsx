@@ -138,10 +138,11 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
       // Store corners for ScreenProjector
       if (monitorCorners.length === 4) setMonitorCorners3D(monitorCorners)
       const resolvedMacbook = macbookCorners.length === 4 ? macbookCorners : [
-        new THREE.Vector3(-6.15, 8.53, 1.1),
-        new THREE.Vector3(-3.11, 8.53, 1.1),
-        new THREE.Vector3(-6.15, 6.48, 1.1),
-        new THREE.Vector3(-3.11, 6.48, 1.1),
+        // Fallback from Blender data (Three.js coords): MacBook screen area
+        new THREE.Vector3(-6.16, 8.53, -0.08),
+        new THREE.Vector3(-3.11, 8.53, -0.08),
+        new THREE.Vector3(-6.16, 6.47, -2.28),
+        new THREE.Vector3(-3.11, 6.47, -2.28),
       ]
       setMacbookCorners3D(resolvedMacbook)
 

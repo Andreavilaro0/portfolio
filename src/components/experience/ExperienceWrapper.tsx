@@ -125,7 +125,7 @@ export function ExperienceWrapper() {
             background: '#F2F0ED',
             pointerEvents: isPortfolioVisible ? 'auto' : 'none',
             opacity: isPortfolioVisible ? 1 : 0,
-            transition: 'opacity 0.6s ease',
+            transition: 'opacity 1.2s ease',
           }}
         >
           <div className="monitor-scroll" style={{
@@ -134,7 +134,7 @@ export function ExperienceWrapper() {
             overflowY: 'auto',
             overflowX: 'hidden',
           }}>
-            <PortfolioContent />
+            <MonitorPortfolio />
           </div>
           {/* Nav to arcade — visible button */}
           <div
@@ -144,10 +144,10 @@ export function ExperienceWrapper() {
               bottom: '12px',
               right: '16px',
               fontFamily: 'var(--font-code)',
-              fontSize: '11px',
+              fontSize: '13px',
               color: '#fff',
               cursor: 'pointer',
-              padding: '8px 16px',
+              padding: '10px 20px',
               background: 'var(--color-pink)',
               borderRadius: '6px',
               zIndex: 30,
@@ -181,7 +181,7 @@ export function ExperienceWrapper() {
             boxShadow: '0 16px 64px rgba(0,0,0,0.6)',
             pointerEvents: isArcadeVisible ? 'auto' : 'none',
             opacity: isArcadeVisible ? 1 : 0,
-            transition: 'opacity 0.6s ease',
+            transition: 'opacity 1.2s ease',
             display: 'flex',
             flexDirection: 'column' as const,
           }}
@@ -207,7 +207,7 @@ export function ExperienceWrapper() {
             <span style={{ letterSpacing: '0.12em', textTransform: 'uppercase' }}>Arcade</span>
             <span
               onClick={goToSeated}
-              style={{ color: '#BEFF00', fontSize: '9px', cursor: 'pointer' }}
+              style={{ color: '#BEFF00', fontSize: '12px', cursor: 'pointer', padding: '4px 8px', fontWeight: 600 }}
             >
               ← Portfolio
             </span>
