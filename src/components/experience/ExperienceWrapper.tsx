@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import type * as THREE from 'three'
+import type { ScreenRect } from './ScreenAlignedOverlay'
 import dynamic from 'next/dynamic'
 import { LoadingScreen } from './LoadingScreen'
 import { NoiseBackground } from '../layout/NoiseBackground'
@@ -26,6 +27,8 @@ export function ExperienceWrapper() {
     monitor: THREE.Vector3[]
     macbook: THREE.Vector3[]
   } | null>(null)
+  const [monitorRect, setMonitorRect] = useState<ScreenRect>({ top: 0, left: 0, width: 0, height: 0 })
+  const [macbookRect, setMacbookRect] = useState<ScreenRect>({ top: 0, left: 0, width: 0, height: 0 })
 
   const onScreenBounds = useCallback((bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => {
     setScreenBounds(bounds)
@@ -78,6 +81,8 @@ export function ExperienceWrapper() {
 
   const isPortfolioVisible = activeScreen === 'portfolio'
   const isArcadeVisible = activeScreen === 'arcade'
+  const hasMonitorRect = monitorRect.width > 50
+  const hasArcadeRect = macbookRect.width > 50
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
@@ -94,6 +99,8 @@ export function ExperienceWrapper() {
           onProgress={setLoadProgress}
           onIntroComplete={onIntroComplete}
           onScreenBounds={onScreenBounds}
+          onMonitorRect={setMonitorRect}
+          onMacbookRect={setMacbookRect}
         />
       </div>
 
@@ -102,11 +109,10 @@ export function ExperienceWrapper() {
         <div
           style={{
             position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -54%)',
-            width: 'clamp(300px, 44vw, 720px)',
-            height: 'clamp(200px, 48vh, 480px)',
+            ...(hasMonitorRect
+              ? { top: `${monitorRect.top}px`, left: `${monitorRect.left}px`, width: `${monitorRect.width}px`, height: `${monitorRect.height}px` }
+              : { top: '50%', left: '50%', transform: 'translate(-50%, -54%)', width: 'clamp(300px, 44vw, 720px)', height: 'clamp(200px, 48vh, 480px)' }
+            ),
             zIndex: 20,
             overflow: 'hidden',
             background: '#F2F0ED',
@@ -156,11 +162,10 @@ export function ExperienceWrapper() {
         <div
           style={{
             position: 'fixed',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 'clamp(300px, 42vw, 540px)',
-            height: 'clamp(220px, 45vh, 380px)',
+            ...(hasArcadeRect
+              ? { top: `${macbookRect.top}px`, left: `${macbookRect.left}px`, width: `${macbookRect.width}px`, height: `${macbookRect.height}px` }
+              : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'clamp(300px, 42vw, 540px)', height: 'clamp(220px, 45vh, 380px)' }
+            ),
             zIndex: 20,
             overflow: 'hidden',
             background: '#0a0a0a',
@@ -171,7 +176,7 @@ export function ExperienceWrapper() {
             opacity: isArcadeVisible ? 1 : 0,
             transition: 'opacity 0.6s ease',
             display: 'flex',
-            flexDirection: 'column',
+            flexDirection: 'column' as const,
           }}
         >
           {/* Header */}

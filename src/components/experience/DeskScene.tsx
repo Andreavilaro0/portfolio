@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useMemo } from 'react'
+import { Suspense, useEffect, useRef, useMemo, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, ContactShadows, Preload } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing'
@@ -10,6 +10,8 @@ import gsap from 'gsap'
 import { CameraRig } from './CameraRig'
 import { DeskInteractions } from './DeskInteractions'
 import { DustParticles } from './DustParticles'
+import { ScreenProjector } from './ScreenAlignedOverlay'
+import type { ScreenRect } from './ScreenAlignedOverlay'
 // SnakeGame is rendered in ExperienceWrapper as DOM overlay
 import type { ExperienceMode } from './ExperienceWrapper'
 
@@ -28,20 +30,26 @@ interface DeskSceneProps {
     monitor: THREE.Vector3[]
     macbook: THREE.Vector3[]
   }) => void
+  onMonitorRect?: (rect: ScreenRect) => void
+  onMacbookRect?: (rect: ScreenRect) => void
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
   onProgress: (p: number) => void
   onScreenBounds?: (bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => void
+  onMonitorRect?: (rect: ScreenRect) => void
+  onMacbookRect?: (rect: ScreenRect) => void
 }) {
   const { scene, nodes } = useGLTF(MODEL_PATH)
   const hasLoaded = useRef(false)
   const ambientRef = useRef<THREE.AmbientLight>(null)
   const macbookSpotRef = useRef<THREE.SpotLight>(null)
   const prevModeRef = useRef<ExperienceMode>('loading')
+  const [monitorCorners3D, setMonitorCorners3D] = useState<THREE.Vector3[]>([])
+  const [macbookCorners3D, setMacbookCorners3D] = useState<THREE.Vector3[]>([])
 
   // macbookCenter removed — arcade is now a DOM overlay
 
@@ -127,15 +135,20 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds }: 
       const monitorCorners = extractCorners(['monitor_screen', 'screen_plane', 'screen_glass', 'screen_quad'])
       const macbookCorners = extractCorners(['macbook_screen', 'macbook_display'])
 
+      // Store corners for ScreenProjector
+      if (monitorCorners.length === 4) setMonitorCorners3D(monitorCorners)
+      const resolvedMacbook = macbookCorners.length === 4 ? macbookCorners : [
+        new THREE.Vector3(-6.15, 8.53, 1.1),
+        new THREE.Vector3(-3.11, 8.53, 1.1),
+        new THREE.Vector3(-6.15, 6.48, 1.1),
+        new THREE.Vector3(-3.11, 6.48, 1.1),
+      ]
+      setMacbookCorners3D(resolvedMacbook)
+
       if (onScreenBounds && monitorCorners.length === 4) {
         onScreenBounds({
           monitor: monitorCorners,
-          macbook: macbookCorners.length === 4 ? macbookCorners : [
-            new THREE.Vector3(-6.15, 8.53, 1.1),
-            new THREE.Vector3(-3.11, 8.53, 1.1),
-            new THREE.Vector3(-6.15, 6.48, 1.1),
-            new THREE.Vector3(-3.11, 6.48, 1.1),
-          ],
+          macbook: resolvedMacbook,
         })
       }
     }
@@ -243,11 +256,18 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds }: 
       {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
 
       <CameraRig mode={mode} onIntroComplete={onIntroComplete} />
+
+      {monitorCorners3D.length === 4 && onMonitorRect && (
+        <ScreenProjector corners={monitorCorners3D} onUpdate={onMonitorRect} padding={6} />
+      )}
+      {macbookCorners3D.length === 4 && onMacbookRect && (
+        <ScreenProjector corners={macbookCorners3D} onUpdate={onMacbookRect} padding={4} />
+      )}
     </>
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect }: DeskSceneProps) {
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
@@ -262,6 +282,8 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
           onIntroComplete={onIntroComplete}
           onProgress={onProgress}
           onScreenBounds={onScreenBounds}
+          onMonitorRect={onMonitorRect}
+          onMacbookRect={onMacbookRect}
         />
         <EffectComposer multisampling={0}>
           <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.4} intensity={0.3} mipmapBlur />
