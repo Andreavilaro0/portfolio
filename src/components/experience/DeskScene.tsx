@@ -1,140 +1,258 @@
 'use client'
 
-import { Suspense, useEffect, useRef } from 'react'
+import { Suspense, useEffect, useRef, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, Html } from '@react-three/drei'
-import { MeshoptDecoder } from 'meshoptimizer'
+import { useGLTF, ContactShadows, Preload } from '@react-three/drei'
+import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing'
+import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
+import gsap from 'gsap'
 import { CameraRig } from './CameraRig'
 import { DeskInteractions } from './DeskInteractions'
-import { PortfolioContent } from '../layout/PortfolioContent'
+import { DustParticles } from './DustParticles'
+// SnakeGame is rendered in ExperienceWrapper as DOM overlay
 import type { ExperienceMode } from './ExperienceWrapper'
+
+const MODEL_PATH = '/models/desk-scene-clean.glb'
+
+// Objects to hide from the original GLB
+const HIDE_OBJECTS: string[] = [  // cleaned in Blender
+]
 
 interface DeskSceneProps {
   mode: ExperienceMode
   onLoaded: () => void
   onProgress: (p: number) => void
   onIntroComplete: () => void
+  onScreenBounds?: (bounds: {
+    monitor: THREE.Vector3[]
+    macbook: THREE.Vector3[]
+  }) => void
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
   onProgress: (p: number) => void
+  onScreenBounds?: (bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => void
 }) {
-  const { scene, nodes } = useGLTF('/models/desk-scene-web.glb', undefined, undefined, (loader) => {
-    loader.setMeshoptDecoder(MeshoptDecoder as any)
-  })
+  const { scene, nodes } = useGLTF(MODEL_PATH)
   const hasLoaded = useRef(false)
+  const ambientRef = useRef<THREE.AmbientLight>(null)
+  const macbookSpotRef = useRef<THREE.SpotLight>(null)
+  const prevModeRef = useRef<ExperienceMode>('loading')
+
+  // macbookCenter removed — arcade is now a DOM overlay
 
   useEffect(() => {
     const manager = THREE.DefaultLoadingManager
     manager.onProgress = (_url, loaded, total) => {
-      if (total > 0) {
-        onProgress(Math.round((loaded / total) * 100))
-      }
+      if (total > 0) onProgress(Math.round((loaded / total) * 100))
     }
-    return () => {
-      manager.onProgress = () => {}
-    }
+    return () => { manager.onProgress = () => {} }
   }, [onProgress])
 
   useEffect(() => {
     if (!hasLoaded.current && scene) {
       hasLoaded.current = true
 
+      // Log all mesh names for debugging (dev only)
+      if (process.env.NODE_ENV === 'development') {
+        const names: string[] = []
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh) names.push(child.name)
+        })
+        console.log('GLB mesh names:', names.join(', '))
+      }
+
       scene.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          if (child.name === 'mega_sphere_L') {
-            child.material.side = THREE.BackSide
+          const nameLower = child.name.toLowerCase()
+
+          // Hide decorative objects
+          if (HIDE_OBJECTS.some(h => nameLower.includes(h.toLowerCase()))) {
+            child.visible = false
+            return
           }
+
+          // Monitor screen: subtle glow so it looks "on"
+          if (nameLower.includes('monitor_screen') || nameLower.includes('screen_plane') || nameLower.includes('screen_glass') || nameLower.includes('screen_quad')) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: '#1a1a2e',
+              emissive: '#2a2a4a',
+              emissiveIntensity: 0.8,
+              roughness: 0.05,
+              metalness: 0.3,
+              side: THREE.DoubleSide,
+            })
+            return
+          }
+
           child.castShadow = true
           child.receiveShadow = true
         }
       })
 
       onLoaded()
+
+      // Extract screen corners for DOM overlay alignment
+      const extractCorners = (meshNames: string[]): THREE.Vector3[] => {
+        const box = new THREE.Box3()
+        let found = false
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            const name = child.name.toLowerCase()
+            if (meshNames.some(n => name.includes(n))) {
+              if (!found) {
+                box.setFromObject(child)
+                found = true
+              } else {
+                box.expandByObject(child)
+              }
+            }
+          }
+        })
+        if (!found) return []
+        const min = box.min
+        const max = box.max
+        return [
+          new THREE.Vector3(min.x, max.y, min.z), // top-left
+          new THREE.Vector3(max.x, max.y, min.z), // top-right
+          new THREE.Vector3(min.x, min.y, min.z), // bottom-left
+          new THREE.Vector3(max.x, min.y, min.z), // bottom-right
+        ]
+      }
+
+      const monitorCorners = extractCorners(['monitor_screen', 'screen_plane', 'screen_glass', 'screen_quad'])
+      const macbookCorners = extractCorners(['macbook_screen', 'macbook_display'])
+
+      if (onScreenBounds && monitorCorners.length === 4) {
+        onScreenBounds({
+          monitor: monitorCorners,
+          macbook: macbookCorners.length === 4 ? macbookCorners : [
+            new THREE.Vector3(-6.15, 8.53, 1.1),
+            new THREE.Vector3(-3.11, 8.53, 1.1),
+            new THREE.Vector3(-6.15, 6.48, 1.1),
+            new THREE.Vector3(-3.11, 6.48, 1.1),
+          ],
+        })
+      }
     }
-  }, [scene, onLoaded])
+  }, [scene, onLoaded, onScreenBounds])
+
+  // Contextual lighting for macbook mode
+  useEffect(() => {
+    const from = prevModeRef.current
+    prevModeRef.current = mode
+
+    if (mode === 'macbook' && from !== 'macbook') {
+      if (ambientRef.current) gsap.to(ambientRef.current, { intensity: 0.10, duration: 1 })
+      if (macbookSpotRef.current) gsap.to(macbookSpotRef.current, { intensity: 3, duration: 1 })
+    } else if (from === 'macbook' && mode !== 'macbook') {
+      if (ambientRef.current) gsap.to(ambientRef.current, { intensity: 0.25, duration: 1 })
+      if (macbookSpotRef.current) gsap.to(macbookSpotRef.current, { intensity: 0, duration: 1 })
+    }
+  }, [mode])
+
+  useEffect(() => {
+    if (macbookSpotRef.current) {
+      macbookSpotRef.current.target.position.set(-3.5, 7.5, 0.5)
+      macbookSpotRef.current.target.updateMatrixWorld()
+    }
+  }, [])
+
+  // Screen glow breathing — subtle pulse on the monitor screen emissive
+  useEffect(() => {
+    if (!scene) return
+    const screenMeshes: THREE.Mesh[] = []
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        const name = child.name.toLowerCase()
+        if (name.includes('monitor_screen') || name.includes('screen_plane') ||
+            name.includes('screen_glass') || name.includes('screen_quad')) {
+          screenMeshes.push(child)
+        }
+      }
+    })
+
+    if (screenMeshes.length === 0) return
+
+    const proxy = { intensity: 0.8 }
+    const tween = gsap.to(proxy, {
+      intensity: 1.2,
+      duration: 3,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      onUpdate: () => {
+        screenMeshes.forEach((mesh) => {
+          const mat = mesh.material as THREE.MeshStandardMaterial
+          if (mat.emissiveIntensity !== undefined) {
+            mat.emissiveIntensity = proxy.intensity
+          }
+        })
+      },
+    })
+
+    return () => { tween.kill() }
+  }, [scene])
 
   return (
     <>
       <primitive object={scene} />
 
-      {/* Lights (area lights not supported in glTF) */}
-      <ambientLight intensity={0.4} color="#F0E8FF" />
+      {/* Lighting */}
+      <ambientLight ref={ambientRef} intensity={0.25} color="#F0E8FF" />
       <directionalLight
-        position={[-3, 10, 5]}
-        intensity={1.5}
-        color="#ffffff"
+        position={[-4, 12, -6]}
+        intensity={2.0}
+        color="#FFF8F0"
         castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-left={-8}
+        shadow-camera-right={8}
+        shadow-camera-top={8}
+        shadow-camera-bottom={-8}
+        shadow-camera-near={0.5}
+        shadow-camera-far={30}
       />
-      <directionalLight
-        position={[4, 6, -2]}
-        intensity={0.6}
-        color="#E0D0FF"
-      />
-      <pointLight
-        position={[-4, 8, 6]}
-        intensity={0.8}
-        color="#FFE8D0"
-        distance={20}
+      <directionalLight position={[5, 6, -4]} intensity={0.5} color="#E0D0FF" />
+      <pointLight position={[0, 8, 4]} intensity={0.8} color="#FF2D9B" distance={15} />
+      <spotLight
+        ref={macbookSpotRef}
+        position={[-3.5, 12, -3.5]}
+        angle={0.4}
+        penumbra={0.5}
+        intensity={0}
+        color="#FFFFFF"
       />
 
-      <DeskInteractions scene={scene} />
+      <ContactShadows
+        position={[0, 0, 0]}
+        opacity={0.6}
+        scale={20}
+        blur={2.5}
+        far={10}
+        resolution={512}
+      />
 
-      {/* Portfolio rendered ON the monitor screen */}
-      {mode === 'seated' && nodes.monitor_main && (
-        <Html
-          position={[-0.23, 8.5, 2.55]}
-          rotation={[0, Math.PI * 0.5, 0]}
-          transform
-          distanceFactor={1.5}
-          style={{
-            width: '1024px',
-            height: '576px',
-            overflow: 'hidden',
-            background: '#F2F0ED',
-            pointerEvents: 'auto',
-          }}
-        >
-          <div
-            style={{
-              width: '1024px',
-              height: '576px',
-              overflow: 'auto',
-              transform: 'scale(0.5)',
-              transformOrigin: 'top left',
-            }}
-          >
-            <div style={{ width: '2048px' }}>
-              <PortfolioContent />
-            </div>
-          </div>
-        </Html>
-      )}
+      <DeskInteractions scene={scene} mode={mode} />
+      <DustParticles />
+
+      {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
 
       <CameraRig mode={mode} onIntroComplete={onIntroComplete} />
     </>
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds }: DeskSceneProps) {
   return (
     <Canvas
-      style={{ width: '100%', height: '100%', background: '#0A0A0A' }}
-      camera={{
-        fov: 40,
-        near: 0.1,
-        far: 200,
-        position: [0, 12, -12],
-      }}
-      gl={{
-        antialias: true,
-        alpha: false,
-        powerPreference: 'high-performance',
-      }}
+      style={{ width: '100%', height: '100%', background: 'transparent' }}
+      camera={{ fov: 40, near: 0.1, far: 200, position: [0, 12, -12] }}
+      gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       shadows
     >
       <Suspense fallback={null}>
@@ -143,10 +261,17 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete }: DeskS
           mode={mode}
           onIntroComplete={onIntroComplete}
           onProgress={onProgress}
+          onScreenBounds={onScreenBounds}
         />
+        <EffectComposer multisampling={0}>
+          <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.4} intensity={0.3} mipmapBlur />
+          <Vignette eskil={false} offset={0.3} darkness={0.5} />
+          <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+        </EffectComposer>
+        <Preload all />
       </Suspense>
     </Canvas>
   )
 }
 
-useGLTF.preload('/models/desk-scene-web.glb')
+useGLTF.preload(MODEL_PATH)
