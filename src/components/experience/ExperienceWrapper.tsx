@@ -79,6 +79,18 @@ export function ExperienceWrapper() {
   const hasMonitorRect = monitorRect.width > 50
   const hasArcadeRect = macbookRect.width > 50
 
+  // Enforce minimum dimensions for small viewports
+  const safeMonitorRect = {
+    ...monitorRect,
+    width: Math.max(monitorRect.width, 280),
+    height: Math.max(monitorRect.height, 180),
+  }
+  const safeMacbookRect = {
+    ...macbookRect,
+    width: Math.max(macbookRect.width, 280),
+    height: Math.max(macbookRect.height, 180),
+  }
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
       <NoiseBackground />
@@ -105,7 +117,7 @@ export function ExperienceWrapper() {
           style={{
             position: 'fixed',
             ...(hasMonitorRect
-              ? { top: `${monitorRect.top}px`, left: `${monitorRect.left}px`, width: `${monitorRect.width}px`, height: `${monitorRect.height}px` }
+              ? { top: `${safeMonitorRect.top}px`, left: `${safeMonitorRect.left}px`, width: `${safeMonitorRect.width}px`, height: `${safeMonitorRect.height}px` }
               : { top: '50%', left: '50%', transform: 'translate(-50%, -54%)', width: 'clamp(300px, 44vw, 720px)', height: 'clamp(200px, 48vh, 480px)' }
             ),
             zIndex: 20,
@@ -158,7 +170,7 @@ export function ExperienceWrapper() {
           style={{
             position: 'fixed',
             ...(hasArcadeRect
-              ? { top: `${macbookRect.top}px`, left: `${macbookRect.left}px`, width: `${macbookRect.width}px`, height: `${macbookRect.height}px` }
+              ? { top: `${safeMacbookRect.top}px`, left: `${safeMacbookRect.left}px`, width: `${safeMacbookRect.width}px`, height: `${safeMacbookRect.height}px` }
               : { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 'clamp(300px, 42vw, 540px)', height: 'clamp(220px, 45vh, 380px)' }
             ),
             zIndex: 20,
