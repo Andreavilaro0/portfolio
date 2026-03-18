@@ -150,14 +150,14 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
     })
   }, [mode, camera])
 
-  // Parallax only in macbook mode (seated has DOM overlay that can't move with camera)
+  // Subtle parallax in both seated and macbook modes — feels like moving your head
   useFrame(() => {
-    if (mode !== 'macbook') return
+    if (mode !== 'seated' && mode !== 'macbook') return
     if (isAnimating.current) return
 
-    const maxRotX = 0.015
-    const maxRotY = 0.02
-    const damping = 0.02
+    const maxRotX = 0.012
+    const maxRotY = 0.018
+    const damping = 0.03
 
     const targetRotX = baseRotation.current.x + mouseRef.current.y * maxRotX
     const targetRotY = baseRotation.current.y + mouseRef.current.x * maxRotY
