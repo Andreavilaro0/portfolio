@@ -15,9 +15,9 @@ const CAMERAS = {
     position: new THREE.Vector3(0, 18, -40),
     lookAt: new THREE.Vector3(0, 10.29, 2.04),
   },
-  // Seated: from Blender Camera_Seated, slightly above for natural desk gaze
+  // Seated: pulled back enough so monitor fits within ~70% of viewport width
   seated: {
-    position: new THREE.Vector3(0, 10.8, -4.0),
+    position: new THREE.Vector3(0, 11.5, -7.0),
     lookAt: new THREE.Vector3(0, 10.29, 2.04),
   },
   // MacBook: from Blender Camera_MacBook, looking at macbook center

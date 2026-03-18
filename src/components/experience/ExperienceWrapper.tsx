@@ -77,13 +77,28 @@ export function ExperienceWrapper() {
   const isPortfolioVisible = activeScreen === 'portfolio'
   const isArcadeVisible = activeScreen === 'arcade'
 
-  // Validate projected rects — if they exceed viewport bounds, use fallback
-  const isValidRect = (rect: ScreenRect) =>
-    rect.width > 50 && rect.width < window.innerWidth * 0.9 &&
-    rect.height > 50 && rect.height < window.innerHeight * 0.9 &&
-    rect.left > -20 && rect.top > -20
-  const hasMonitorRect = isValidRect(monitorRect)
-  const hasArcadeRect = isValidRect(macbookRect)
+  // Clamp projected rect to fit within viewport with max size constraints
+  const clampRect = (rect: ScreenRect, maxW: number, maxH: number) => {
+    if (rect.width < 50) return null // no valid projection yet
+    const w = Math.min(rect.width, maxW)
+    const h = Math.min(rect.height, maxH)
+    // Center the clamped rect within the projected area
+    const cx = rect.left + rect.width / 2
+    const cy = rect.top + rect.height / 2
+    return {
+      left: Math.max(8, cx - w / 2),
+      top: Math.max(8, cy - h / 2),
+      width: w,
+      height: h,
+    }
+  }
+
+  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920
+  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080
+  const clampedMonitor = clampRect(monitorRect, vw * 0.65, vh * 0.55)
+  const clampedMacbook = clampRect(macbookRect, vw * 0.55, vh * 0.5)
+  const hasMonitorRect = clampedMonitor !== null
+  const hasArcadeRect = clampedMacbook !== null
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100vh', overflow: 'hidden' }}>
@@ -110,8 +125,8 @@ export function ExperienceWrapper() {
         <div
           style={{
             position: 'fixed',
-            ...(hasMonitorRect
-              ? { top: `${monitorRect.top}px`, left: `${monitorRect.left}px`, width: `${monitorRect.width}px`, height: `${monitorRect.height}px` }
+            ...(hasMonitorRect && clampedMonitor
+              ? { top: `${clampedMonitor.top}px`, left: `${clampedMonitor.left}px`, width: `${clampedMonitor.width}px`, height: `${clampedMonitor.height}px` }
               : { top: '18%', left: '50%', transform: 'translateX(-50%)', width: 'clamp(280px, 42vw, 520px)', height: 'clamp(200px, 50vh, 480px)' }
             ),
             zIndex: 20,
@@ -165,8 +180,8 @@ export function ExperienceWrapper() {
         <div
           style={{
             position: 'fixed',
-            ...(hasArcadeRect
-              ? { top: `${macbookRect.top}px`, left: `${macbookRect.left}px`, width: `${macbookRect.width}px`, height: `${macbookRect.height}px` }
+            ...(hasArcadeRect && clampedMacbook
+              ? { top: `${clampedMacbook.top}px`, left: `${clampedMacbook.left}px`, width: `${clampedMacbook.width}px`, height: `${clampedMacbook.height}px` }
               : { top: '22%', left: '50%', transform: 'translateX(-50%)', width: 'clamp(280px, 42vw, 480px)', height: 'clamp(200px, 48vh, 380px)' }
             ),
             zIndex: 20,
