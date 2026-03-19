@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { withSentryConfig } from '@sentry/nextjs'
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -22,4 +23,9 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withSentryConfig(nextConfig, {
+  org: 'andrea-avila',
+  project: 'portfolio-3d',
+  silent: true,
+  disableServerWebpackPlugin: true,
+})
