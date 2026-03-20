@@ -18,8 +18,9 @@ import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
 const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
-// Objects to hide from the original GLB
-const HIDE_OBJECTS: string[] = [  // cleaned in Blender
+// Objects to hide — broken geometry/textures after Blender export optimization
+const HIDE_OBJECTS: string[] = [
+  'plant_left', 'plant_right', 'chair',
 ]
 
 interface DeskSceneProps {
