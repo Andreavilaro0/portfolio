@@ -2,8 +2,8 @@
 
 import { Suspense, useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, ContactShadows, Preload } from '@react-three/drei'
-import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing'
+import { useGLTF, Preload } from '@react-three/drei'
+import { EffectComposer, Vignette, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
 import gsap from 'gsap'
@@ -237,7 +237,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         intensity={2.0}
         color="#FFF8F0"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-8}
         shadow-camera-right={8}
         shadow-camera-top={8}
@@ -254,15 +254,6 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         penumbra={0.5}
         intensity={0}
         color="#FFFFFF"
-      />
-
-      <ContactShadows
-        position={[0, 0, 0]}
-        opacity={0.6}
-        scale={20}
-        blur={2.5}
-        far={10}
-        resolution={512}
       />
 
       <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} />
@@ -308,7 +299,6 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
           onProjectSelect={onProjectSelect}
         />
         <EffectComposer multisampling={0}>
-          <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.4} intensity={0.3} mipmapBlur />
           <Vignette eskil={false} offset={0.3} darkness={0.5} />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
