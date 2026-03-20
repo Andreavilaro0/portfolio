@@ -15,10 +15,10 @@ const CAMERAS = {
     position: new THREE.Vector3(0, 16, -35),
     lookAt: new THREE.Vector3(0, 9.5, 1.0),
   },
-  // Seated: far enough to see full monitor + desk objects around it
+  // Seated: centered on monitor, slightly elevated, closer to reduce side panel visibility
   seated: {
-    position: new THREE.Vector3(0, 11.0, -9.0),
-    lookAt: new THREE.Vector3(0, 9.5, 1.0),
+    position: new THREE.Vector3(0, 12.0, -7.5),
+    lookAt: new THREE.Vector3(0, 8.5, 1.0),
   },
   // MacBook: far enough to see full laptop screen + some context
   macbook: {

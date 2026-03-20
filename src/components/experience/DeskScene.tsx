@@ -18,9 +18,9 @@ import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
 const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
-// Objects to hide — broken geometry/textures after Blender export optimization
+// Hide objects with broken textures after export compression
 const HIDE_OBJECTS: string[] = [
-  'plant_left', 'plant_right', 'chair', 'monobloc', 'wrestling_mask',
+  'plant_left', 'plant_right', // pixelated voxel artifacts
 ]
 
 interface DeskSceneProps {
@@ -228,42 +228,25 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   return (
     <>
       <color attach="background" args={['#FAC8A5']} />
-      <fog attach="fog" args={['#E8C4A8', 15, 45]} />
       <primitive object={scene} />
 
-      {/* Ground plane — anchors the desk in space */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <planeGeometry args={[60, 60]} />
-        <meshStandardMaterial color="#E8D5C4" roughness={0.9} metalness={0} />
-      </mesh>
-
-      {/* === Lighting — 3-point setup with warm/cool separation === */}
-
-      {/* Key light: warm, from upper-left-front — main illumination */}
-      <ambientLight ref={ambientRef} intensity={0.15} color="#F5F0E8" />
+      {/* Lighting — match Blender's setup: Key_Soft + Fill_Front + Rim_Warm */}
+      <ambientLight ref={ambientRef} intensity={0.4} color="#FFF5EE" />
       <directionalLight
-        position={[-5, 14, -8]}
-        intensity={2.5}
-        color="#FFF0E0"
+        position={[-4, 12, -6]}
+        intensity={2.0}
+        color="#FFF8F0"
         castShadow
         shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-8}
-        shadow-camera-right={8}
-        shadow-camera-top={8}
-        shadow-camera-bottom={-8}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
         shadow-camera-near={0.5}
         shadow-camera-far={30}
       />
-
-      {/* Fill light: cooler, from right — creates warm/cool contrast */}
-      <directionalLight position={[6, 8, -4]} intensity={0.5} color="#E0E8FF" />
-
-      {/* Rim/back light: warm accent from behind — separates objects from background */}
-      <directionalLight position={[0, 6, 8]} intensity={0.8} color="#FFD4B0" />
-
-      {/* Monitor spotlight: draws eye to focal point */}
-      <pointLight position={[0, 12, 2]} intensity={0.6} color="#FFFFFF" distance={12} />
-
+      <directionalLight position={[4, 8, 2]} intensity={0.6} color="#FFF0E0" />
+      <pointLight position={[0, 10, 4]} intensity={0.4} color="#FFF5F0" distance={20} />
       <spotLight
         ref={macbookSpotRef}
         position={[-3.5, 12, -3.5]}
