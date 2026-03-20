@@ -237,12 +237,14 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         <meshStandardMaterial color="#E8D5C4" roughness={0.9} metalness={0} />
       </mesh>
 
-      {/* Lighting — neutral warm, no pink */}
-      <ambientLight ref={ambientRef} intensity={0.3} color="#F5F3F0" />
+      {/* === Lighting — 3-point setup with warm/cool separation === */}
+
+      {/* Key light: warm, from upper-left-front — main illumination */}
+      <ambientLight ref={ambientRef} intensity={0.15} color="#F5F0E8" />
       <directionalLight
-        position={[-4, 12, -6]}
-        intensity={2.0}
-        color="#FFF8F0"
+        position={[-5, 14, -8]}
+        intensity={2.5}
+        color="#FFF0E0"
         castShadow
         shadow-mapSize={[1024, 1024]}
         shadow-camera-left={-8}
@@ -252,8 +254,16 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         shadow-camera-near={0.5}
         shadow-camera-far={30}
       />
-      <directionalLight position={[5, 6, -4]} intensity={0.4} color="#F0EDE8" />
-      <pointLight position={[0, 8, 4]} intensity={0.3} color="#FFF5F0" distance={15} />
+
+      {/* Fill light: cooler, from right — creates warm/cool contrast */}
+      <directionalLight position={[6, 8, -4]} intensity={0.5} color="#E0E8FF" />
+
+      {/* Rim/back light: warm accent from behind — separates objects from background */}
+      <directionalLight position={[0, 6, 8]} intensity={0.8} color="#FFD4B0" />
+
+      {/* Monitor spotlight: draws eye to focal point */}
+      <pointLight position={[0, 12, 2]} intensity={0.6} color="#FFFFFF" distance={12} />
+
       <spotLight
         ref={macbookSpotRef}
         position={[-3.5, 12, -3.5]}
