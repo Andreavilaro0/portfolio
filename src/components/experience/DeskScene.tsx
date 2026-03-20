@@ -88,16 +88,26 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
           }
 
           // Monitor screen: subtle glow so it looks "on"
-          if (nameLower.includes('monitor_screen') || nameLower.includes('screen_plane') || nameLower.includes('screen_glass') || nameLower.includes('screen_quad')) {
-            child.material = new THREE.MeshStandardMaterial({
-              color: '#1a1a2e',
-              emissive: '#2a2a4a',
-              emissiveIntensity: 0.8,
-              roughness: 0.05,
-              metalness: 0.3,
-              side: THREE.DoubleSide,
-            })
-            return
+          // The monitor mesh is FRHIeNGciselOUD — apply emissive to the thinnest submesh (the screen)
+          if (nameLower.includes('frhiengciseloud')) {
+            const geo = child.geometry
+            if (geo) {
+              geo.computeBoundingBox()
+              const bb = geo.boundingBox!
+              const depth = bb.max.z - bb.min.z
+              // Screen is very thin in depth
+              if (depth < 0.1) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: '#1a1a2e',
+                  emissive: '#2a2a4a',
+                  emissiveIntensity: 0.8,
+                  roughness: 0.05,
+                  metalness: 0.3,
+                  side: THREE.DoubleSide,
+                })
+                return
+              }
+            }
           }
 
           child.castShadow = true
@@ -135,7 +145,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         ]
       }
 
-      const monitorCorners = extractCorners(['monitor_screen', 'screen_plane', 'screen_glass', 'screen_quad'])
+      const monitorCorners = extractCorners(['frhiengciseloud'])
       const macbookCorners = extractCorners(['macbook_screen', 'macbook_display'])
 
       // Store corners for ScreenProjector
@@ -186,8 +196,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
     scene.traverse((child) => {
       if (child instanceof THREE.Mesh) {
         const name = child.name.toLowerCase()
-        if (name.includes('monitor_screen') || name.includes('screen_plane') ||
-            name.includes('screen_glass') || name.includes('screen_quad')) {
+        if (name.includes('frhiengciseloud')) {
           screenMeshes.push(child)
         }
       }
@@ -284,7 +293,7 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
       style={{ width: '100%', height: '100%', background: 'transparent' }}
       camera={{ fov: 45, near: 0.1, far: 200, position: [0, 12, -12] }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      shadows
+      shadows="basic"
     >
       <Suspense fallback={null}>
         <Scene
