@@ -88,28 +88,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
-          // Monitor screen: subtle glow so it looks "on"
-          // The monitor mesh is FRHIeNGciselOUD — apply emissive to the thinnest submesh (the screen)
-          if (nameLower.includes('frhiengciseloud')) {
-            const geo = child.geometry
-            if (geo) {
-              geo.computeBoundingBox()
-              const bb = geo.boundingBox!
-              const depth = bb.max.z - bb.min.z
-              // Screen is very thin in depth
-              if (depth < 0.1) {
-                child.material = new THREE.MeshStandardMaterial({
-                  color: '#1a1a2e',
-                  emissive: '#2a2a4a',
-                  emissiveIntensity: 0.8,
-                  roughness: 0.05,
-                  metalness: 0.3,
-                  side: THREE.DoubleSide,
-                })
-                return
-              }
-            }
-          }
+          // Monitor screen — use baked texture as-is (no emissive override)
 
           child.castShadow = true
           child.receiveShadow = true
@@ -190,40 +169,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
     }
   }, [])
 
-  // Screen glow breathing — subtle pulse on the monitor screen emissive
-  useEffect(() => {
-    if (!scene) return
-    const screenMeshes: THREE.Mesh[] = []
-    scene.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        const name = child.name.toLowerCase()
-        if (name.includes('frhiengciseloud')) {
-          screenMeshes.push(child)
-        }
-      }
-    })
-
-    if (screenMeshes.length === 0) return
-
-    const proxy = { intensity: 0.8 }
-    const tween = gsap.to(proxy, {
-      intensity: 1.2,
-      duration: 3,
-      ease: 'sine.inOut',
-      yoyo: true,
-      repeat: -1,
-      onUpdate: () => {
-        screenMeshes.forEach((mesh) => {
-          const mat = mesh.material as THREE.MeshStandardMaterial
-          if (mat.emissiveIntensity !== undefined) {
-            mat.emissiveIntensity = proxy.intensity
-          }
-        })
-      },
-    })
-
-    return () => { tween.kill() }
-  }, [scene])
+  // Screen glow removed — using baked textures from Blender
 
   return (
     <>
