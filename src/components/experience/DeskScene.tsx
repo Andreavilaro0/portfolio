@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, Preload } from '@react-three/drei'
+import { useGLTF, Preload, Environment } from '@react-three/drei'
 import { EffectComposer, Vignette, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
@@ -228,13 +228,17 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   return (
     <>
       <color attach="background" args={['#FAC8A5']} />
+
+      {/* Environment map — studio preset matches Blender's studio_small_09 HDRI */}
+      <Environment preset="studio" environmentIntensity={0.8} />
+
       <primitive object={scene} />
 
-      {/* Lighting — match Blender's setup: Key_Soft + Fill_Front + Rim_Warm */}
-      <ambientLight ref={ambientRef} intensity={0.4} color="#FFF5EE" />
+      {/* Lighting — soft fill to complement the HDRI */}
+      <ambientLight ref={ambientRef} intensity={0.2} color="#FFF5EE" />
       <directionalLight
         position={[-4, 12, -6]}
-        intensity={2.0}
+        intensity={1.5}
         color="#FFF8F0"
         castShadow
         shadow-mapSize={[1024, 1024]}
@@ -245,8 +249,6 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         shadow-camera-near={0.5}
         shadow-camera-far={30}
       />
-      <directionalLight position={[4, 8, 2]} intensity={0.6} color="#FFF0E0" />
-      <pointLight position={[0, 10, 4]} intensity={0.4} color="#FFF5F0" distance={20} />
       <spotLight
         ref={macbookSpotRef}
         position={[-3.5, 12, -3.5]}
