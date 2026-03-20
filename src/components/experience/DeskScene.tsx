@@ -16,7 +16,7 @@ import type { ScreenRect } from './ScreenAlignedOverlay'
 import type { ExperienceMode } from './ExperienceWrapper'
 import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
-const MODEL_PATH = '/models/desk-scene-clean.glb'
+const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
 // Objects to hide from the original GLB
 const HIDE_OBJECTS: string[] = [  // cleaned in Blender
@@ -217,6 +217,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
 
   return (
     <>
+      <color attach="background" args={['#FAC8A5']} />
       <primitive object={scene} />
 
       {/* Lighting — neutral warm, no pink */}
