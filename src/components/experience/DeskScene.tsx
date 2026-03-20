@@ -20,7 +20,7 @@ const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
 // Objects to hide — broken geometry/textures after Blender export optimization
 const HIDE_OBJECTS: string[] = [
-  'plant_left', 'plant_right', 'chair',
+  'plant_left', 'plant_right', 'chair', 'monobloc', 'wrestling_mask',
 ]
 
 interface DeskSceneProps {
