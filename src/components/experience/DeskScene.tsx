@@ -88,39 +88,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
-          // Fix baked texture artifacts on keyboard (checkerboard pattern)
-          if (nameLower === 'keyboard001') {
-            child.material = new THREE.MeshStandardMaterial({
-              color: '#2a2a2a',
-              roughness: 0.3,
-              metalness: 0.1,
-            })
-            child.castShadow = true
-            child.receiveShadow = true
-            return
-          }
-
-          // Fix baked texture artifacts on monitor stand/base
-          if (nameLower.includes('monitor')) {
-            child.geometry.computeBoundingBox()
-            const bb = child.geometry.boundingBox
-            if (bb) {
-              const height = bb.max.y - bb.min.y
-              // The stand/base submesh has a small vertical extent
-              if (height < 1.5) {
-                child.material = new THREE.MeshStandardMaterial({
-                  color: '#e8e8e8',
-                  roughness: 0.2,
-                  metalness: 0.4,
-                })
-              }
-            }
-            child.castShadow = true
-            child.receiveShadow = true
-            return
-          }
-
-          // Make background unlit so it looks like a backdrop, not a physical wall
+          // Background plane — unlit so it reads as backdrop, not wall
           if (nameLower === 'background' || nameLower === 'plane') {
             const mat = child.material as THREE.MeshStandardMaterial
             if (mat.map) {
@@ -131,7 +99,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
-          // Monitor screen — use baked texture as-is (no emissive override)
+          // Monitor and keyboard keep their original PBR materials (not baked)
 
           child.castShadow = true
           child.receiveShadow = true

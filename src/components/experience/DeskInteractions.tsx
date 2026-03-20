@@ -19,7 +19,7 @@ const DESK_OBJECTS: {
   { name: 'coffee_cup', label: 'Café de Olla', description: 'Fuel from home — MX → ES', projectId: 'clara' },
   { name: 'desk_lamp001', label: 'Lámpara', description: 'Burning midnight oil since 2022' },
   { name: 'F1_Car', label: 'Aston Martin AMR23', description: 'Alonso P1 or nothing', projectId: 'robotics' },
-  { name: 'Wrestling_Mask', label: 'Máscara de Lucha', description: 'From Guadalajara with love' },
+  { name: 'Mexican_Skull', label: 'Calavera Mexicana', description: 'Día de Muertos — never forget where you come from' },
   { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics' },
   { name: 'Gaming_Laptop', label: 'Gaming Laptop', description: 'Try the arcade →' },
 ]
