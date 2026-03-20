@@ -230,6 +230,12 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
       <color attach="background" args={['#FAC8A5']} />
       <primitive object={scene} />
 
+      {/* Ground plane — anchors the desk in space */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
+        <planeGeometry args={[60, 60]} />
+        <meshStandardMaterial color="#E8D5C4" roughness={0.9} metalness={0} />
+      </mesh>
+
       {/* Lighting — neutral warm, no pink */}
       <ambientLight ref={ambientRef} intensity={0.3} color="#F5F3F0" />
       <directionalLight
