@@ -228,6 +228,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   return (
     <>
       <color attach="background" args={['#FAC8A5']} />
+      <fog attach="fog" args={['#E8C4A8', 15, 45]} />
       <primitive object={scene} />
 
       {/* Ground plane — anchors the desk in space */}
