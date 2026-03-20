@@ -2,71 +2,14 @@
 
 /**
  * MonitorPortfolio — compact portfolio designed for the fixed DOM overlay (~520×380px).
- * Personalized with Andrea's identity: mexicana, F1 fan, sketch artist, builder.
+ * Sections: Work · About · Skills · Contact
+ * Sticky nav scrolls within the monitor-scroll container using section IDs.
  */
 
-const projects = [
-  {
-    id: 'clara',
-    num: '01',
-    color: '#FF2D9B',
-    title: 'CLARA — CIVICAID',
-    subtitle: 'AI Voice Assistant',
-    desc: 'Asistente IA multilingüe que conecta poblaciones vulnerables con trámites del gobierno. Voz + texto en 8 idiomas.',
-    highlights: ['OdiseIA4Good 2026 — 300+ participantes', 'Líder de proyecto', '469+ tests automatizados'],
-    tags: ['React', 'TypeScript', 'Python', 'Gemini', 'ElevenLabs'],
-    links: [
-      { label: 'demo', href: 'https://andreavilaro0.github.io/civicaid-voice/' },
-      { label: 'code', href: 'https://github.com/Andreavilaro0/civicaid-voice' },
-    ],
-  },
-  {
-    id: 'photo',
-    num: '02',
-    color: '#00E5FF',
-    title: 'CAPTURING MOMENTS',
-    subtitle: 'Photography',
-    desc: 'Portfolio editorial de street photography. Diseño responsive con animaciones scroll-based y galería dinámica.',
-    highlights: [],
-    tags: ['HTML/CSS', 'JavaScript', 'GSAP'],
-    links: [
-      { label: 'view', href: 'https://andreavilaro0.github.io/plantilla/' },
-    ],
-  },
-  {
-    id: 'robotics',
-    num: '03',
-    color: '#00E5FF',
-    title: 'ASTI ROBOTICS',
-    subtitle: 'Zumo 32U4',
-    desc: 'Finalista nacional del ASTI Robotics Challenge. De 50+ equipos universitarios, clasificamos a la final.',
-    highlights: ['Finalista nacional', 'Software del robot completo'],
-    tags: ['C++', 'Arduino'],
-    links: [
-      { label: 'info', href: 'https://www.udit.es/proyectos-de-exito/tres-nuevos-equipos-de-estudiantes-de-udit-se-clasifican-para-la-final-del-asti-robotics-challenge/' },
-    ],
-  },
-  {
-    id: 'os',
-    num: '04',
-    color: '#7B2FFF',
-    title: 'KERNEL SIM',
-    subtitle: 'OS Simulation',
-    desc: 'Simulación de SO con gestión de procesos y memoria. FIFO, SJF, Round Robin compitiendo en tiempo real.',
-    highlights: [],
-    tags: ['C', 'Sistemas'],
-    links: [
-      { label: 'code', href: 'https://github.com/gabrielcclv/SistemasOperativos' },
-    ],
-  },
-]
-
-const currently = [
-  { icon: '🏎', text: 'F1 2026 season' },
-  { icon: '✏️', text: 'Sketching ideas' },
-  { icon: '🔧', text: 'Building this portfolio' },
-  { icon: '🎧', text: 'Lo-fi + race commentary' },
-]
+import { useRef, useState, useEffect } from 'react'
+import { useAnalytics } from '../../hooks/useAnalytics'
+import { projects } from '../../data/projects'
+import { ProjectDetail } from './ProjectDetail'
 
 const skills = [
   { name: 'React / Next.js', level: 90 },
@@ -83,306 +26,477 @@ const channels = [
   { label: 'email', href: 'mailto:andrea15one@icloud.com' },
 ]
 
-export function MonitorPortfolio() {
+const navLinks = [
+  { label: 'Work', target: 'monitor-work' },
+  { label: 'About', target: 'monitor-about' },
+  { label: 'Skills', target: 'monitor-skills' },
+  { label: 'Contact', target: 'monitor-contact' },
+]
+
+interface MonitorPortfolioProps {
+  activeProject?: string | null
+  onExitProject?: () => void
+  onNavigateProject?: (projectId: string) => void
+}
+
+export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProject }: MonitorPortfolioProps) {
+  // Show project detail when a project is selected
+  if (activeProject && onExitProject && onNavigateProject) {
+    return (
+      <ProjectDetail
+        projectId={activeProject}
+        onBack={onExitProject}
+        onNavigate={onNavigateProject}
+      />
+    )
+  }
+
+  const { track } = useAnalytics()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const [activeSection, setActiveSection] = useState('monitor-work')
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const sections = container.querySelectorAll('[id^="monitor-"]')
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id)
+            if (entry.target.id === 'monitor-work') {
+              track('work_viewed')
+            }
+          }
+        }
+      },
+      { root: container, threshold: 0.3 }
+    )
+    sections.forEach((s) => observer.observe(s))
+    return () => observer.disconnect()
+  }, [])
+
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(false)
+
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      setIsScrolledToBottom(scrollTop + clientHeight >= scrollHeight - 10)
+    }
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  function scrollToSection(id: string) {
+    const container = scrollRef.current
+    if (!container) return
+    const target = container.querySelector(`#${id}`)
+    if (!target) return
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   return (
-    <div style={{
-      width: '100%',
-      padding: '20px 24px',
-      fontFamily: 'var(--font-body)',
-      color: '#1a1a1a',
-      background: '#ffffff',
-    }}>
-      {/* Header */}
-      <header style={{ marginBottom: '16px' }}>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: '32px',
-          lineHeight: 1,
-          margin: '0 0 4px 0',
-          color: 'var(--color-text)',
-        }}>
-          ANDREA AVILA
-        </h1>
-        <p style={{
-          fontFamily: 'var(--font-code)',
-          fontSize: '10px',
-          letterSpacing: '0.15em',
-          color: 'var(--color-muted)',
-          margin: 0,
-          textTransform: 'uppercase',
-        }}>
-          Full Stack Developer — Madrid, Spain
-        </p>
-      </header>
+    <div style={{ position: 'relative', width: '100%', fontFamily: 'var(--font-body)', color: 'var(--color-text)', background: 'var(--color-surface)', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
-      {/* About — personal */}
-      <section style={{
-        marginBottom: '14px',
-        padding: '14px',
+      {/* Sticky nav */}
+      <nav aria-label="Portfolio sections" style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
         background: 'var(--color-surface)',
-        border: '2px solid var(--color-border)',
+        borderBottom: '1px solid rgba(26,26,26,0.12)',
+        padding: '8px 24px',
+        display: 'flex',
+        gap: '18px',
+        alignItems: 'center',
       }}>
-        <p style={{
-          fontSize: '12px',
-          lineHeight: 1.6,
-          color: 'var(--color-muted)',
-          margin: '0 0 10px 0',
-        }}>
-          Mexicana. Ingeniera. Builder. De gestionar un negocio familiar en
-          Mexico a ganar hackathones y llegar a la final nacional de
-          robotica en Madrid. Sketch my ideas before I code them.
-        </p>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          {[
-            { n: '4', s: 'o', label: 'Semestre' },
-            { n: '10', s: '+', label: 'Tecnologias' },
-            { n: '2028', s: '', label: 'Graduacion' },
-          ].map((s) => (
-            <div key={s.label} style={{ textAlign: 'center' }}>
-              <div style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: '22px',
-                color: 'var(--color-text)',
-                lineHeight: 1,
-              }}>
-                {s.n}<span style={{ fontSize: '12px', color: 'var(--color-pink)' }}>{s.s}</span>
-              </div>
-              <div style={{
-                fontFamily: 'var(--font-code)',
-                fontSize: '8px',
-                letterSpacing: '0.08em',
-                color: 'var(--color-muted)',
-                textTransform: 'uppercase',
-              }}>
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Currently */}
-      <section style={{
-        marginBottom: '14px',
-        padding: '10px 14px',
-        background: 'rgba(26,26,26,0.03)',
-        border: '1px solid rgba(26,26,26,0.08)',
-      }}>
-        <div style={{
-          fontFamily: 'var(--font-code)',
-          fontSize: '8px',
-          letterSpacing: '0.15em',
-          color: 'var(--color-muted)',
-          textTransform: 'uppercase',
-          marginBottom: '6px',
-        }}>
-          Currently
-        </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {currently.map((c) => (
-            <span key={c.text} style={{
+        {navLinks.map((link) => (
+          <button
+            key={link.target}
+            onClick={() => scrollToSection(link.target)}
+            style={{
               fontFamily: 'var(--font-code)',
               fontSize: '10px',
-              color: 'var(--color-text)',
-            }}>
-              {c.icon} {c.text}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
-
-      {/* Projects */}
-      {projects.map((p) => (
-        <section key={p.id} style={{ marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <span style={{
-              fontFamily: 'var(--font-code)',
-              fontSize: '9px',
               letterSpacing: '0.1em',
-              color: 'var(--color-muted)',
-            }}>
-              {p.num}
-            </span>
-            <span style={{
-              fontFamily: 'var(--font-code)',
-              fontSize: '8px',
-              padding: '2px 8px',
-              background: p.color,
-              color: '#fff',
-              fontWeight: 700,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-            }}>
-              {p.subtitle}
-            </span>
-          </div>
+              textTransform: 'uppercase' as const,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: activeSection === link.target ? 'var(--color-pink)' : 'var(--color-muted)',
+              fontWeight: activeSection === link.target ? 700 : 400,
+              padding: 0,
+            }}
+            onMouseEnter={(e) => {
+              if (activeSection !== link.target) {
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-pink)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (activeSection !== link.target) {
+                (e.currentTarget as HTMLButtonElement).style.color = 'var(--color-muted)'
+              }
+            }}
+          >
+            {link.label}
+          </button>
+        ))}
+      </nav>
 
-          <h2 style={{
+      {/* Scrollable content */}
+      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '20px 24px' }}>
+
+        {/* Header */}
+        <header style={{ marginBottom: '16px' }}>
+          <h1 style={{
             fontFamily: 'var(--font-display)',
-            fontSize: '18px',
-            lineHeight: 1.1,
+            fontSize: '32px',
+            lineHeight: 1,
             margin: '0 0 4px 0',
             color: 'var(--color-text)',
           }}>
-            {p.title}
-          </h2>
-
+            ANDREA AVILA
+          </h1>
           <p style={{
-            fontSize: '11px',
-            lineHeight: 1.5,
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            letterSpacing: '0.15em',
             color: 'var(--color-muted)',
-            margin: '0 0 6px 0',
+            margin: 0,
+            textTransform: 'uppercase',
           }}>
-            {p.desc}
+            Full Stack Developer — Madrid, Spain
           </p>
+        </header>
 
-          {p.highlights.length > 0 && (
-            <div style={{ marginBottom: '6px' }}>
-              {p.highlights.map((h) => (
-                <div key={h} style={{
+        {/* About */}
+        <section id="monitor-about" style={{
+          marginBottom: '12px',
+          padding: '14px',
+          background: 'var(--color-surface)',
+          border: '2px solid var(--color-border)',
+        }}>
+          <p style={{
+            fontSize: '12px',
+            lineHeight: 1.6,
+            color: 'var(--color-muted)',
+            margin: '0 0 10px 0',
+          }}>
+            Mexicana viviendo en Madrid. Estudiante de 4o semestre de ingeniería.
+            De gestionar un negocio familiar en México a ganar hackathones y llegar
+            a la final nacional de robótica en España.
+          </p>
+          <p style={{
+            fontSize: '12px',
+            lineHeight: 1.6,
+            color: 'var(--color-muted)',
+            margin: '0 0 10px 0',
+          }}>
+            Construyo productos web con React, TypeScript y Python. Me especializo
+            en experiencias interactivas con Three.js y animación. Dibujo mis ideas
+            antes de programarlas.
+          </p>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            {[
+              { n: '4', s: 'o', label: 'Semestre' },
+              { n: '10', s: '+', label: 'Tecnologias' },
+              { n: '2028', s: '', label: 'Graduacion' },
+            ].map((s) => (
+              <div key={s.label} style={{ textAlign: 'center' }}>
+                <div style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: '22px',
+                  color: 'var(--color-text)',
+                  lineHeight: 1,
+                }}>
+                  {s.n}<span style={{ fontSize: '12px', color: 'var(--color-pink)' }}>{s.s}</span>
+                </div>
+                <div style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '10px',
+                  letterSpacing: '0.08em',
                   color: 'var(--color-muted)',
-                  lineHeight: 1.4,
+                  textTransform: 'uppercase',
                 }}>
-                  → {h}
+                  {s.label}
                 </div>
-              ))}
-            </div>
-          )}
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
-            {p.tags.map((tag) => (
-              <span key={tag} style={{
-                fontFamily: 'var(--font-code)',
-                fontSize: '9px',
-                padding: '2px 6px',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-text)',
-              }}>
-                {tag}
-              </span>
+              </div>
             ))}
           </div>
+        </section>
 
-          <div style={{ display: 'flex', gap: '12px' }}>
-            {p.links.map((link) => (
+        {/* Divider */}
+        <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
+
+        {/* Projects */}
+        <section id="monitor-work">
+          {projects.map((p) => (
+            <div key={p.id} style={{ marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <span style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: '10px',
+                  letterSpacing: '0.1em',
+                  color: 'var(--color-muted)',
+                }}>
+                  {p.num}
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: '10px',
+                  padding: '2px 8px',
+                  background: p.color,
+                  color: '#fff',
+                  fontWeight: 700,
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                }}>
+                  {p.subtitle}
+                </span>
+              </div>
+
+              <h2 style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: '18px',
+                lineHeight: 1.1,
+                margin: '0 0 4px 0',
+                color: 'var(--color-text)',
+              }}>
+                {p.title}
+              </h2>
+
+              <p style={{
+                fontSize: '11px',
+                lineHeight: 1.5,
+                color: 'var(--color-muted)',
+                margin: '0 0 5px 0',
+              }}>
+                {p.desc}
+              </p>
+
+              {p.context && (
+                <p style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: '10px',
+                  lineHeight: 1.4,
+                  color: 'var(--color-text)',
+                  margin: '0 0 5px 0',
+                  opacity: 0.7,
+                }}>
+                  {p.context}
+                </p>
+              )}
+
+              {p.highlights.length > 0 && (
+                <div style={{ marginBottom: '6px' }}>
+                  {p.highlights.map((h) => (
+                    <div key={h} style={{
+                      fontFamily: 'var(--font-code)',
+                      fontSize: '10px',
+                      color: 'var(--color-muted)',
+                      lineHeight: 1.4,
+                    }}>
+                      → {h}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '6px' }}>
+                {p.tags.map((tag) => (
+                  <span key={tag} style={{
+                    fontFamily: 'var(--font-code)',
+                    fontSize: '10px',
+                    padding: '2px 6px',
+                    border: '1px solid var(--color-border)',
+                    color: 'var(--color-text)',
+                  }}>
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {p.links.map((link) => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => track('project_opened', { project: p.id, link: link.label })}
+                    style={{
+                      fontFamily: 'var(--font-code)',
+                      fontSize: '10px',
+                      color: p.id === 'clara' ? '#C4007A' : p.color,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    [{link.label}]
+                  </a>
+                ))}
+              </div>
+
+              <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '12px', opacity: 0.2 }} />
+            </div>
+          ))}
+        </section>
+
+        {/* Skills */}
+        <section id="monitor-skills" style={{ marginBottom: '12px' }}>
+          <div style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            letterSpacing: '0.15em',
+            color: 'var(--color-muted)',
+            textTransform: 'uppercase',
+            marginBottom: '8px',
+          }}>
+            Stack
+          </div>
+          {skills.map((s) => (
+            <div key={s.name} style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '4px',
+            }}>
+              <span style={{
+                fontFamily: 'var(--font-code)',
+                fontSize: '10px',
+                color: 'var(--color-text)',
+                width: '110px',
+                flexShrink: 0,
+              }}>
+                {s.name}
+              </span>
+              <div style={{
+                flex: 1,
+                height: '3px',
+                background: 'rgba(26,26,26,0.08)',
+                overflow: 'hidden',
+              }}>
+                <div style={{
+                  width: `${s.level}%`,
+                  height: '100%',
+                  background: 'var(--color-pink)',
+                }} />
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* CV Download */}
+        <div style={{ marginBottom: '12px' }}>
+          <a
+            href="/cv-andrea-avila.pdf"
+            download
+            style={{
+              display: 'inline-block',
+              fontFamily: 'var(--font-code)',
+              fontSize: '10px',
+              letterSpacing: '0.1em',
+              textTransform: 'uppercase',
+              padding: '8px 16px',
+              border: '2px solid var(--color-text)',
+              color: 'var(--color-text)',
+              textDecoration: 'none',
+              fontWeight: 700,
+              marginBottom: '12px',
+            }}
+          >
+            Download CV ↓
+          </a>
+        </div>
+
+        <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
+
+        {/* Contact */}
+        <section id="monitor-contact" style={{ marginBottom: '20px' }}>
+          <div style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            letterSpacing: '0.15em',
+            color: 'var(--color-muted)',
+            textTransform: 'uppercase',
+            marginBottom: '8px',
+          }}>
+            Let&apos;s connect
+          </div>
+
+          <p style={{
+            fontFamily: 'var(--font-code)',
+            fontSize: '11px',
+            color: 'var(--color-text)',
+            margin: '0 0 8px 0',
+            fontWeight: 600,
+          }}>
+            andrea15one@icloud.com
+          </p>
+
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '10px' }}>
+            {channels.map((ch) => (
               <a
-                key={link.label}
-                href={link.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                key={ch.label}
+                href={ch.href}
+                target={ch.label === 'email' ? undefined : '_blank'}
+                rel={ch.label === 'email' ? undefined : 'noopener noreferrer'}
+                onClick={() => track('contact_clicked', { channel: ch.label })}
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '10px',
-                  color: p.color,
+                  color: 'var(--color-pink)',
                   textDecoration: 'none',
                 }}
               >
-                [{link.label}]
+                [{ch.label}]
               </a>
             ))}
           </div>
 
-          <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '12px', opacity: 0.2 }} />
-        </section>
-      ))}
-
-      {/* Skills */}
-      <section style={{ marginBottom: '14px' }}>
-        <div style={{
-          fontFamily: 'var(--font-code)',
-          fontSize: '8px',
-          letterSpacing: '0.15em',
-          color: 'var(--color-muted)',
-          textTransform: 'uppercase',
-          marginBottom: '8px',
-        }}>
-          Stack
-        </div>
-        {skills.map((s) => (
-          <div key={s.name} style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '4px',
-          }}>
-            <span style={{
-              fontFamily: 'var(--font-code)',
-              fontSize: '9px',
-              color: 'var(--color-text)',
-              width: '110px',
-              flexShrink: 0,
-            }}>
-              {s.name}
-            </span>
-            <div style={{
-              flex: 1,
-              height: '3px',
-              background: 'rgba(26,26,26,0.08)',
-              overflow: 'hidden',
-            }}>
-              <div style={{
-                width: `${s.level}%`,
-                height: '100%',
-                background: 'var(--color-pink)',
-              }} />
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
-
-      {/* Contact */}
-      <section>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <span style={{
+          <div style={{
             fontFamily: 'var(--font-code)',
-            fontSize: '8px',
-            letterSpacing: '0.15em',
+            fontSize: '10px',
             color: 'var(--color-muted)',
-            textTransform: 'uppercase',
+            display: 'flex',
+            gap: '12px',
+            flexWrap: 'wrap',
+            alignItems: 'center',
           }}>
-            Let&apos;s connect
-          </span>
-        </div>
+            <span>Madrid, Spain</span>
+            <span>ES / EN</span>
+            <span style={{
+              color: 'var(--color-text)',
+              background: 'var(--color-lime)',
+              padding: '2px 8px',
+              fontWeight: 700,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              fontSize: '10px',
+            }}>
+              Open to work
+            </span>
+          </div>
+        </section>
 
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-          {channels.map((ch) => (
-            <a
-              key={ch.label}
-              href={ch.href}
-              target={ch.label === 'email' ? undefined : '_blank'}
-              rel={ch.label === 'email' ? undefined : 'noopener noreferrer'}
-              style={{
-                fontFamily: 'var(--font-code)',
-                fontSize: '10px',
-                color: 'var(--color-pink)',
-                textDecoration: 'none',
-              }}
-            >
-              [{ch.label}]
-            </a>
-          ))}
-        </div>
+      </div>
 
-        <div style={{
-          fontFamily: 'var(--font-code)',
-          fontSize: '9px',
-          color: 'var(--color-muted)',
-          display: 'flex',
-          gap: '12px',
-          flexWrap: 'wrap',
-        }}>
-          <span>Madrid, Spain</span>
-          <span>ES / EN</span>
-          <span style={{ color: 'var(--color-lime)' }}>Open to work</span>
-        </div>
-      </section>
+      {!isScrolledToBottom && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: '40px',
+            background: 'linear-gradient(transparent, var(--color-surface))',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        />
+      )}
     </div>
   )
 }

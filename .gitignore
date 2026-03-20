@@ -8,3 +8,17 @@ out/
 *.tsbuildinfo
 next-env.d.ts
 .DS_Store
+# Large 3D model files (keep desk-scene-clean.glb — the production model)
+public/models/desk-scene-v2.glb
+public/models/desk-scene-v3.glb
+public/models/desk-scene-v4.glb
+public/models/desk-scene-v4-aggressive.glb
+public/models/desk-scene-v5.glb
+public/models/desk-scene-v5-opt.glb
+public/models/desk-scene-opt.glb
+public/models/desk-scene-final.glb
+public/models/desk-scene-web.glb
+public/models/*.fbx
+public/models/*.blend
+public/models/*.blend1
+.agents/

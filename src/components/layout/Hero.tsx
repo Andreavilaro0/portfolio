@@ -57,12 +57,10 @@ export function Hero() {
   }, { scope: containerRef })
 
   return (
-    <section ref={containerRef} className="relative" aria-label="Hero">
-      <a href="#projects" className="skip-link">Skip to projects</a>
-
+    <section ref={containerRef} id="hero" className="relative" aria-label="Hero">
       <div
-        className="relative w-full min-h-screen overflow-hidden flex items-center justify-center"
-        style={{ background: 'var(--color-bg)' }}
+        className="relative w-full overflow-hidden flex items-center justify-center"
+        style={{ background: 'var(--color-bg)', minHeight: '100dvh' }}
       >
         {/* Decorative shapes */}
         <div
@@ -107,38 +105,55 @@ export function Hero() {
               color: 'var(--color-muted)',
             }}
           >
-            Full Stack Developer — Madrid
+            Full Stack Developer · Madrid
+          </p>
+
+          <p
+            className="hero-subtitle mt-3"
+            style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: 'clamp(0.7rem, 1.1vw, 0.85rem)',
+              letterSpacing: '0.12em',
+              color: 'var(--color-muted)',
+              maxWidth: '420px',
+              margin: '12px auto 0',
+              lineHeight: 1.6,
+            }}
+          >
+            React · TypeScript · Python · Three.js
           </p>
         </div>
 
-        {/* Stickers / Badges flotantes */}
-        <div
-          className="hero-sticker badge badge-pink absolute top-[12%] right-[10%] z-20"
-          data-rotation="-5"
-          style={{ transform: 'rotate(-5deg)' }}
-        >
-          FULL STACK
-        </div>
-        <div
-          className="hero-sticker badge badge-lime absolute bottom-[20%] left-[8%] z-20"
-          data-rotation="3"
-          style={{ transform: 'rotate(3deg)' }}
-        >
-          MADRID, ES
-        </div>
-        <div
-          className="hero-sticker badge badge-violet absolute top-[25%] left-[12%] z-20"
-          data-rotation="-8"
-          style={{ transform: 'rotate(-8deg)' }}
-        >
-          4° SEM
-        </div>
-        <div
-          className="hero-sticker badge badge-cyan absolute bottom-[25%] right-[12%] z-20"
-          data-rotation="6"
-          style={{ transform: 'rotate(6deg)' }}
-        >
-          MX → ES
+        {/* Stickers / Badges flotantes — hidden on mobile to prevent text overlap */}
+        <div className="hidden sm:block">
+          <div
+            className="hero-sticker badge badge-pink absolute top-[12%] right-[10%] z-20"
+            data-rotation="-5"
+            style={{ transform: 'rotate(-5deg)' }}
+          >
+            FULL STACK
+          </div>
+          <div
+            className="hero-sticker badge badge-lime absolute bottom-[20%] left-[8%] z-20"
+            data-rotation="3"
+            style={{ transform: 'rotate(3deg)' }}
+          >
+            MADRID, ES
+          </div>
+          <div
+            className="hero-sticker badge badge-violet absolute top-[25%] left-[12%] z-20"
+            data-rotation="-8"
+            style={{ transform: 'rotate(-8deg)' }}
+          >
+            4° SEM
+          </div>
+          <div
+            className="hero-sticker badge badge-cyan absolute bottom-[25%] right-[12%] z-20"
+            data-rotation="6"
+            style={{ transform: 'rotate(6deg)' }}
+          >
+            MX → ES
+          </div>
         </div>
 
         {/* Micro data labels */}

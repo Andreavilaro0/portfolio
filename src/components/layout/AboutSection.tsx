@@ -6,9 +6,10 @@ import { CountUp } from './CountUp'
 export function AboutSection() {
   return (
     <section
+      id="about"
       style={{
         width: '100%',
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         flexWrap: 'wrap',
         alignItems: 'center',
@@ -19,9 +20,9 @@ export function AboutSection() {
       <div style={{ flex: '1 1 480px', maxWidth: '600px' }}>
         <ScrollReveal>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <span className="label">00</span>
+            <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>00</span>
             <span className="badge badge-violet">About</span>
-            <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
+            <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
           </div>
         </ScrollReveal>
 
@@ -31,7 +32,7 @@ export function AboutSection() {
               fontFamily: 'var(--font-display)',
               fontSize: 'clamp(3rem, 6vw, 6rem)',
               lineHeight: 0.95,
-              color: 'var(--color-text)',
+              color: '#FFFFFF',
               margin: '0 0 24px 0',
             }}
           >
@@ -44,31 +45,30 @@ export function AboutSection() {
         <ScrollReveal delay={200}>
           <p
             style={{
-              fontSize: 'clamp(1rem, 1.4vw, 1.15rem)',
+              fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
               lineHeight: 1.8,
-              color: 'var(--color-muted)',
+              color: 'rgba(255,255,255,0.7)',
               maxWidth: '480px',
             }}
           >
-            Gestioné un negocio familiar en México antes de tocar una línea
-            de código. En 2022 todo cambió. Me mudé a Madrid, entré a
-            ingeniería, y desde entonces: hackathones ganados, finalista
-            nacional en robótica, IA que ayuda a gente real.
+            Mexicana viviendo en Madrid. Estudiante de 4o semestre de ingeniería.
+            De gestionar un negocio familiar en México a ganar hackathones y llegar
+            a la final nacional de robótica en España.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={250}>
           <p
             style={{
-              fontSize: 'clamp(1rem, 1.4vw, 1.15rem)',
+              fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
               lineHeight: 1.8,
-              color: 'var(--color-muted)',
+              color: 'rgba(255,255,255,0.7)',
               maxWidth: '480px',
               marginTop: '16px',
             }}
           >
-            No espero a que me enseñen — busco los retos. Cada oportunidad
-            de construir algo es una oportunidad de aprender.
+            Construyo productos web con React, TypeScript y Python.
+            Me especializo en experiencias interactivas con Three.js y animación.
           </p>
         </ScrollReveal>
 

@@ -24,8 +24,7 @@ const nextConfig: NextConfig = {
 }
 
 export default withSentryConfig(nextConfig, {
-  org: 'andrea-avila',
-  project: 'portfolio-3d',
+  org: 'andrea-c1',
+  project: 'javascript-nextjs',
   silent: true,
-  disableServerWebpackPlugin: true,
 })

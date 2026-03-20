@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
@@ -24,6 +24,11 @@ const CAMERAS = {
   macbook: {
     position: new THREE.Vector3(-4.63, 8.5, -7.5),
     lookAt: new THREE.Vector3(-4.63, 7.2, -1.1),
+  },
+  // Project view: closer to monitor for expanded project detail
+  project: {
+    position: new THREE.Vector3(0, 10.5, -7.0),
+    lookAt: new THREE.Vector3(0, 9.8, 1.0),
   },
 }
 
@@ -56,6 +61,16 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
   const introTween = useRef<gsap.core.Tween | null>(null)
   const tempVec = useRef(new THREE.Vector3())
 
+  const [reducedMotion, setReducedMotion] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1
@@ -70,6 +85,16 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
   // Fixed lookAt = rock-solid stability, no wobble
   useEffect(() => {
     if (mode !== 'intro') return
+
+    if (reducedMotion) {
+      camera.position.copy(CAMERAS.seated.position)
+      camera.lookAt(CAMERAS.seated.lookAt)
+      baseRotation.current.copy(camera.rotation)
+      isAnimating.current = false
+      onIntroComplete()
+      return
+    }
+
     isAnimating.current = true
 
     camera.position.copy(CAMERAS.intro.position)
@@ -97,7 +122,7 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
         onIntroComplete()
       },
     })
-  }, [mode, camera, onIntroComplete])
+  }, [mode, camera, onIntroComplete, reducedMotion])
 
   // SEATED ↔ MACBOOK: curved bezier path for cinematic feel
   useEffect(() => {
@@ -117,15 +142,18 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
     const fromCam = CAMERAS[from as keyof typeof CAMERAS]
     const startLookAt = fromCam ? fromCam.lookAt.clone() : targetPreset.lookAt.clone()
 
-    // Determine if we use the curved path
+    // Determine if we use the curved path (only seated↔macbook)
     const useCurve = (from === 'seated' && mode === 'macbook') ||
                      (from === 'macbook' && mode === 'seated')
+
+    // Project transitions are faster and linear
+    const isProjectTransition = mode === 'project' || from === 'project'
 
     const proxy = { t: 0 }
 
     gsap.to(proxy, {
       t: 1,
-      duration: 2.2,
+      duration: reducedMotion ? 0.3 : isProjectTransition ? 1.5 : 2.2,
       ease: 'power3.inOut',
       onUpdate: () => {
         const t = proxy.t
@@ -148,15 +176,16 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
         isAnimating.current = false
       },
     })
-  }, [mode, camera])
+  }, [mode, camera, reducedMotion])
 
   // Subtle parallax in both seated and macbook modes — feels like moving your head
   useFrame(() => {
-    if (mode !== 'seated' && mode !== 'macbook') return
+    if (mode !== 'seated' && mode !== 'macbook' && mode !== 'project') return
     if (isAnimating.current) return
+    if (reducedMotion) return
 
-    const maxRotX = 0.012
-    const maxRotY = 0.018
+    const maxRotX = mode === 'project' ? 0.006 : 0.012
+    const maxRotY = mode === 'project' ? 0.009 : 0.018
     const damping = 0.03
 
     const targetRotX = baseRotation.current.x + mouseRef.current.y * maxRotX

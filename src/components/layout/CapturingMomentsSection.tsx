@@ -12,15 +12,15 @@ export function CapturingMomentsSection() {
       }}
     >
       {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px' }} />
+      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
 
       {/* Label */}
       <ScrollReveal>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <span className="label">02</span>
+          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>02</span>
           <span className="badge badge-cyan">Lens</span>
-          <span className="label">/ Photography Portfolio</span>
-          <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
+          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ Photography Portfolio</span>
+          <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
         </div>
       </ScrollReveal>
 
@@ -35,7 +35,7 @@ export function CapturingMomentsSection() {
                 fontSize: 'clamp(2.5rem, 5vw, 5rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                color: 'var(--color-text)',
+                color: '#FFFFFF',
                 margin: 0,
                 textTransform: 'uppercase',
               }}
@@ -47,9 +47,9 @@ export function CapturingMomentsSection() {
           <ScrollReveal delay={200}>
             <p
               style={{
-                fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
+                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-muted)',
+                color: 'rgba(255,255,255,0.7)',
                 marginTop: '20px',
                 maxWidth: '480px',
               }}
@@ -62,10 +62,10 @@ export function CapturingMomentsSection() {
 
           <ScrollReveal delay={300}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
                 → Diseño editorial responsive
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
                 → Animaciones scroll-based
               </div>
             </div>
@@ -74,7 +74,7 @@ export function CapturingMomentsSection() {
           <ScrollReveal delay={350}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
               {['HTML/CSS', 'JavaScript', 'GSAP'].map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
+                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
               ))}
             </div>
           </ScrollReveal>
@@ -89,7 +89,7 @@ export function CapturingMomentsSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-pink)',
+                color: '#FF6FBF',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',

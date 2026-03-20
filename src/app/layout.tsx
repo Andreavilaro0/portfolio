@@ -49,6 +49,7 @@ export default function RootLayout({
       className={`${bebasNeue.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <body className="antialiased">
+        <a href="#main-content" className="skip-link">Skip to content</a>
         {/* Film grain overlay */}
         <div className="grain-overlay" aria-hidden="true" />
         {children}

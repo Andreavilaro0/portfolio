@@ -17,7 +17,7 @@ export function RoboticsSection() {
       }}
     >
       {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px' }} />
+      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'center' }}>
         {/* Left — 3D Robot */}
@@ -41,10 +41,10 @@ export function RoboticsSection() {
         <div style={{ flex: '1 1 320px', maxWidth: '480px' }}>
           <ScrollReveal>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <span className="label">03</span>
+              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>03</span>
               <span className="badge badge-cyan">Zumo</span>
-              <span className="label">/ Robotics</span>
-              <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
+              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ Robotics</span>
+              <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
             </div>
           </ScrollReveal>
 
@@ -55,7 +55,7 @@ export function RoboticsSection() {
                 fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                color: 'var(--color-text)',
+                color: '#FFFFFF',
                 margin: 0,
                 textTransform: 'uppercase',
               }}
@@ -73,9 +73,9 @@ export function RoboticsSection() {
           <ScrollReveal delay={200}>
             <p
               style={{
-                fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
+                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-muted)',
+                color: 'rgba(255,255,255,0.7)',
                 marginTop: '20px',
               }}
             >
@@ -87,10 +87,10 @@ export function RoboticsSection() {
 
           <ScrollReveal delay={250}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
                 → Finalista nacional
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'var(--color-muted)' }}>
+              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
                 → Desarrollo de software del robot
               </div>
             </div>
@@ -99,7 +99,7 @@ export function RoboticsSection() {
           <ScrollReveal delay={300}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
               {['C++', 'Arduino', 'Zumo 32U4'].map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
+                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
               ))}
             </div>
           </ScrollReveal>
@@ -114,7 +114,7 @@ export function RoboticsSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-pink)',
+                color: '#FF6FBF',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',

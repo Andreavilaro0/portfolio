@@ -13,15 +13,15 @@ export function CivicAidSection() {
       }}
     >
       {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px' }} />
+      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
 
       {/* Label */}
       <ScrollReveal>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <span className="label">01</span>
+          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>01</span>
           <span className="badge badge-pink">Clara</span>
-          <span className="label">/ AI Voice Assistant</span>
-          <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
+          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ AI Voice Assistant</span>
+          <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
         </div>
       </ScrollReveal>
 
@@ -43,7 +43,7 @@ export function CivicAidSection() {
                 fontSize: 'clamp(2.5rem, 5vw, 5rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                color: 'var(--color-text)',
+                color: '#FFFFFF',
                 margin: 0,
                 textTransform: 'uppercase',
               }}
@@ -55,9 +55,9 @@ export function CivicAidSection() {
           <ScrollReveal delay={200}>
             <p
               style={{
-                fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
+                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-muted)',
+                color: 'rgba(255,255,255,0.7)',
                 marginTop: '20px',
                 maxWidth: '480px',
               }}
@@ -81,7 +81,7 @@ export function CivicAidSection() {
                   style={{
                     fontFamily: 'var(--font-code)',
                     fontSize: '12px',
-                    color: 'var(--color-muted)',
+                    color: 'rgba(255,255,255,0.55)',
                     letterSpacing: '0.03em',
                   }}
                 >
@@ -95,7 +95,7 @@ export function CivicAidSection() {
           <ScrollReveal delay={350}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
               {['React', 'TypeScript', 'Python', 'Gemini', 'ElevenLabs'].map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
+                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
               ))}
             </div>
           </ScrollReveal>
@@ -110,12 +110,12 @@ export function CivicAidSection() {
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '12px',
-                  color: 'var(--color-pink)',
+                  color: '#FF6FBF',
                   textDecoration: 'none',
                   letterSpacing: '0.05em',
                   transition: 'opacity 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.6')}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
                 onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
               >
                 [live demo]
@@ -127,13 +127,13 @@ export function CivicAidSection() {
                 style={{
                   fontFamily: 'var(--font-code)',
                   fontSize: '12px',
-                  color: 'var(--color-muted)',
+                  color: 'rgba(255,255,255,0.55)',
                   textDecoration: 'none',
                   letterSpacing: '0.05em',
                   transition: 'color 0.2s',
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-pink)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-muted)')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = '#FF6FBF')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(255,255,255,0.55)')}
               >
                 [github]
               </a>
@@ -141,22 +141,68 @@ export function CivicAidSection() {
           </ScrollReveal>
         </div>
 
-        {/* Right — Laptop mockup with live site */}
+        {/* Right — Laptop mockup with static preview */}
         <ScrollReveal delay={200}>
           <div style={{ flex: '1 1 400px' }}>
             <LaptopMockup>
-              <iframe
-                src="https://andreavilaro0.github.io/civicaid-voice/"
-                title="Clara — CivicAid Voice"
+              <a
+                href="https://andreavilaro0.github.io/civicaid-voice/"
+                target="_blank"
+                rel="noopener noreferrer"
                 style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   width: '100%',
                   height: '100%',
-                  border: 'none',
-                  display: 'block',
+                  background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+                  textDecoration: 'none',
+                  gap: '12px',
+                  position: 'relative',
+                  overflow: 'hidden',
                 }}
-                loading="lazy"
-                sandbox="allow-scripts allow-same-origin"
-              />
+              >
+                {/* Decorative circles */}
+                <div style={{
+                  position: 'absolute',
+                  top: '-20%',
+                  right: '-10%',
+                  width: '200px',
+                  height: '200px',
+                  borderRadius: '50%',
+                  background: 'rgba(190, 255, 0, 0.05)',
+                }} />
+                <div style={{
+                  position: 'absolute',
+                  bottom: '-15%',
+                  left: '-5%',
+                  width: '150px',
+                  height: '150px',
+                  borderRadius: '50%',
+                  background: 'rgba(255, 45, 155, 0.05)',
+                }} />
+                <span style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(1.5rem, 3vw, 2.5rem)',
+                  color: '#fff',
+                  letterSpacing: '0.05em',
+                  textTransform: 'uppercase',
+                  position: 'relative',
+                }}>
+                  Clara
+                </span>
+                <span style={{
+                  fontFamily: 'var(--font-code)',
+                  fontSize: '10px',
+                  color: 'rgba(255,255,255,0.5)',
+                  letterSpacing: '0.1em',
+                  textTransform: 'uppercase',
+                  position: 'relative',
+                }}>
+                  Click to open live demo →
+                </span>
+              </a>
             </LaptopMockup>
           </div>
         </ScrollReveal>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useMemo, useState } from 'react'
+import { Suspense, useEffect, useRef, useMemo, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, ContactShadows, Preload } from '@react-three/drei'
 import { EffectComposer, Bloom, Vignette, ToneMapping } from '@react-three/postprocessing'
@@ -14,6 +14,7 @@ import { ScreenProjector } from './ScreenAlignedOverlay'
 import type { ScreenRect } from './ScreenAlignedOverlay'
 // SnakeGame is rendered in ExperienceWrapper as DOM overlay
 import type { ExperienceMode } from './ExperienceWrapper'
+import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
 const MODEL_PATH = '/models/desk-scene-clean.glb'
 
@@ -32,9 +33,10 @@ interface DeskSceneProps {
   }) => void
   onMonitorRect?: (rect: ScreenRect) => void
   onMacbookRect?: (rect: ScreenRect) => void
+  onProjectSelect?: (projectId: string) => void
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
@@ -42,6 +44,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   onScreenBounds?: (bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => void
   onMonitorRect?: (rect: ScreenRect) => void
   onMacbookRect?: (rect: ScreenRect) => void
+  onProjectSelect?: (projectId: string) => void
 }) {
   const { scene, nodes } = useGLTF(MODEL_PATH)
   const hasLoaded = useRef(false)
@@ -251,7 +254,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         resolution={512}
       />
 
-      <DeskInteractions scene={scene} mode={mode} />
+      <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} />
       <DustParticles />
 
       {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
@@ -268,7 +271,13 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect }: DeskSceneProps) {
+  const handleLowFPS = useCallback((avgFPS: number) => {
+    console.warn(`[FPS Monitor] Low FPS detected — avg: ${avgFPS}`)
+  }, [])
+
+  useFPSMonitor({ onLowFPS: handleLowFPS })
+
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
@@ -285,6 +294,7 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
           onScreenBounds={onScreenBounds}
           onMonitorRect={onMonitorRect}
           onMacbookRect={onMacbookRect}
+          onProjectSelect={onProjectSelect}
         />
         <EffectComposer multisampling={0}>
           <Bloom luminanceThreshold={0.9} luminanceSmoothing={0.4} intensity={0.3} mipmapBlur />

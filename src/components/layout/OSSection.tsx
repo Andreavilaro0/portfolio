@@ -47,17 +47,17 @@ export function OSSection() {
       }}
     >
       {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px' }} />
+      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'flex-start' }}>
         {/* Left — Info */}
         <div style={{ flex: '1 1 320px', maxWidth: '480px' }}>
           <ScrollReveal>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-              <span className="label">04</span>
+              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>04</span>
               <span className="badge badge-violet">Kernel</span>
-              <span className="label">/ OS Simulation</span>
-              <div style={{ flex: 1, height: '3px', background: 'var(--color-text)' }} />
+              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ OS Simulation</span>
+              <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
             </div>
           </ScrollReveal>
 
@@ -68,7 +68,7 @@ export function OSSection() {
                 fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
                 lineHeight: 1,
                 letterSpacing: '-0.02em',
-                color: 'var(--color-text)',
+                color: '#FFFFFF',
                 margin: 0,
                 textTransform: 'uppercase',
               }}
@@ -80,9 +80,9 @@ export function OSSection() {
           <ScrollReveal delay={200}>
             <p
               style={{
-                fontSize: 'clamp(1rem, 1.3vw, 1.15rem)',
+                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'var(--color-muted)',
+                color: 'rgba(255,255,255,0.7)',
                 marginTop: '20px',
               }}
             >
@@ -95,7 +95,7 @@ export function OSSection() {
           <ScrollReveal delay={250}>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
               {['C', 'Sistemas', 'Universidad'].map((tag) => (
-                <span key={tag} className="tag">{tag}</span>
+                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
               ))}
             </div>
           </ScrollReveal>
@@ -110,12 +110,12 @@ export function OSSection() {
                 marginTop: '32px',
                 fontFamily: 'var(--font-code)',
                 fontSize: '12px',
-                color: 'var(--color-pink)',
+                color: '#FF6FBF',
                 textDecoration: 'none',
                 letterSpacing: '0.05em',
                 transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.6')}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
             >
               [github]
@@ -126,7 +126,7 @@ export function OSSection() {
         {/* Right — Laptop mockup with terminal */}
         <div style={{ flex: '1 1 400px' }}>
           <LaptopMockup>
-            <div style={{ width: '100%', height: '100%', background: '#1A1A1A', padding: '16px', fontFamily: 'var(--font-code)', fontSize: '11px', overflowX: 'auto' }}>
+            <div tabIndex={0} role="region" aria-label="Process monitor" style={{ width: '100%', height: '100%', background: '#1A1A1A', padding: '16px', fontFamily: 'var(--font-code)', fontSize: '11px', overflowX: 'auto' }}>
               {/* Terminal header */}
               <div
                 style={{
@@ -139,7 +139,7 @@ export function OSSection() {
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF2D9B' }} />
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#BEFF00' }} />
                 <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7B2FFF' }} />
-                <span style={{ marginLeft: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.3)' }}>
+                <span style={{ marginLeft: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.55)' }}>
                   process_monitor — htop
                 </span>
               </div>
@@ -150,7 +150,7 @@ export function OSSection() {
                   display: 'grid',
                   gridTemplateColumns: '50px 100px 70px 60px 50px',
                   gap: '6px',
-                  color: 'rgba(255,255,255,0.3)',
+                  color: 'rgba(255,255,255,0.55)',
                   paddingBottom: '6px',
                   borderBottom: '1px solid rgba(255,255,255,0.08)',
                   marginBottom: '4px',
@@ -179,7 +179,7 @@ export function OSSection() {
                     fontSize: '10px',
                   }}
                 >
-                  <span style={{ color: 'rgba(255,255,255,0.25)' }}>{proc.pid}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.pid}</span>
                   <span style={{ color: 'rgba(255,255,255,0.65)' }}>{proc.name}</span>
                   <span
                     style={{
@@ -188,15 +188,15 @@ export function OSSection() {
                           ? '#BEFF00'
                           : proc.state === 'waiting'
                             ? '#FFD700'
-                            : 'rgba(255,255,255,0.4)',
+                            : 'rgba(255,255,255,0.55)',
                     }}
                   >
                     {proc.state}
                   </span>
-                  <span style={{ color: 'rgba(255,255,255,0.35)' }}>{proc.mem}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.mem}</span>
                   <span
                     style={{
-                      color: parseFloat(proc.cpu) > 5 ? '#FF2D9B' : 'rgba(255,255,255,0.35)',
+                      color: parseFloat(proc.cpu) > 5 ? '#FF2D9B' : 'rgba(255,255,255,0.55)',
                     }}
                   >
                     {proc.cpu}

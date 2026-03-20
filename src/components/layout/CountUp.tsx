@@ -38,6 +38,13 @@ export function CountUp({
 
           const target = parseInt(match[1], 10)
           const suffix = match[2]
+
+          // Don't animate large numbers (years, etc.) — looks absurd
+          if (target > 100) {
+            setDisplay(value)
+            return
+          }
+
           const startTime = performance.now()
 
           const animate = (now: number) => {
