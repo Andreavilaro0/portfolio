@@ -186,16 +186,16 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
     <>
       <color attach="background" args={['#FAC8A5']} />
 
-      {/* Environment map — studio preset matches Blender's studio_small_09 HDRI */}
-      <Environment preset="studio" environmentIntensity={0.8} />
+      {/* Environment map — reduced intensity to avoid overexposure */}
+      <Environment preset="studio" environmentIntensity={0.4} />
 
       <primitive object={scene} />
 
-      {/* Lighting — soft fill to complement the HDRI */}
-      <ambientLight ref={ambientRef} intensity={0.2} color="#FFF5EE" />
+      {/* Lighting — subtle fill, HDRI does the heavy lifting */}
+      <ambientLight ref={ambientRef} intensity={0.1} color="#FFF5EE" />
       <directionalLight
         position={[-4, 12, -6]}
-        intensity={1.5}
+        intensity={0.8}
         color="#FFF8F0"
         castShadow
         shadow-mapSize={[1024, 1024]}
