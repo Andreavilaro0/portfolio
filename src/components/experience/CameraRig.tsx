@@ -10,12 +10,12 @@ import type { ExperienceMode } from './ExperienceWrapper'
 // Monitor screen center (Three.js): (0, 10.293, 2.04), size 7.2 x 4.1
 // MacBook center (Three.js): (-4.633, 7.500, -1.101), size 3.05 x 2.05
 const CAMERAS = {
-  // Intro: far away, high — dramatic fly-in
+  // Intro: starts far, high, wide — flies IN toward the desk
   intro: {
-    position: new THREE.Vector3(0, 18, -30),
-    lookAt: new THREE.Vector3(0, 10, 0),
+    position: new THREE.Vector3(0, 20, -25),
+    lookAt: new THREE.Vector3(0, 6, 2),
   },
-  // Seated: centered on monitor, looking straight at screen center
+  // Seated: centered on monitor screen
   seated: {
     position: new THREE.Vector3(0, 11.5, -8.0),
     lookAt: new THREE.Vector3(0, 9.0, 0),
@@ -97,21 +97,24 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
 
     isAnimating.current = true
 
+    // Start at intro position
     camera.position.copy(CAMERAS.intro.position)
     camera.lookAt(CAMERAS.intro.lookAt)
 
+    const lookAtTarget = new THREE.Vector3()
     const proxy = { t: 0 }
 
     introTween.current = gsap.to(proxy, {
       t: 1,
-      duration: 5.0,
-      ease: 'power2.inOut',
+      duration: 4.5,
+      ease: 'power3.inOut',
       onUpdate: () => {
         const t = proxy.t
-        // Smooth S-curve fly-in: far+high → close+seated
+        // Position: smooth fly-in from far to seated
         camera.position.lerpVectors(CAMERAS.intro.position, CAMERAS.seated.position, t)
-        // LookAt: fixed at the seated target for rock-solid stability
-        camera.lookAt(CAMERAS.seated.lookAt)
+        // LookAt: gradually straighten — starts looking down at desk, ends at monitor
+        lookAtTarget.lerpVectors(CAMERAS.intro.lookAt, CAMERAS.seated.lookAt, t)
+        camera.lookAt(lookAtTarget)
       },
       onComplete: () => {
         camera.position.copy(CAMERAS.seated.position)

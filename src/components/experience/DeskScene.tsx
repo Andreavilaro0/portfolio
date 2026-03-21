@@ -106,19 +106,39 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
               geo.computeBoundingBox()
               const bb = geo.boundingBox!
               const height = bb.max.y - bb.min.y
-              // Stand is short, screen is tall
               if (height < 2) {
                 child.material = new THREE.MeshStandardMaterial({
-                  color: '#d4d4d4',
+                  color: '#e0e0e0',
                   roughness: 0.15,
-                  metalness: 0.6,
+                  metalness: 0.5,
                 })
               }
             }
           }
 
-          child.castShadow = true
-          child.receiveShadow = true
+          // Desk surface — lighter warm white to match Blender
+          if (nameLower.includes('desk')) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: '#f0ece6',
+              roughness: 0.4,
+              metalness: 0.0,
+            })
+          }
+
+          // Floor — soft cream, no shadows
+          if (nameLower.includes('floor')) {
+            child.material = new THREE.MeshStandardMaterial({
+              color: '#e8d8c8',
+              roughness: 0.8,
+              metalness: 0.0,
+            })
+            child.receiveShadow = false
+            return
+          }
+
+          // Only big objects cast shadows (reduce shadow artifacts)
+          child.castShadow = false
+          child.receiveShadow = false
         }
       })
 
@@ -207,20 +227,12 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
 
       <primitive object={scene} />
 
-      {/* Lighting — subtle fill, HDRI does the heavy lifting */}
-      <ambientLight ref={ambientRef} intensity={0.1} color="#FFF5EE" />
+      {/* Lighting — HDRI does the heavy lifting, minimal fill */}
+      <ambientLight ref={ambientRef} intensity={0.15} color="#FFF8F0" />
       <directionalLight
-        position={[-4, 12, -6]}
-        intensity={0.8}
+        position={[-4, 14, -6]}
+        intensity={0.6}
         color="#FFF8F0"
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-        shadow-camera-near={0.5}
-        shadow-camera-far={30}
       />
       <spotLight
         ref={macbookSpotRef}
@@ -258,9 +270,9 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
-      camera={{ fov: 45, near: 0.1, far: 200, position: [0, 12, -12] }}
+      camera={{ fov: 45, near: 0.1, far: 200, position: [0, 20, -25] }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
-      shadows="basic"
+      shadows={false}
     >
       <Suspense fallback={null}>
         <Scene
