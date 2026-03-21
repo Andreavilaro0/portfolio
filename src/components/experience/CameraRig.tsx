@@ -10,15 +10,15 @@ import type { ExperienceMode } from './ExperienceWrapper'
 // Monitor screen center (Three.js): (0, 10.293, 2.04), size 7.2 x 4.1
 // MacBook center (Three.js): (-4.633, 7.500, -1.101), size 3.05 x 2.05
 const CAMERAS = {
-  // Intro: starts far, high, wide — flies IN toward the desk
+  // Intro: starts far, high — flies IN toward the desk
   intro: {
     position: new THREE.Vector3(0, 20, -25),
-    lookAt: new THREE.Vector3(0, 6, 2),
+    lookAt: new THREE.Vector3(0, 4, 2),
   },
-  // Seated: centered on monitor screen
+  // Seated: eye-level with monitor, centered
   seated: {
-    position: new THREE.Vector3(0, 11.5, -8.0),
-    lookAt: new THREE.Vector3(0, 9.0, 0),
+    position: new THREE.Vector3(0, 10.5, -8.0),
+    lookAt: new THREE.Vector3(0, 10.5, 2),
   },
   // MacBook: angled view of laptop
   macbook: {
