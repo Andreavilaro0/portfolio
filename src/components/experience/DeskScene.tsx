@@ -18,9 +18,9 @@ import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
 const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
-// Hide objects with broken textures after export compression
+// Hide objects with broken textures or too heavy geometry
 const HIDE_OBJECTS: string[] = [
-  'plant_left', 'plant_right', // pixelated voxel artifacts
+  'plant_left', 'plant_right',  // pixelated voxel artifacts
 ]
 
 interface DeskSceneProps {
