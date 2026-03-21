@@ -29,9 +29,10 @@ interface DeskInteractionsProps {
   scene: THREE.Object3D
   mode: ExperienceMode
   onProjectSelect?: (projectId: string) => void
+  onObjectFocus?: (objectName: string) => void
 }
 
-export function DeskInteractions({ scene, mode, onProjectSelect }: DeskInteractionsProps) {
+export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }: DeskInteractionsProps) {
   const [selected, setSelected] = useState<{ name: string; position: THREE.Vector3 } | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
   const { gl } = useThree()
@@ -167,23 +168,12 @@ export function DeskInteractions({ scene, mode, onProjectSelect }: DeskInteracti
   const handleClick = useCallback((name: string, center: THREE.Vector3) => {
     if (mode !== 'overview' && mode !== 'seated') return
 
-    // If object has a projectId, trigger project view
-    const info = DESK_OBJECTS.find(d => d.name === name)
-    if (info?.projectId && onProjectSelect) {
-      onProjectSelect(info.projectId)
+    // GTA-style: fly camera to the object
+    if (onObjectFocus) {
+      onObjectFocus(name)
       setSelected(null)
-      return
     }
-
-    const wp = center.clone()
-    wp.y += 1.5
-
-    if (selected?.name === name) {
-      setSelected(null)
-    } else {
-      setSelected({ name, position: wp })
-    }
-  }, [selected, mode, onProjectSelect])
+  }, [mode, onObjectFocus])
 
   // Find coffee cup hitbox for hint position
   const coffeeHitbox = hitboxes.find(h => h.name === 'coffee_cup')

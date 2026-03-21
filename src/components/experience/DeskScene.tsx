@@ -35,9 +35,11 @@ interface DeskSceneProps {
   onMonitorRect?: (rect: ScreenRect) => void
   onMacbookRect?: (rect: ScreenRect) => void
   onProjectSelect?: (projectId: string) => void
+  onObjectFocus?: (objectName: string) => void
+  focusedObject?: string | null
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect, onObjectFocus, focusedObject }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
@@ -45,6 +47,8 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   onScreenBounds?: (bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => void
   onMonitorRect?: (rect: ScreenRect) => void
   onMacbookRect?: (rect: ScreenRect) => void
+  onObjectFocus?: (objectName: string) => void
+  focusedObject?: string | null
   onProjectSelect?: (projectId: string) => void
 }) {
   const { scene, nodes } = useGLTF(MODEL_PATH)
@@ -243,12 +247,12 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         color="#FFFFFF"
       />
 
-      <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} />
+      <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} onObjectFocus={onObjectFocus} />
       <DustParticles />
 
       {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
 
-      <CameraRig mode={mode} onIntroComplete={onIntroComplete} />
+      <CameraRig mode={mode} onIntroComplete={onIntroComplete} focusedObject={focusedObject} />
 
       {monitorCorners3D.length === 4 && onMonitorRect && (
         <ScreenProjector corners={monitorCorners3D} onUpdate={onMonitorRect} padding={6} />
@@ -284,6 +288,8 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
           onMonitorRect={onMonitorRect}
           onMacbookRect={onMacbookRect}
           onProjectSelect={onProjectSelect}
+          onObjectFocus={onObjectFocus}
+          focusedObject={focusedObject}
         />
         <EffectComposer multisampling={0}>
           <Vignette eskil={false} offset={0.3} darkness={0.5} />

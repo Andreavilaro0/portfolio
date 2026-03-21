@@ -19,7 +19,7 @@ const DeskScene = dynamic(
   { ssr: false }
 )
 
-export type ExperienceMode = 'loading' | 'intro' | 'overview' | 'seated' | 'macbook' | 'project'
+export type ExperienceMode = 'loading' | 'intro' | 'overview' | 'seated' | 'macbook' | 'project' | 'focused'
 
 export function ExperienceWrapper() {
   const { track } = useAnalytics()
@@ -32,6 +32,7 @@ export function ExperienceWrapper() {
   const [activeScreen, setActiveScreen] = useState<'none' | 'portfolio' | 'arcade' | 'project'>('none')
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [activeProject, setActiveProject] = useState<string | null>(null)
+  const [focusedObject, setFocusedObject] = useState<string | null>(null)
   const monitorOverlayRef = useRef<HTMLDivElement>(null)
   const sceneLoadStartRef = useRef<number>(performance.now())
   const [screenBounds, setScreenBounds] = useState<{
@@ -106,11 +107,18 @@ export function ExperienceWrapper() {
     }
   }, [activeScreen])
 
-  // Escape key exits project mode
+  // Escape key exits focused/project mode → back to seated
   useEffect(() => {
-    if (mode !== 'project') return
+    if (mode !== 'project' && mode !== 'focused') return
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') exitProject()
+      if (e.key === 'Escape') {
+        if (mode === 'focused') {
+          setFocusedObject(null)
+          setMode('seated')
+        } else {
+          exitProject()
+        }
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -148,6 +156,21 @@ export function ExperienceWrapper() {
     setMode('seated')
     setActiveProject(null)
     setTimeout(() => setIsTransitioning(false), 2500)
+  }, [])
+
+  const focusObject = useCallback((objectName: string) => {
+    setFocusedObject(objectName)
+    setIsTransitioning(true)
+    setMode('focused')
+    track('object_focused', { object: objectName })
+    setTimeout(() => setIsTransitioning(false), 2000)
+  }, [track])
+
+  const unfocusObject = useCallback(() => {
+    setFocusedObject(null)
+    setIsTransitioning(true)
+    setMode('seated')
+    setTimeout(() => setIsTransitioning(false), 2000)
   }, [])
 
   const goToProject = useCallback((projectId: string) => {
@@ -277,6 +300,8 @@ export function ExperienceWrapper() {
           onMonitorRect={setMonitorRect}
           onMacbookRect={setMacbookRect}
           onProjectSelect={goToProject}
+          onObjectFocus={focusObject}
+          focusedObject={focusedObject}
         />
       </div>
 
@@ -298,6 +323,47 @@ export function ExperienceWrapper() {
           aria-live="polite"
         >
           Moving...
+        </div>
+      )}
+
+      {/* FOCUSED OBJECT — info card + back button */}
+      {mode === 'focused' && focusedObject && !isTransitioning && (
+        <div style={{
+          position: 'fixed',
+          bottom: '40px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 30,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '12px',
+          animation: 'fadeInUp 0.6s ease forwards',
+        }}>
+          <button
+            onClick={unfocusObject}
+            style={{
+              fontFamily: 'var(--font-code)',
+              fontSize: '10px',
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase',
+              padding: '10px 24px',
+              color: 'rgba(255,255,255,0.7)',
+              background: 'rgba(0,0,0,0.5)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            ← Back to desk
+          </button>
+          <style>{`
+            @keyframes fadeInUp {
+              from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+              to { opacity: 1; transform: translateX(-50%) translateY(0); }
+            }
+          `}</style>
         </div>
       )}
 

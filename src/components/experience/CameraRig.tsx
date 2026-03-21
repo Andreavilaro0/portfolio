@@ -36,9 +36,34 @@ const CAMERAS = {
 const TRANSITION_MID = new THREE.Vector3(-2.3, 11.0, -5.0)
 const TRANSITION_MID_LOOKAT = new THREE.Vector3(-2.3, 9.0, 0.5)
 
+// Camera positions for each focusable object (GTA-style close-up views)
+// Position = where camera goes, lookAt = where camera points
+const OBJECT_CAMERAS: Record<string, { position: THREE.Vector3; lookAt: THREE.Vector3 }> = {
+  // Monitor: zoom into screen
+  'FRHIeNGciselOUD': { position: new THREE.Vector3(0, 10.5, -4.0), lookAt: new THREE.Vector3(0, 10.5, 2) },
+  // Keyboard: look down at it
+  'keyboard001': { position: new THREE.Vector3(0, 9.0, -3.0), lookAt: new THREE.Vector3(0, 6.7, 1) },
+  // Coffee cup: close up
+  'coffee_cup': { position: new THREE.Vector3(2.5, 8.5, -3.0), lookAt: new THREE.Vector3(3.0, 6.6, 1.8) },
+  // F1 Car: dramatic angle
+  'F1_Car': { position: new THREE.Vector3(-2.0, 8.0, -4.0), lookAt: new THREE.Vector3(-2.7, 6.3, -1.9) },
+  // Skull: face to face
+  'Mexican_Skull': { position: new THREE.Vector3(2.0, 8.5, -4.0), lookAt: new THREE.Vector3(2.5, 6.7, -1.5) },
+  'Object_4': { position: new THREE.Vector3(2.0, 8.5, -4.0), lookAt: new THREE.Vector3(2.5, 6.7, -1.5) },
+  // Zumo Robot: look at the little bot
+  'Zumo_Robot': { position: new THREE.Vector3(-2.5, 8.0, -3.5), lookAt: new THREE.Vector3(-3.0, 6.5, 0.9) },
+  // Leica Camera: close up
+  'leica_camera': { position: new THREE.Vector3(3.5, 8.0, -3.5), lookAt: new THREE.Vector3(4.0, 6.4, -0.2) },
+  // Sketchbook: look down at pages
+  'Box003': { position: new THREE.Vector3(-3.0, 9.0, -3.0), lookAt: new THREE.Vector3(-3.5, 6.5, 1.0) },
+  // Mouse
+  'razer_mouse': { position: new THREE.Vector3(1.5, 8.5, -3.5), lookAt: new THREE.Vector3(2.0, 6.4, 1.0) },
+}
+
 interface CameraRigProps {
   mode: ExperienceMode
   onIntroComplete: () => void
+  focusedObject?: string | null
 }
 
 // Quadratic bezier interpolation for curved camera paths
@@ -52,7 +77,7 @@ function quadraticBezier(
   return out
 }
 
-export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
+export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigProps) {
   const { camera } = useThree()
   const mouseRef = useRef({ x: 0, y: 0 })
   const baseRotation = useRef(new THREE.Euler())
@@ -181,9 +206,40 @@ export function CameraRig({ mode, onIntroComplete }: CameraRigProps) {
     })
   }, [mode, camera, reducedMotion])
 
-  // Subtle parallax in both seated and macbook modes — feels like moving your head
+  // FOCUSED: fly camera to specific object (GTA-style)
+  useEffect(() => {
+    if (mode !== 'focused' || !focusedObject) return
+
+    const target = OBJECT_CAMERAS[focusedObject]
+    if (!target) return
+
+    isAnimating.current = true
+    const startPos = camera.position.clone()
+    const startLookAt = CAMERAS.seated.lookAt.clone()
+    const lookAtTarget = new THREE.Vector3()
+    const proxy = { t: 0 }
+
+    gsap.to(proxy, {
+      t: 1,
+      duration: reducedMotion ? 0.3 : 1.8,
+      ease: 'power2.inOut',
+      onUpdate: () => {
+        camera.position.lerpVectors(startPos, target.position, proxy.t)
+        lookAtTarget.lerpVectors(startLookAt, target.lookAt, proxy.t)
+        camera.lookAt(lookAtTarget)
+      },
+      onComplete: () => {
+        camera.position.copy(target.position)
+        camera.lookAt(target.lookAt)
+        baseRotation.current.copy(camera.rotation)
+        isAnimating.current = false
+      },
+    })
+  }, [mode, focusedObject, camera, reducedMotion])
+
+  // Subtle parallax — feels like moving your head
   useFrame(() => {
-    if (mode !== 'seated' && mode !== 'macbook' && mode !== 'project') return
+    if (mode !== 'seated' && mode !== 'macbook' && mode !== 'project' && mode !== 'focused') return
     if (isAnimating.current) return
     if (reducedMotion) return
 
