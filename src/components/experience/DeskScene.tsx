@@ -264,7 +264,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect, onObjectFocus, focusedObject }: DeskSceneProps) {
   const handleLowFPS = useCallback((avgFPS: number) => {
     console.warn(`[FPS Monitor] Low FPS detected — avg: ${avgFPS}`)
   }, [])
