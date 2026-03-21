@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>p5.brush — Andrea's Sketchbook</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.0.0-beta"></script>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+function setup() {
+  createCanvas(1024, 1024, WEBGL);
+  brush.load();
+  translate(-width / 2, -height / 2);
+  randomSeed(2026);
+
+  // Warm sketchbook paper
+  background(252, 248, 235);
+
+  // Subtle paper texture with noise
+  brush.noStroke();
+  brush.fill(240, 235, 220, 15);
+  brush.fillTexture(0.8, 0.2);
+  brush.rect(0, 0, width, height);
+  brush.noFill();
+
+  // Grid lines (faint, like a notebook)
+  brush.set("2H", "#c8c0b0", 0.3);
+  for (let y = 80; y < height - 60; y += 32) {
+    brush.line(60, y, width - 60, y);
+  }
+
+  // === WIREFRAME: Simple web interface ===
+  brush.wiggle(3);
+
+  // Browser window frame
+  brush.set("pen", "#333333", 1.2);
+  brush.rect(120, 100, 500, 380);
+
+  // URL bar
+  brush.set("2B", "#555555", 0.6);
+  brush.rect(140, 115, 460, 22);
+  // Dots for traffic lights
+  brush.set("pen", "#FF2D9B", 0.8);
+  brush.circle(152, 126, 4);
+  brush.set("pen", "#ffaa00", 0.8);
+  brush.circle(165, 126, 4);
+  brush.set("pen", "#44cc44", 0.8);
+  brush.circle(178, 126, 4);
+
+  // Nav bar
+  brush.set("2B", "#333333", 0.7);
+  brush.line(140, 155, 600, 155);
+  // Nav items (small rectangles as placeholders)
+  brush.set("HB", "#666666", 0.5);
+  brush.rect(150, 145, 40, 8);
+  brush.rect(200, 145, 55, 8);
+  brush.rect(265, 145, 40, 8);
+  brush.rect(315, 145, 50, 8);
+
+  // Hero section — big heading placeholder
+  brush.set("marker", "#333333", 1.5);
+  brush.line(160, 195, 380, 195);
+  brush.set("marker", "#333333", 1.0);
+  brush.line(160, 215, 320, 215);
+
+  // Subtext lines
+  brush.set("HB", "#888888", 0.4);
+  for (let i = 0; i < 3; i++) {
+    brush.line(160, 245 + i * 14, 160 + random(180, 280), 245 + i * 14);
+  }
+
+  // CTA button
+  brush.set("pen", "#FF2D9B", 1.0);
+  brush.rect(160, 300, 120, 30);
+  // Button text placeholder
+  brush.set("HB", "#FF2D9B", 0.5);
+  brush.line(175, 317, 265, 317);
+
+  // Image placeholder (right side of hero)
+  brush.set("2B", "#999999", 0.6);
+  brush.rect(420, 180, 160, 140);
+  // X lines for image placeholder
+  brush.line(420, 180, 580, 320);
+  brush.line(580, 180, 420, 320);
+
+  // Cards section below
+  brush.set("2B", "#555555", 0.5);
+  for (let i = 0; i < 3; i++) {
+    let x = 150 + i * 155;
+    brush.rect(x, 360, 130, 90);
+    // Card content lines
+    brush.set("HB", "#888888", 0.3);
+    brush.line(x + 10, 385, x + 110, 385);
+    brush.line(x + 10, 398, x + 90, 398);
+    brush.line(x + 10, 411, x + 70, 411);
+    brush.set("2B", "#555555", 0.5);
+  }
+
+  // === ANNOTATIONS ===
+  brush.noField();
+
+  // Arrow from CTA to annotation
+  brush.set("pen", "#FF2D9B", 0.9);
+  brush.beginStroke("curve", 290, 315);
+  brush.move(-0.5, 60, 1);
+  brush.move(-0.3, 40, 0.8);
+  brush.endStroke(-0.2, 0.5);
+  // Arrowhead
+  brush.line(375, 290, 365, 280);
+  brush.line(375, 290, 363, 296);
+
+  // "user flow" annotation
+  brush.set("cpencil", "#FF2D9B", 0.7);
+  // Draw wavy underline
+  brush.line(650, 200, 780, 200);
+
+  // Arrow pointing to nav
+  brush.set("pen", "#FF2D9B", 0.7);
+  brush.beginStroke("curve", 650, 150);
+  brush.move(PI + 0.3, 30, 1);
+  brush.move(PI + 0.5, 20, 0.8);
+  brush.endStroke(PI, 0.5);
+
+  // Circle around CTA
+  brush.set("pen", "#FF2D9B", 0.6);
+  brush.circle(220, 315, 80, true);
+
+  // === SMALL ROBOT ===
+  brush.wiggle(4);
+
+  let rx = 750, ry = 550;
+
+  // Robot body
+  brush.set("2B", "#333333", 0.8);
+  brush.rect(rx - 25, ry, 50, 55);
+
+  // Robot head
+  brush.rect(rx - 20, ry - 30, 40, 30);
+
+  // Eyes
+  brush.set("pen", "#FF2D9B", 0.6);
+  brush.circle(rx - 8, ry - 15, 5);
+  brush.circle(rx + 8, ry - 15, 5);
+
+  // Antenna
+  brush.set("2B", "#333333", 0.6);
+  brush.line(rx, ry - 30, rx, ry - 45);
+  brush.circle(rx, ry - 47, 3);
+
+  // Arms
+  brush.line(rx - 25, ry + 15, rx - 40, ry + 5);
+  brush.line(rx + 25, ry + 15, rx + 40, ry + 5);
+
+  // Legs
+  brush.line(rx - 10, ry + 55, rx - 15, ry + 75);
+  brush.line(rx + 10, ry + 55, rx + 15, ry + 75);
+
+  // Robot speech bubble
+  brush.set("HB", "#555555", 0.5);
+  brush.circle(rx + 45, ry - 40, 30, true);
+  // "01" inside
+  brush.set("pen", "#FF2D9B", 0.5);
+  brush.line(rx + 38, ry - 42, rx + 43, ry - 42);
+  brush.line(rx + 46, ry - 42, rx + 53, ry - 42);
+
+  // === BOTTOM ANNOTATIONS ===
+  brush.wiggle(2);
+
+  // Doodle arrows showing flow
+  brush.set("cpencil", "#FF2D9B", 0.6);
+
+  // Flow arrow 1: from cards down
+  brush.beginStroke("curve", 300, 460);
+  brush.move(HALF_PI, 40, 1);
+  brush.move(HALF_PI - 0.3, 30, 0.7);
+  brush.endStroke(HALF_PI - 0.5, 0.4);
+
+  // Small stars/sparkles
+  brush.set("pen", "#FF2D9B", 0.4);
+  let stars = [[680, 420], [720, 380], [820, 300], [100, 650]];
+  for (let s of stars) {
+    brush.line(s[0] - 5, s[1], s[0] + 5, s[1]);
+    brush.line(s[0], s[1] - 5, s[0], s[1] + 5);
+    brush.line(s[0] - 3, s[1] - 3, s[0] + 3, s[1] + 3);
+    brush.line(s[0] + 3, s[1] - 3, s[0] - 3, s[1] + 3);
+  }
+
+  // === BOTTOM DOODLES ===
+  // Small component sketches
+
+  // Toggle switch
+  brush.set("2B", "#555555", 0.6);
+  brush.rect(120, 700, 40, 18);
+  brush.circle(148, 709, 7);
+
+  // Checkbox
+  brush.rect(180, 700, 16, 16);
+  brush.set("pen", "#FF2D9B", 0.7);
+  brush.line(183, 708, 188, 713);
+  brush.line(188, 713, 196, 701);
+
+  // Slider
+  brush.set("2B", "#555555", 0.5);
+  brush.line(220, 709, 320, 709);
+  brush.circle(270, 709, 6);
+
+  // Color palette dots
+  brush.set("pen", "#FF2D9B", 0.5);
+  brush.circle(350, 709, 8);
+  brush.set("pen", "#333333", 0.5);
+  brush.circle(372, 709, 8);
+  brush.set("pen", "#FAC8A5", 0.5);
+  brush.circle(394, 709, 8);
+
+  // === MARGIN NOTES (vertical) ===
+  brush.wiggle(2);
+  brush.set("cpencil", "#FF2D9B", 0.5);
+
+  // Vertical lines on margin (like torn notebook edge)
+  brush.set("2H", "#ddccbb", 0.4);
+  brush.line(50, 80, 50, height - 60);
+
+  // Spiral binding holes
+  for (let y = 100; y < height - 60; y += 60) {
+    brush.set("2B", "#bbaa99", 0.4);
+    brush.circle(50, y, 5, true);
+  }
+
+  // === FINAL TOUCHES ===
+  // Coffee stain ring (top right)
+  brush.noStroke();
+  brush.fill(180, 140, 100, 12);
+  brush.fillBleed(0.3, "out");
+  brush.circle(880, 130, 45);
+  brush.noFill();
+  brush.set("cpencil", "#b8a080", 0.3);
+  brush.arc(880, 130, 42, 0.2, 5.8);
+
+  // Page number
+  brush.set("HB", "#999999", 0.4);
+  brush.line(width - 100, height - 50, width - 70, height - 50);
+
+  noLoop();
+}
+</script>
+</body>
+</html>
