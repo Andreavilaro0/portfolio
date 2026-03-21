@@ -10,25 +10,25 @@ import type { ExperienceMode } from './ExperienceWrapper'
 // Monitor screen center (Three.js): (0, 10.293, 2.04), size 7.2 x 4.1
 // MacBook center (Three.js): (-4.633, 7.500, -1.101), size 3.05 x 2.05
 const CAMERAS = {
-  // Intro: very far, high and wide — dramatic fly-in to first person
+  // Intro: far away, high — dramatic fly-in
   intro: {
-    position: new THREE.Vector3(0, 16, -35),
-    lookAt: new THREE.Vector3(0, 9.5, 1.0),
+    position: new THREE.Vector3(0, 18, -30),
+    lookAt: new THREE.Vector3(0, 10, 0),
   },
-  // Seated: centered on monitor, slightly elevated, closer to reduce side panel visibility
+  // Seated: centered on monitor, looking straight at screen center
   seated: {
-    position: new THREE.Vector3(0, 12.0, -7.5),
-    lookAt: new THREE.Vector3(0, 8.5, 1.0),
+    position: new THREE.Vector3(0, 11.5, -8.0),
+    lookAt: new THREE.Vector3(0, 9.0, 0),
   },
-  // MacBook: far enough to see full laptop screen + some context
+  // MacBook: angled view of laptop
   macbook: {
     position: new THREE.Vector3(-4.63, 8.5, -7.5),
     lookAt: new THREE.Vector3(-4.63, 7.2, -1.1),
   },
-  // Project view: closer to monitor for expanded project detail
+  // Project view: closer to monitor
   project: {
     position: new THREE.Vector3(0, 10.5, -7.0),
-    lookAt: new THREE.Vector3(0, 9.8, 1.0),
+    lookAt: new THREE.Vector3(0, 9.5, 0),
   },
 }
 
