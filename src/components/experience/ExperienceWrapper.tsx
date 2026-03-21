@@ -301,9 +301,41 @@ export function ExperienceWrapper() {
         </div>
       )}
 
-      {/* Monitor and arcade overlays removed — pure 3D scene */}
-
-      {/* Second screen removed — focusing on 3D scene */}
+      {/* MONITOR OVERLAY — portfolio on the monitor screen */}
+      {mode !== 'loading' && mode !== 'intro' && (
+        <div
+          ref={monitorOverlayRef}
+          tabIndex={-1}
+          style={{
+            position: 'fixed',
+            ...(hasMonitorRect && clampedMonitor
+              ? { top: `${clampedMonitor.top}px`, left: `${clampedMonitor.left}px`, width: `${clampedMonitor.width}px`, height: `${clampedMonitor.height}px` }
+              : { top: '8%', left: '50%', transform: 'translateX(-50%)', width: 'clamp(320px, 50vw, 620px)', height: 'clamp(240px, 55vh, 520px)' }
+            ),
+            zIndex: 20,
+            overflow: 'hidden',
+            background: '#FDFBF7',
+            borderRadius: '2px',
+            boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+            pointerEvents: isMonitorActive ? 'auto' : 'none',
+            opacity: isMonitorActive ? 1 : 0,
+            transition: 'opacity 1.2s ease, top 0.8s ease, left 0.8s ease, width 0.8s ease, height 0.8s ease',
+          }}
+        >
+          <div className="monitor-scroll" style={{
+            width: '100%',
+            height: '100%',
+            overflowY: 'auto',
+            overflowX: 'hidden',
+          }}>
+            <MonitorPortfolio
+              activeProject={activeProject}
+              onExitProject={exitProject}
+              onNavigateProject={navigateProject}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

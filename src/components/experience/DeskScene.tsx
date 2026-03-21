@@ -88,7 +88,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
-          // Background plane — unlit so it reads as backdrop, not wall
+          // Background plane — unlit so it reads as backdrop
           if (nameLower === 'background' || nameLower === 'plane') {
             const mat = child.material as THREE.MeshStandardMaterial
             if (mat.map) {
@@ -99,7 +99,23 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
-          // Monitor and keyboard keep their original PBR materials (not baked)
+          // Monitor stand/base — fix checkerboard UV artifact
+          if (nameLower.includes('monitor')) {
+            const geo = child.geometry
+            if (geo) {
+              geo.computeBoundingBox()
+              const bb = geo.boundingBox!
+              const height = bb.max.y - bb.min.y
+              // Stand is short, screen is tall
+              if (height < 2) {
+                child.material = new THREE.MeshStandardMaterial({
+                  color: '#d4d4d4',
+                  roughness: 0.15,
+                  metalness: 0.6,
+                })
+              }
+            }
+          }
 
           child.castShadow = true
           child.receiveShadow = true
