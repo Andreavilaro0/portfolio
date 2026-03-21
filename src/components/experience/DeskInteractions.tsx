@@ -7,21 +7,22 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import type { ExperienceMode } from './ExperienceWrapper'
 
-// Names must match actual GLB mesh names — descriptions tell Andrea's story
+// Names must match actual GLB mesh names — each links to a page section
 const DESK_OBJECTS: {
   name: string
   label: string
   description: string
   projectId?: string
+  section?: string
 }[] = [
-  { name: 'razer_mouse', label: 'Razer Mouse', description: 'Precision instrument' },
-  { name: 'keyboard001', label: 'Teclado', description: '4am hackathon mode' },
-  { name: 'coffee_cup', label: 'Café de Olla', description: 'Fuel from home — MX → ES', projectId: 'clara' },
-  { name: 'desk_lamp001', label: 'Lámpara', description: 'Burning midnight oil since 2022' },
-  { name: 'F1_Car', label: 'Aston Martin AMR23', description: 'Alonso P1 or nothing', projectId: 'robotics' },
-  { name: 'Mexican_Skull', label: 'Calavera Mexicana', description: 'Día de Muertos — never forget where you come from' },
-  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics' },
-  { name: 'Gaming_Laptop', label: 'Gaming Laptop', description: 'Try the arcade →' },
+  { name: 'razer_mouse', label: 'Razer Mouse', description: 'Precision instrument', section: 'skills' },
+  { name: 'keyboard001', label: 'Teclado', description: '4am hackathon mode', section: 'skills' },
+  { name: 'coffee_cup', label: 'Café de Olla', description: 'Fuel from home — MX → ES', projectId: 'clara', section: 'work' },
+  { name: 'F1_Car', label: 'Aston Martin AMR23', description: 'Alonso P1 or nothing', section: 'about' },
+  { name: 'Mexican_Skull', label: 'Calavera Mexicana', description: 'Día de Muertos — never forget where you come from', section: 'about' },
+  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics', section: 'work' },
+  { name: 'leica_camera', label: 'Leica Camera', description: 'Capturing moments', section: 'work' },
+  { name: 'Box003', label: 'Sketchbook', description: 'Dibujo mis ideas antes de programarlas', section: 'work' },
 ]
 
 interface DeskInteractionsProps {
