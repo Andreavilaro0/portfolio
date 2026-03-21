@@ -2,248 +2,307 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>p5.brush — Andrea's Sketchbook</title>
+  <title>p5.brush — Andrea's Sketchbook v2</title>
   <script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.0.0-beta"></script>
   <style>
     html, body { margin: 0; padding: 0; overflow: hidden; background: #1a1a1a; display: flex; justify-content: center; align-items: center; height: 100vh; }
     canvas { display: block; }
+    .label { position: absolute; font-family: 'Courier New', monospace; pointer-events: none; }
   </style>
 </head>
 <body>
+<!-- Text labels as HTML overlays (WEBGL can't render text reliably) -->
+<div class="label" style="top:88px; left:135px; font-size:9px; color:#FF2D9B; font-weight:bold; transform:rotate(-2deg);">CLARA - CivicAid</div>
+<div class="label" style="top:108px; left:135px; font-size:7px; color:#555; font-style:italic;">voice pipeline architecture</div>
+
+<div class="label" style="top:175px; left:155px; font-size:8px; color:#333; font-weight:bold;">React</div>
+<div class="label" style="top:175px; left:310px; font-size:8px; color:#333; font-weight:bold;">Gemini API</div>
+<div class="label" style="top:175px; left:490px; font-size:8px; color:#333; font-weight:bold;">ElevenLabs</div>
+<div class="label" style="top:175px; left:660px; font-size:8px; color:#333; font-weight:bold;">User</div>
+
+<div class="label" style="top:150px; left:225px; font-size:6px; color:#FF2D9B;">POST /api/chat</div>
+<div class="label" style="top:150px; left:400px; font-size:6px; color:#FF2D9B;">stream audio</div>
+<div class="label" style="top:150px; left:575px; font-size:6px; color:#FF2D9B;">TTS response</div>
+
+<div class="label" style="top:223px; left:140px; font-size:7px; color:#888; font-style:italic;">* soporta 8 idiomas!!</div>
+
+<!-- Code snippet -->
+<div class="label" style="top:265px; left:130px; font-size:8px; color:#FF2D9B; font-weight:bold;">// voice processing</div>
+<div class="label" style="top:280px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">async function processVoice(audio) {</div>
+<div class="label" style="top:294px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">  const text = await whisper(audio)</div>
+<div class="label" style="top:308px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">  const lang = detectLang(text)</div>
+<div class="label" style="top:322px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">  const response = await gemini({</div>
+<div class="label" style="top:336px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">    prompt: text,</div>
+<div class="label" style="top:350px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">    lang, context: 'tramites'</div>
+<div class="label" style="top:364px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">  })</div>
+<div class="label" style="top:378px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">  return elevenlabs.speak(response)</div>
+<div class="label" style="top:392px; left:130px; font-size:7.5px; color:#333; font-family:'Courier New',monospace;">}</div>
+
+<!-- Spanglish annotations -->
+<div class="label" style="top:295px; left:430px; font-size:7px; color:#FF2D9B; transform:rotate(-3deg);">esto tiene que ser</div>
+<div class="label" style="top:308px; left:430px; font-size:7px; color:#FF2D9B; transform:rotate(-3deg);">real-time o se siente lag</div>
+
+<div class="label" style="top:358px; left:430px; font-size:6px; color:#888; transform:rotate(1deg);">TODO: cache de respuestas</div>
+<div class="label" style="top:371px; left:430px; font-size:6px; color:#888; transform:rotate(1deg);">frecuentes para no gastar $$</div>
+
+<!-- Flow diagram labels -->
+<div class="label" style="top:455px; left:155px; font-size:7px; color:#333; font-weight:bold;">user speaks</div>
+<div class="label" style="top:455px; left:325px; font-size:7px; color:#FF2D9B; font-weight:bold;">if lang?</div>
+<div class="label" style="top:422px; left:460px; font-size:7px; color:#333;">ES: responder</div>
+<div class="label" style="top:490px; left:460px; font-size:7px; color:#333;">EN: translate</div>
+<div class="label" style="top:455px; left:590px; font-size:7px; color:#333;">generate</div>
+<div class="label" style="top:455px; left:720px; font-size:7px; color:#333; font-weight:bold;">speak!</div>
+
+<div class="label" style="top:520px; left:310px; font-size:6px; color:#FF2D9B; font-style:italic;">otros 6 langs</div>
+
+<!-- Bottom notes -->
+<div class="label" style="top:585px; left:130px; font-size:8px; color:#FF2D9B; font-weight:bold;">ideas random:</div>
+<div class="label" style="top:602px; left:130px; font-size:7px; color:#555;">- hackathon timer component</div>
+<div class="label" style="top:616px; left:130px; font-size:7px; color:#555;">- dark mode pero bonito</div>
+<div class="label" style="top:630px; left:130px; font-size:7px; color:#555;">- animacion del robot waving</div>
+<div class="label" style="top:644px; left:130px; font-size:7px; color:#555;">- portfolio 3D (este!!)</div>
+<div class="label" style="top:644px; left:300px; font-size:7px; color:#FF2D9B; font-weight:bold;">WIP</div>
+
+<div class="label" style="top:700px; left:130px; font-size:6px; color:#aaa;">pg. 42</div>
+
+<!-- Top right: date -->
+<div class="label" style="top:88px; left:700px; font-size:7px; color:#aaa; transform:rotate(2deg);">mar 2026</div>
+<div class="label" style="top:100px; left:700px; font-size:6px; color:#ccc;">madrid</div>
+
 <script>
 function setup() {
-  createCanvas(1024, 1024, WEBGL);
+  createCanvas(1024, 768, WEBGL);
   brush.load();
   translate(-width / 2, -height / 2);
-  randomSeed(2026);
+  randomSeed(42);
 
   // Warm sketchbook paper
   background(252, 248, 235);
 
-  // Subtle paper texture with noise
+  // Paper texture
   brush.noStroke();
-  brush.fill(240, 235, 220, 15);
-  brush.fillTexture(0.8, 0.2);
+  brush.fill(245, 240, 228, 10);
+  brush.fillTexture(0.6, 0.2);
   brush.rect(0, 0, width, height);
   brush.noFill();
 
-  // Grid lines (faint, like a notebook)
-  brush.set("2H", "#c8c0b0", 0.3);
-  for (let y = 80; y < height - 60; y += 32) {
-    brush.line(60, y, width - 60, y);
+  // Faint grid lines
+  brush.set("2H", "#d8d0c0", 0.2);
+  for (let y = 80; y < height - 30; y += 28) {
+    brush.line(60, y, width - 40, y);
   }
 
-  // === WIREFRAME: Simple web interface ===
+  // Margin line
+  brush.set("2H", "#eeddcc", 0.3);
+  brush.line(110, 70, 110, height - 30);
+
+  // Spiral binding
+  for (let y = 85; y < height - 30; y += 50) {
+    brush.set("2B", "#bbaa99", 0.3);
+    brush.circle(55, y, 6, true);
+  }
+
   brush.wiggle(3);
 
-  // Browser window frame
-  brush.set("pen", "#333333", 1.2);
-  brush.rect(120, 100, 500, 380);
+  // === ARCHITECTURE DIAGRAM (top) ===
 
-  // URL bar
-  brush.set("2B", "#555555", 0.6);
-  brush.rect(140, 115, 460, 22);
-  // Dots for traffic lights
-  brush.set("pen", "#FF2D9B", 0.8);
-  brush.circle(152, 126, 4);
-  brush.set("pen", "#ffaa00", 0.8);
-  brush.circle(165, 126, 4);
-  brush.set("pen", "#44cc44", 0.8);
-  brush.circle(178, 126, 4);
-
-  // Nav bar
-  brush.set("2B", "#333333", 0.7);
-  brush.line(140, 155, 600, 155);
-  // Nav items (small rectangles as placeholders)
-  brush.set("HB", "#666666", 0.5);
-  brush.rect(150, 145, 40, 8);
-  brush.rect(200, 145, 55, 8);
-  brush.rect(265, 145, 40, 8);
-  brush.rect(315, 145, 50, 8);
-
-  // Hero section — big heading placeholder
-  brush.set("marker", "#333333", 1.5);
-  brush.line(160, 195, 380, 195);
-  brush.set("marker", "#333333", 1.0);
-  brush.line(160, 215, 320, 215);
-
-  // Subtext lines
-  brush.set("HB", "#888888", 0.4);
-  for (let i = 0; i < 3; i++) {
-    brush.line(160, 245 + i * 14, 160 + random(180, 280), 245 + i * 14);
-  }
-
-  // CTA button
-  brush.set("pen", "#FF2D9B", 1.0);
-  brush.rect(160, 300, 120, 30);
-  // Button text placeholder
-  brush.set("HB", "#FF2D9B", 0.5);
-  brush.line(175, 317, 265, 317);
-
-  // Image placeholder (right side of hero)
-  brush.set("2B", "#999999", 0.6);
-  brush.rect(420, 180, 160, 140);
-  // X lines for image placeholder
-  brush.line(420, 180, 580, 320);
-  brush.line(580, 180, 420, 320);
-
-  // Cards section below
-  brush.set("2B", "#555555", 0.5);
-  for (let i = 0; i < 3; i++) {
-    let x = 150 + i * 155;
-    brush.rect(x, 360, 130, 90);
-    // Card content lines
-    brush.set("HB", "#888888", 0.3);
-    brush.line(x + 10, 385, x + 110, 385);
-    brush.line(x + 10, 398, x + 90, 398);
-    brush.line(x + 10, 411, x + 70, 411);
-    brush.set("2B", "#555555", 0.5);
-  }
-
-  // === ANNOTATIONS ===
-  brush.noField();
-
-  // Arrow from CTA to annotation
-  brush.set("pen", "#FF2D9B", 0.9);
-  brush.beginStroke("curve", 290, 315);
-  brush.move(-0.5, 60, 1);
-  brush.move(-0.3, 40, 0.8);
-  brush.endStroke(-0.2, 0.5);
-  // Arrowhead
-  brush.line(375, 290, 365, 280);
-  brush.line(375, 290, 363, 296);
-
-  // "user flow" annotation
-  brush.set("cpencil", "#FF2D9B", 0.7);
-  // Draw wavy underline
-  brush.line(650, 200, 780, 200);
-
-  // Arrow pointing to nav
+  // Title underline
   brush.set("pen", "#FF2D9B", 0.7);
-  brush.beginStroke("curve", 650, 150);
-  brush.move(PI + 0.3, 30, 1);
-  brush.move(PI + 0.5, 20, 0.8);
-  brush.endStroke(PI, 0.5);
+  brush.line(130, 120, 300, 120);
 
-  // Circle around CTA
-  brush.set("pen", "#FF2D9B", 0.6);
-  brush.circle(220, 315, 80, true);
+  // Architecture boxes
+  brush.set("pen", "#333333", 0.8);
+  // React box
+  brush.rect(140, 155, 70, 35);
+  // API box
+  brush.rect(295, 155, 85, 35);
+  // ElevenLabs box
+  brush.rect(475, 155, 90, 35);
+  // User circle
+  brush.set("pen", "#FF2D9B", 0.8);
+  brush.circle(700, 172, 22, true);
 
-  // === SMALL ROBOT ===
+  // Arrows between boxes
+  brush.set("pen", "#333333", 0.6);
+  // React → API
+  brush.line(210, 172, 295, 172);
+  brush.line(285, 167, 295, 172);
+  brush.line(285, 177, 295, 172);
+
+  // API → ElevenLabs
+  brush.line(380, 172, 475, 172);
+  brush.line(465, 167, 475, 172);
+  brush.line(465, 177, 475, 172);
+
+  // ElevenLabs → User
+  brush.line(565, 172, 678, 172);
+  brush.line(668, 167, 678, 172);
+  brush.line(668, 177, 678, 172);
+
+  // Dashed return arrow (user back to react)
+  brush.set("cpencil", "#FF2D9B", 0.4);
+  for (let x = 700; x > 160; x -= 15) {
+    brush.line(x, 200, x - 8, 200);
+  }
+  brush.line(160, 195, 150, 200);
+  brush.line(160, 205, 150, 200);
+
+  // === CODE BLOCK (middle left) ===
+
+  // Code block background
+  brush.noStroke();
+  brush.fill(240, 238, 230, 40);
+  brush.rect(125, 255, 280, 155);
+  brush.noFill();
+
+  // Code bracket
+  brush.set("2B", "#cccccc", 0.4);
+  brush.line(125, 255, 125, 410);
+
+  // === FLOW DIAGRAM (below code) ===
   brush.wiggle(4);
 
-  let rx = 750, ry = 550;
+  // Start circle
+  brush.set("pen", "#333333", 0.7);
+  brush.circle(180, 462, 18, true);
 
-  // Robot body
-  brush.set("2B", "#333333", 0.8);
-  brush.rect(rx - 25, ry, 50, 55);
+  // Arrow to diamond
+  brush.line(198, 462, 310, 462);
+  brush.line(300, 457, 310, 462);
+  brush.line(300, 467, 310, 462);
 
-  // Robot head
-  brush.rect(rx - 20, ry - 30, 40, 30);
+  // Decision diamond (if lang?)
+  brush.set("pen", "#FF2D9B", 0.8);
+  let dx = 350, dy = 462;
+  brush.beginShape(0);
+  brush.vertex(dx, dy - 22);
+  brush.vertex(dx + 35, dy);
+  brush.vertex(dx, dy + 22);
+  brush.vertex(dx - 35, dy);
+  brush.endShape(true);
 
-  // Eyes
-  brush.set("pen", "#FF2D9B", 0.6);
-  brush.circle(rx - 8, ry - 15, 5);
-  brush.circle(rx + 8, ry - 15, 5);
-
-  // Antenna
-  brush.set("2B", "#333333", 0.6);
-  brush.line(rx, ry - 30, rx, ry - 45);
-  brush.circle(rx, ry - 47, 3);
-
-  // Arms
-  brush.line(rx - 25, ry + 15, rx - 40, ry + 5);
-  brush.line(rx + 25, ry + 15, rx + 40, ry + 5);
-
-  // Legs
-  brush.line(rx - 10, ry + 55, rx - 15, ry + 75);
-  brush.line(rx + 10, ry + 55, rx + 15, ry + 75);
-
-  // Robot speech bubble
-  brush.set("HB", "#555555", 0.5);
-  brush.circle(rx + 45, ry - 40, 30, true);
-  // "01" inside
-  brush.set("pen", "#FF2D9B", 0.5);
-  brush.line(rx + 38, ry - 42, rx + 43, ry - 42);
-  brush.line(rx + 46, ry - 42, rx + 53, ry - 42);
-
-  // === BOTTOM ANNOTATIONS ===
-  brush.wiggle(2);
-
-  // Doodle arrows showing flow
-  brush.set("cpencil", "#FF2D9B", 0.6);
-
-  // Flow arrow 1: from cards down
-  brush.beginStroke("curve", 300, 460);
-  brush.move(HALF_PI, 40, 1);
-  brush.move(HALF_PI - 0.3, 30, 0.7);
-  brush.endStroke(HALF_PI - 0.5, 0.4);
-
-  // Small stars/sparkles
-  brush.set("pen", "#FF2D9B", 0.4);
-  let stars = [[680, 420], [720, 380], [820, 300], [100, 650]];
-  for (let s of stars) {
-    brush.line(s[0] - 5, s[1], s[0] + 5, s[1]);
-    brush.line(s[0], s[1] - 5, s[0], s[1] + 5);
-    brush.line(s[0] - 3, s[1] - 3, s[0] + 3, s[1] + 3);
-    brush.line(s[0] + 3, s[1] - 3, s[0] - 3, s[1] + 3);
-  }
-
-  // === BOTTOM DOODLES ===
-  // Small component sketches
-
-  // Toggle switch
-  brush.set("2B", "#555555", 0.6);
-  brush.rect(120, 700, 40, 18);
-  brush.circle(148, 709, 7);
-
-  // Checkbox
-  brush.rect(180, 700, 16, 16);
-  brush.set("pen", "#FF2D9B", 0.7);
-  brush.line(183, 708, 188, 713);
-  brush.line(188, 713, 196, 701);
-
-  // Slider
-  brush.set("2B", "#555555", 0.5);
-  brush.line(220, 709, 320, 709);
-  brush.circle(270, 709, 6);
-
-  // Color palette dots
-  brush.set("pen", "#FF2D9B", 0.5);
-  brush.circle(350, 709, 8);
+  // ES branch (up)
   brush.set("pen", "#333333", 0.5);
-  brush.circle(372, 709, 8);
-  brush.set("pen", "#FAC8A5", 0.5);
-  brush.circle(394, 709, 8);
+  brush.line(350, 440, 350, 425);
+  brush.line(350, 425, 480, 425);
+  brush.line(470, 420, 480, 425);
+  brush.line(470, 430, 480, 425);
 
-  // === MARGIN NOTES (vertical) ===
-  brush.wiggle(2);
-  brush.set("cpencil", "#FF2D9B", 0.5);
+  // EN branch (down)
+  brush.line(350, 484, 350, 500);
+  brush.line(350, 500, 480, 500);
+  brush.line(470, 495, 480, 500);
+  brush.line(470, 505, 480, 500);
 
-  // Vertical lines on margin (like torn notebook edge)
-  brush.set("2H", "#ddccbb", 0.4);
-  brush.line(50, 80, 50, height - 60);
+  // Process boxes
+  brush.set("pen", "#333333", 0.6);
+  brush.rect(480, 415, 85, 22);
+  brush.rect(480, 490, 85, 22);
 
-  // Spiral binding holes
-  for (let y = 100; y < height - 60; y += 60) {
-    brush.set("2B", "#bbaa99", 0.4);
-    brush.circle(50, y, 5, true);
+  // Both merge → generate
+  brush.line(565, 426, 600, 462);
+  brush.line(565, 501, 600, 462);
+
+  // Generate box
+  brush.rect(590, 450, 65, 25);
+
+  // → speak
+  brush.line(655, 462, 710, 462);
+  brush.line(700, 457, 710, 462);
+  brush.line(700, 467, 710, 462);
+
+  // Speak circle (end)
+  brush.set("pen", "#FF2D9B", 0.8);
+  brush.circle(740, 462, 18, true);
+
+  // Other langs note with arrow
+  brush.set("cpencil", "#FF2D9B", 0.4);
+  brush.line(350, 484, 340, 530);
+  brush.line(340, 530, 360, 530);
+
+  // === BOTTOM: IDEAS + DOODLES ===
+  brush.wiggle(3);
+
+  // Checkbox doodles next to ideas
+  brush.set("2B", "#555555", 0.5);
+  brush.rect(118, 602, 8, 8);
+  brush.rect(118, 616, 8, 8);
+  brush.rect(118, 630, 8, 8);
+  brush.rect(118, 644, 8, 8);
+
+  // Check marks
+  brush.set("pen", "#FF2D9B", 0.5);
+  brush.line(120, 649, 122, 651);
+  brush.line(122, 651, 126, 645);
+
+  // === RIGHT SIDE DOODLES ===
+
+  // Small robot drawing
+  let rx = 700, ry = 580;
+  brush.set("2B", "#333", 0.6);
+  // Head
+  brush.rect(rx - 12, ry - 20, 24, 18);
+  // Eyes
+  brush.set("pen", "#FF2D9B", 0.5);
+  brush.circle(rx - 5, ry - 12, 3);
+  brush.circle(rx + 5, ry - 12, 3);
+  // Body
+  brush.set("2B", "#333", 0.5);
+  brush.rect(rx - 15, ry, 30, 25);
+  // Antenna
+  brush.line(rx, ry - 20, rx, ry - 30);
+  brush.circle(rx, ry - 32, 2);
+  // Arms waving
+  brush.line(rx - 15, ry + 8, rx - 28, ry - 5);
+  brush.line(rx + 15, ry + 8, rx + 28, ry - 5);
+  // Wave lines
+  brush.set("cpencil", "#FF2D9B", 0.3);
+  brush.line(rx + 30, ry - 8, rx + 35, ry - 12);
+  brush.line(rx + 32, ry - 4, rx + 37, ry - 8);
+
+  // Small coffee cup doodle
+  brush.set("2B", "#8B6914", 0.5);
+  brush.rect(680, 650, 20, 22);
+  brush.arc(700, 661, 8, -HALF_PI, HALF_PI);
+  // Steam
+  brush.set("cpencil", "#999", 0.3);
+  for (let i = 0; i < 3; i++) {
+    let sx = 685 + i * 5;
+    brush.beginStroke("curve", sx, 648);
+    brush.move(-HALF_PI + sin(i) * 0.3, 12, 0.5);
+    brush.endStroke(-HALF_PI, 0.3);
   }
 
-  // === FINAL TOUCHES ===
-  // Coffee stain ring (top right)
-  brush.noStroke();
-  brush.fill(180, 140, 100, 12);
-  brush.fillBleed(0.3, "out");
-  brush.circle(880, 130, 45);
-  brush.noFill();
-  brush.set("cpencil", "#b8a080", 0.3);
-  brush.arc(880, 130, 42, 0.2, 5.8);
+  // Sparkles
+  brush.set("pen", "#FF2D9B", 0.3);
+  let stars = [[820, 300], [780, 150], [850, 500], [90, 500]];
+  for (let s of stars) {
+    brush.line(s[0] - 4, s[1], s[0] + 4, s[1]);
+    brush.line(s[0], s[1] - 4, s[0], s[1] + 4);
+  }
 
-  // Page number
-  brush.set("HB", "#999999", 0.4);
-  brush.line(width - 100, height - 50, width - 70, height - 50);
+  // Arrow pointing to code with note
+  brush.set("cpencil", "#FF2D9B", 0.5);
+  brush.beginStroke("curve", 420, 330);
+  brush.move(PI - 0.3, 25, 0.8);
+  brush.endStroke(PI, 0.4);
+
+  // Coffee stain (top right)
+  brush.noStroke();
+  brush.fill(190, 150, 110, 10);
+  brush.fillBleed(0.2, "out");
+  brush.circle(900, 110, 35);
+  brush.noFill();
+  brush.set("cpencil", "#c8a880", 0.2);
+  brush.arc(900, 110, 32, 0.3, 5.5);
+
+  // Small heart next to "este!!"
+  brush.set("pen", "#FF2D9B", 0.4);
+  brush.circle(318, 648, 3);
+  brush.circle(324, 648, 3);
+  brush.line(315, 650, 321, 658);
+  brush.line(327, 650, 321, 658);
 
   noLoop();
 }
