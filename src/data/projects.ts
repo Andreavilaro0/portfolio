@@ -73,8 +73,27 @@ export const projects: Project[] = [
     ],
   },
   {
-    id: 'os',
+    id: 'todo',
     num: '04',
+    color: '#00E5FF',
+    title: 'TASK DASHBOARD',
+    subtitle: 'Productivity App',
+    desc: 'Dashboard de tareas con widgets interactivos: mapa, calendario, estados, prioridades y filtros. Sprint de Frontend I en UDIT.',
+    context: 'Sprint 6 — Frontend I, UDIT Madrid',
+    highlights: [
+      'Dashboard con widgets dinámicos',
+      'Mapa interactivo integrado',
+      'Filtros por estado y prioridad',
+    ],
+    tags: ['JavaScript', 'HTML', 'CSS'],
+    links: [
+      { label: 'demo', href: 'https://andreavilaro0.github.io/todo-list-dashboard/' },
+      { label: 'code', href: 'https://github.com/Andreavilaro0/todo-list-dashboard' },
+    ],
+  },
+  {
+    id: 'os',
+    num: '05',
     color: '#7B2FFF',
     title: 'KERNEL SIM',
     subtitle: 'OS Simulation',

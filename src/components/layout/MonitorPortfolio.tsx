@@ -10,6 +10,7 @@ import { useRef, useState, useEffect } from 'react'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { projects } from '../../data/projects'
 import { ProjectDetail } from './ProjectDetail'
+import { HandDrawnLine } from './HandDrawnLine'
 
 const skills = [
   { name: 'React / Next.js', level: 90 },
@@ -22,7 +23,7 @@ const skills = [
 
 const channels = [
   { label: 'github', href: 'https://github.com/Andreavilaro0' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/andrea-avila-dev' },
+  { label: 'linkedin', href: 'https://www.linkedin.com/feed/' },
   { label: 'email', href: 'mailto:andrea15one@icloud.com' },
 ]
 
@@ -99,14 +100,14 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', fontFamily: 'var(--font-body)', color: 'var(--color-text)', background: 'var(--color-surface)', display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div style={{ position: 'relative', width: '100%', fontFamily: 'var(--font-body)', color: 'var(--color-text)', background: '#FDFBF7', display: 'flex', flexDirection: 'column', height: '100%' }}>
 
       {/* Sticky nav */}
       <nav aria-label="Portfolio sections" style={{
         position: 'sticky',
         top: 0,
         zIndex: 10,
-        background: 'var(--color-surface)',
+        background: '#FDFBF7',
         borderBottom: '1px solid rgba(26,26,26,0.12)',
         padding: '8px 24px',
         display: 'flex',
@@ -171,33 +172,8 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
           </p>
         </header>
 
-        {/* About */}
-        <section id="monitor-about" style={{
-          marginBottom: '12px',
-          padding: '14px',
-          background: 'var(--color-surface)',
-          border: '2px solid var(--color-border)',
-        }}>
-          <p style={{
-            fontSize: '12px',
-            lineHeight: 1.6,
-            color: 'var(--color-muted)',
-            margin: '0 0 10px 0',
-          }}>
-            Mexicana viviendo en Madrid. Estudiante de 4o semestre de ingeniería.
-            De gestionar un negocio familiar en México a ganar hackathones y llegar
-            a la final nacional de robótica en España.
-          </p>
-          <p style={{
-            fontSize: '12px',
-            lineHeight: 1.6,
-            color: 'var(--color-muted)',
-            margin: '0 0 10px 0',
-          }}>
-            Construyo productos web con React, TypeScript y Python. Me especializo
-            en experiencias interactivas con Three.js y animación. Dibujo mis ideas
-            antes de programarlas.
-          </p>
+        {/* About — minimal, the desk tells the story */}
+        <section id="monitor-about" style={{ marginBottom: '12px' }}>
           <div style={{ display: 'flex', gap: '16px' }}>
             {[
               { n: '4', s: 'o', label: 'Semestre' },
@@ -228,7 +204,7 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
         </section>
 
         {/* Divider */}
-        <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
+        <HandDrawnLine variant={0} style={{ marginBottom: '12px' }} />
 
         {/* Projects */}
         <section id="monitor-work">
@@ -338,7 +314,7 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
                 ))}
               </div>
 
-              <div style={{ height: '1px', background: 'var(--color-border)', marginTop: '12px', opacity: 0.2 }} />
+              <HandDrawnLine variant={(projects.indexOf(p) % 3) as 0 | 1 | 2} opacity={0.2} style={{ marginTop: '12px' }} />
             </div>
           ))}
         </section>
@@ -410,7 +386,7 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
           </a>
         </div>
 
-        <div style={{ height: '2px', background: 'var(--color-text)', marginBottom: '12px' }} />
+        <HandDrawnLine variant={2} style={{ marginBottom: '12px' }} />
 
         {/* Contact */}
         <section id="monitor-contact" style={{ marginBottom: '20px' }}>
@@ -491,7 +467,7 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
             left: 0,
             right: 0,
             height: '40px',
-            background: 'linear-gradient(transparent, var(--color-surface))',
+            background: 'linear-gradient(transparent, #FDFBF7)',
             pointerEvents: 'none',
             zIndex: 5,
           }}

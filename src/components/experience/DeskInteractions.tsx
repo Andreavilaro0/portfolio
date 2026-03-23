@@ -8,21 +8,24 @@ import gsap from 'gsap'
 import type { ExperienceMode } from './ExperienceWrapper'
 
 // Names must match actual GLB mesh names — each links to a page section
-const DESK_OBJECTS: {
+export const DESK_OBJECTS: {
   name: string
   label: string
   description: string
   projectId?: string
   section?: string
 }[] = [
-  { name: 'razer_mouse', label: 'Razer Mouse', description: 'Precision instrument', section: 'skills' },
-  { name: 'keyboard001', label: 'Teclado', description: '4am hackathon mode', section: 'skills' },
-  { name: 'coffee_cup', label: 'Café de Olla', description: 'Fuel from home — MX → ES', projectId: 'clara', section: 'work' },
-  { name: 'F1_Car', label: 'Aston Martin AMR23', description: 'Alonso P1 or nothing', section: 'about' },
-  { name: 'Mexican_Skull', label: 'Calavera Mexicana', description: 'Día de Muertos — never forget where you come from', section: 'about' },
-  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics', section: 'work' },
-  { name: 'leica_camera', label: 'Leica Camera', description: 'Capturing moments', section: 'work' },
-  { name: 'Box003', label: 'Sketchbook', description: 'Dibujo mis ideas antes de programarlas', section: 'work' },
+  { name: 'razer_mouse', label: 'Razer Mouse', description: 'Precision is everything' },
+  { name: 'keyboard001', label: 'Keyboard', description: '4am coding sessions' },
+  { name: 'coffee_cup', label: 'Coffee', description: 'Fuel from home — MX → ES', projectId: 'clara' },
+  { name: 'leica_camera', label: 'Leica Camera', description: 'I capture moments too' },
+  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics' },
+  { name: 'F1_Car', label: 'F1 Car', description: 'Speed is a feature' },
+  // Sketchfab objects (separate GLBs — found via global scene)
+  { name: 'Mexican_Skull', label: 'Calavera', description: 'Never forget where you come from — MX' },
+  { name: 'Rubiks_Cube', label: "Rubik's Cube", description: 'Every problem has a solution' },
+  { name: 'Desk_Plant', label: 'Succulent', description: 'Even engineers need something alive' },
+  { name: 'Box003', label: 'Sketchbook', description: 'Dibujo mis ideas antes de programarlas', section: 'work', projectId: 'sketchbook' },
 ]
 
 interface DeskInteractionsProps {
@@ -35,16 +38,35 @@ interface DeskInteractionsProps {
 export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }: DeskInteractionsProps) {
   const [selected, setSelected] = useState<{ name: string; position: THREE.Vector3 } | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  const { gl } = useThree()
+  const { gl, scene: rootScene } = useThree()
   const originalMaterials = useRef<Map<string, Map<THREE.Mesh, THREE.Material>>>(new Map())
   const idleGlowTweens = useRef<gsap.core.Tween[]>([])
   const hintShown = useRef(false)
   const [showHint, setShowHint] = useState(false)
+  const [hitboxReady, setHitboxReady] = useState(false)
 
-  // Compute precise hitboxes from actual mesh geometry
+  // Retry hitbox computation until all objects are loaded (separate GLBs load async)
+  useEffect(() => {
+    let attempts = 0
+    const check = () => {
+      const found = DESK_OBJECTS.filter(({ name }) => rootScene.getObjectByName(name)).length
+      if (found >= DESK_OBJECTS.length - 1 || attempts > 20) {
+        setHitboxReady(true)
+      } else {
+        attempts++
+        setTimeout(check, 300)
+      }
+    }
+    check()
+  }, [rootScene])
+
+  // Compute precise hitboxes — uses rootScene (global Three.js scene) so it finds
+  // both main GLB objects AND separately-loaded DeskObjects (skull, rubiks, plant)
   const hitboxes = useMemo(() => {
+    if (!hitboxReady) return []
     return DESK_OBJECTS.map(({ name }) => {
-      const object = scene.getObjectByName(name)
+      // Search the entire Three.js scene graph, not just the main GLB
+      const object = rootScene.getObjectByName(name)
       if (!object) return null
 
       const box = new THREE.Box3().setFromObject(object)
@@ -58,10 +80,10 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
 
       return { name, center, size }
     }).filter(Boolean) as { name: string; center: THREE.Vector3; size: THREE.Vector3 }[]
-  }, [scene])
+  }, [rootScene, hitboxReady])
 
   const setEmissive = useCallback((name: string, intensity: number, color?: string) => {
-    const object = scene.getObjectByName(name)
+    const object = rootScene.getObjectByName(name)
     if (!object) return
 
     object.traverse((child) => {
@@ -194,6 +216,56 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
         </mesh>
       ))}
 
+      {/* Floating hover label — appears above the object when hovered */}
+      {(mode === 'overview' || mode === 'seated') && hovered && (() => {
+        const info = DESK_OBJECTS.find(d => d.name === hovered)
+        const hbox = hitboxes.find(h => h.name === hovered)
+        if (!info || !hbox) return null
+        return (
+          <Html
+            position={[hbox.center.x, hbox.center.y + hbox.size.y / 2 + 0.6, hbox.center.z]}
+            center
+            distanceFactor={6}
+          >
+            <div style={{
+              fontFamily: '"JetBrains Mono", monospace',
+              fontSize: '14px',
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              padding: '8px 18px',
+              background: 'rgba(10, 10, 10, 0.92)',
+              backdropFilter: 'blur(8px)',
+              color: '#F2F0ED',
+              border: '1px solid #00FFC8',
+              borderRadius: '2px',
+              whiteSpace: 'nowrap',
+              pointerEvents: 'none',
+              textTransform: 'uppercase',
+              animation: 'labelPopIn 0.25s ease-out both',
+              textAlign: 'center',
+            }}>
+              {info.label}
+              <div style={{
+                fontSize: '10px',
+                fontWeight: 400,
+                color: 'rgba(242, 240, 237, 0.55)',
+                letterSpacing: '0.05em',
+                marginTop: '3px',
+                textTransform: 'none',
+              }}>
+                {info.description}
+              </div>
+            </div>
+            <style>{`
+              @keyframes labelPopIn {
+                0% { opacity: 0; transform: scale(0.7) translateY(6px); }
+                100% { opacity: 1; transform: scale(1) translateY(0); }
+              }
+            `}</style>
+          </Html>
+        )
+      })()}
+
       {/* First-time hint */}
       {showHint && coffeeHitbox && (
         <Html
@@ -203,18 +275,20 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
         >
           <div style={{
             fontFamily: '"JetBrains Mono", monospace',
-            fontSize: '9px',
+            fontSize: '13px',
             letterSpacing: '0.1em',
-            padding: '6px 12px',
-            background: 'rgba(26,26,26,0.9)',
-            color: '#BEFF00',
-            border: '1px solid rgba(190,255,0,0.3)',
+            padding: '8px 18px',
+            background: 'rgba(10, 10, 10, 0.92)',
+            backdropFilter: 'blur(8px)',
+            color: '#F2F0ED',
+            border: '1px solid #00FFC8',
+            borderRadius: '2px',
             whiteSpace: 'nowrap',
             pointerEvents: 'none',
             textTransform: 'uppercase',
             animation: 'hintFade 4s ease forwards',
           }}>
-            Click objects to explore projects
+            Click objects to inspect
           </div>
           <style>{`
             @keyframes hintFade {
@@ -226,32 +300,6 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
           `}</style>
         </Html>
       )}
-
-      {selected && (() => {
-        const info = DESK_OBJECTS.find(d => d.name === selected.name)
-        if (!info) return null
-        return (
-          <Html position={selected.position} center distanceFactor={6}>
-            <div style={{
-              fontFamily: '"JetBrains Mono", monospace',
-              fontSize: '11px',
-              padding: '8px 14px',
-              background: '#1A1A1A',
-              color: '#F2F0ED',
-              border: '2px solid #FF2D9B',
-              whiteSpace: 'nowrap',
-              pointerEvents: 'none',
-              opacity: 1,
-              transform: 'translateY(0)',
-              transition: 'opacity 0.2s ease, transform 0.2s ease',
-            }}>
-              <strong style={{ color: '#FF2D9B' }}>{info.label}</strong>
-              <br />
-              {info.description}
-            </div>
-          </Html>
-        )
-      })()}
     </>
   )
 }

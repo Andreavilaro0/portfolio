@@ -2,24 +2,22 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react'
 import * as Sentry from '@sentry/nextjs'
-import type * as THREE from 'three'
-import type { ScreenRect } from './ScreenAlignedOverlay'
 import dynamic from 'next/dynamic'
 import gsap from 'gsap'
 import { LoadingScreen } from './LoadingScreen'
 import { NoiseBackground } from '../layout/NoiseBackground'
 import { useAnalytics } from '../../hooks/useAnalytics'
 import { PortfolioContent } from '../layout/PortfolioContent'
-import { MonitorPortfolio } from '../layout/MonitorPortfolio'
-import { ProjectNavigator } from '../layout/ProjectNavigator'
-// Mac OS Desktop loaded as iframe in second screen
+import { SketchbookViewer } from './SketchbookViewer'
+import { RetroFocusOverlay } from './RetroFocusOverlay'
+import { RetroHUD, RetroCrosshair } from './RetroHUD'
 
 const DeskScene = dynamic(
   () => import('./DeskScene').then((m) => ({ default: m.DeskScene })),
   { ssr: false }
 )
 
-export type ExperienceMode = 'loading' | 'intro' | 'overview' | 'seated' | 'macbook' | 'project' | 'focused'
+export type ExperienceMode = 'loading' | 'intro' | 'overview' | 'seated' | 'project' | 'focused' | 'sketchbook'
 
 export function ExperienceWrapper() {
   const { track } = useAnalytics()
@@ -29,22 +27,13 @@ export function ExperienceWrapper() {
   const [sceneReady, setSceneReady] = useState(false)
   const [webglFailed, setWebglFailed] = useState(false)
   const [noWebGL, setNoWebGL] = useState(false)
-  const [activeScreen, setActiveScreen] = useState<'none' | 'portfolio' | 'arcade' | 'project'>('none')
+  const [activeScreen, setActiveScreen] = useState<'none' | 'portfolio' | 'project'>('none')
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [activeProject, setActiveProject] = useState<string | null>(null)
   const [focusedObject, setFocusedObject] = useState<string | null>(null)
+  const [clickFlash, setClickFlash] = useState(false)
   const monitorOverlayRef = useRef<HTMLDivElement>(null)
   const sceneLoadStartRef = useRef<number>(performance.now())
-  const [screenBounds, setScreenBounds] = useState<{
-    monitor: THREE.Vector3[]
-    macbook: THREE.Vector3[]
-  } | null>(null)
-  const [monitorRect, setMonitorRect] = useState<ScreenRect>({ top: 0, left: 0, width: 0, height: 0 })
-  const [macbookRect, setMacbookRect] = useState<ScreenRect>({ top: 0, left: 0, width: 0, height: 0 })
-
-  const onScreenBounds = useCallback((bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => {
-    setScreenBounds(bounds)
-  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -89,12 +78,10 @@ export function ExperienceWrapper() {
   useEffect(() => {
     if (mode === 'seated') {
       setActiveScreen('portfolio')
-    }
-    if (mode === 'macbook') {
-      setActiveScreen('arcade')
-    }
-    if (mode === 'project') {
+    } else if (mode === 'project') {
       setActiveScreen('project')
+    } else if (mode === 'focused' || mode === 'sketchbook') {
+      setActiveScreen('none')
     }
   }, [mode])
 
@@ -107,14 +94,18 @@ export function ExperienceWrapper() {
     }
   }, [activeScreen])
 
-  // Escape key exits focused/project mode → back to seated
+  // Escape key exits focused/project/sketchbook mode → back to seated
   useEffect(() => {
-    if (mode !== 'project' && mode !== 'focused') return
+    if (mode !== 'project' && mode !== 'focused' && mode !== 'sketchbook') return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        if (mode === 'focused') {
+        if (mode === 'sketchbook') {
+          closeSketchbook()
+        } else if (mode === 'focused') {
           setFocusedObject(null)
-          setMode('seated')
+          setIsTransitioning(true)
+          setMode('overview')
+          setTimeout(() => setIsTransitioning(false), 1000)
         } else {
           exitProject()
         }
@@ -142,35 +133,41 @@ export function ExperienceWrapper() {
     setMode('seated')
   }, [])
 
-  const goToMacbook = useCallback(() => {
-    Sentry.addBreadcrumb({ category: 'experience', message: 'Navigating to macbook (arcade)', level: 'info' })
+  const openSketchbook = useCallback(() => {
+    setFocusedObject('Box003')
     setIsTransitioning(true)
-    setMode('macbook')
-    track('arcade_opened')
-    setTimeout(() => setIsTransitioning(false), 2500)
+    setMode('sketchbook')
+    track('object_focused', { object: 'sketchbook' })
+    // Shorter delay — sketchbook overlay has its own entry animation
+    setTimeout(() => setIsTransitioning(false), 500)
   }, [track])
 
-  const goToSeated = useCallback(() => {
-    Sentry.addBreadcrumb({ category: 'experience', message: 'Navigating to seated (portfolio)', level: 'info' })
+  const closeSketchbook = useCallback(() => {
+    setFocusedObject(null)
     setIsTransitioning(true)
-    setMode('seated')
-    setActiveProject(null)
-    setTimeout(() => setIsTransitioning(false), 2500)
+    setMode('overview')
+    setTimeout(() => setIsTransitioning(false), 1000)
   }, [])
 
   const focusObject = useCallback((objectName: string) => {
+    if (objectName === 'Box003') {
+      openSketchbook()
+      return
+    }
     setFocusedObject(objectName)
     setIsTransitioning(true)
     setMode('focused')
+    setClickFlash(true)
+    setTimeout(() => setClickFlash(false), 200)
     track('object_focused', { object: objectName })
-    setTimeout(() => setIsTransitioning(false), 2000)
-  }, [track])
+    setTimeout(() => setIsTransitioning(false), 1000)
+  }, [track, openSketchbook])
 
   const unfocusObject = useCallback(() => {
     setFocusedObject(null)
     setIsTransitioning(true)
-    setMode('seated')
-    setTimeout(() => setIsTransitioning(false), 2000)
+    setMode('overview')
+    setTimeout(() => setIsTransitioning(false), 1000)
   }, [])
 
   const goToProject = useCallback((projectId: string) => {
@@ -180,11 +177,6 @@ export function ExperienceWrapper() {
     setMode('project')
     track('project_viewed', { project: projectId })
     setTimeout(() => setIsTransitioning(false), 2000)
-  }, [track])
-
-  const navigateProject = useCallback((projectId: string) => {
-    setActiveProject(projectId)
-    track('project_navigated', { project: projectId })
   }, [track])
 
   const exitProject = useCallback(() => {
@@ -207,46 +199,13 @@ export function ExperienceWrapper() {
   // Fix 3+4: Show 2D fallback for mobile, WebGL context loss, or no WebGL support
   if (isMobile || webglFailed || noWebGL) {
     return (
-      <div style={{ position: 'relative', width: '100%', minHeight: '100dvh' }}>
-        <NoiseBackground />
-        <main id="main-content" style={{ position: 'relative', zIndex: 10 }}>
+      <div style={{ position: 'relative', width: '100%' }}>
+        <main id="main-content">
           <PortfolioContent />
         </main>
       </div>
     )
   }
-
-  const isPortfolioVisible = activeScreen === 'portfolio'
-  const isProjectVisible = activeScreen === 'project'
-  const isArcadeVisible = activeScreen === 'arcade'
-  const isMonitorActive = isPortfolioVisible || isProjectVisible
-
-  // Clamp projected rect to fit within viewport with max size constraints
-  const clampRect = (rect: ScreenRect, maxW: number, maxH: number) => {
-    if (rect.width < 50) return null // no valid projection yet
-    const w = Math.min(rect.width, maxW)
-    const h = Math.min(rect.height, maxH)
-    // Center the clamped rect within the projected area
-    const cx = rect.left + rect.width / 2
-    const cy = rect.top + rect.height / 2
-    return {
-      left: Math.max(8, cx - w / 2),
-      top: Math.max(8, cy - h / 2),
-      width: w,
-      height: h,
-    }
-  }
-
-  const vw = typeof window !== 'undefined' ? window.innerWidth : 1920
-  const vh = typeof window !== 'undefined' ? window.innerHeight : 1080
-
-  // Monitor grows in project mode
-  const monitorMaxW = isProjectVisible ? vw * 0.65 : vw * 0.75
-  const monitorMaxH = isProjectVisible ? vh * 0.75 : vh * 0.65
-  const clampedMonitor = clampRect(monitorRect, monitorMaxW, monitorMaxH)
-  const clampedMacbook = clampRect(macbookRect, vw * 0.65, vh * 0.55)
-  const hasMonitorRect = clampedMonitor !== null
-  const hasArcadeRect = clampedMacbook !== null
 
   return (
     <div id="main-content" style={{ position: 'relative', width: '100%', height: '100dvh', overflow: 'hidden' }}>
@@ -290,15 +249,12 @@ export function ExperienceWrapper() {
         </button>
       )}
 
-      <div style={{ position: 'fixed', inset: 0, zIndex: 10 }}>
+      <div style={{ position: 'fixed', inset: 0, zIndex: 10, animation: clickFlash ? 'fps-shake 0.2s ease' : 'none' }}>
         <DeskScene
           mode={mode}
           onLoaded={onSceneLoaded}
           onProgress={setLoadProgress}
           onIntroComplete={onIntroComplete}
-          onScreenBounds={onScreenBounds}
-          onMonitorRect={setMonitorRect}
-          onMacbookRect={setMacbookRect}
           onProjectSelect={goToProject}
           onObjectFocus={focusObject}
           focusedObject={focusedObject}
@@ -326,82 +282,95 @@ export function ExperienceWrapper() {
         </div>
       )}
 
-      {/* FOCUSED OBJECT — info card + back button */}
-      {mode === 'focused' && focusedObject && !isTransitioning && (
-        <div style={{
-          position: 'fixed',
-          bottom: '40px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 30,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: '12px',
-          animation: 'fadeInUp 0.6s ease forwards',
-        }}>
-          <button
-            onClick={unfocusObject}
-            style={{
-              fontFamily: 'var(--font-code)',
-              fontSize: '10px',
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              padding: '10px 24px',
-              color: 'rgba(255,255,255,0.7)',
-              background: 'rgba(0,0,0,0.5)',
-              backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            ← Back to desk
-          </button>
-          <style>{`
-            @keyframes fadeInUp {
-              from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-              to { opacity: 1; transform: translateX(-50%) translateY(0); }
-            }
-          `}</style>
-        </div>
-      )}
-
-      {/* MONITOR OVERLAY — portfolio on the monitor screen */}
-      {mode !== 'loading' && mode !== 'intro' && (
-        <div
-          ref={monitorOverlayRef}
-          tabIndex={-1}
+      {/* Toggle between monitor view and desk overview — pixel art style */}
+      {(mode === 'seated' || mode === 'overview') && !isTransitioning && (
+        <button
+          onClick={() => {
+            setIsTransitioning(true)
+            setMode(mode === 'seated' ? 'overview' : 'seated')
+            setTimeout(() => setIsTransitioning(false), 2000)
+          }}
           style={{
             position: 'fixed',
-            ...(hasMonitorRect && clampedMonitor
-              ? { top: `${clampedMonitor.top}px`, left: `${clampedMonitor.left}px`, width: `${clampedMonitor.width}px`, height: `${clampedMonitor.height}px` }
-              : { top: '8%', left: '50%', transform: 'translateX(-50%)', width: 'clamp(320px, 50vw, 620px)', height: 'clamp(240px, 55vh, 520px)' }
-            ),
-            zIndex: 20,
-            overflow: 'hidden',
-            background: '#FDFBF7',
-            borderRadius: '2px',
-            boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
-            pointerEvents: isMonitorActive ? 'auto' : 'none',
-            opacity: isMonitorActive ? 1 : 0,
-            transition: 'opacity 1.2s ease, top 0.8s ease, left 0.8s ease, width 0.8s ease, height 0.8s ease',
+            bottom: 28,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 30,
+            fontFamily: 'var(--font-code)',
+            fontSize: '10px',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+            padding: '10px 24px',
+            color: '#00FFC8',
+            background: 'rgba(0, 0, 0, 0.85)',
+            border: '2px solid #00FFC8',
+            borderRadius: 0,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            imageRendering: 'pixelated',
+            boxShadow: '4px 4px 0px rgba(0, 255, 200, 0.3), inset 0 0 0 1px rgba(0, 255, 200, 0.1)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(0, 255, 200, 0.15)'
+            e.currentTarget.style.boxShadow = '4px 4px 0px rgba(0, 255, 200, 0.5), inset 0 0 0 1px rgba(0, 255, 200, 0.2)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.85)'
+            e.currentTarget.style.boxShadow = '4px 4px 0px rgba(0, 255, 200, 0.3), inset 0 0 0 1px rgba(0, 255, 200, 0.1)'
           }}
         >
-          <div className="monitor-scroll" style={{
-            width: '100%',
-            height: '100%',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-          }}>
-            <MonitorPortfolio
-              activeProject={activeProject}
-              onExitProject={exitProject}
-              onNavigateProject={navigateProject}
-            />
-          </div>
-        </div>
+          {mode === 'seated' ? (
+            <>
+              {/* Pixel arrow up */}
+              <span style={{ fontSize: '14px', lineHeight: 1 }}>▲</span>
+              Explore desk
+            </>
+          ) : (
+            <>
+              {/* Pixel monitor icon */}
+              <span style={{ fontSize: '14px', lineHeight: 1 }}>▼</span>
+              Back to screen
+            </>
+          )}
+        </button>
       )}
+
+      {/* Retro FPS overlays */}
+      <RetroFocusOverlay mode={mode} />
+      <RetroCrosshair mode={mode} />
+      <RetroHUD mode={mode} focusedObject={focusedObject} onBack={unfocusObject} isTransitioning={isTransitioning} />
+
+      {/* Click flash */}
+      {clickFlash && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 35,
+          background: 'rgba(0, 255, 200, 0.12)',
+          pointerEvents: 'none',
+          animation: 'fps-flash 0.15s ease-out forwards',
+        }} />
+      )}
+
+      <style>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+          to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+      `}</style>
+
+      {/* SKETCHBOOK VIEWER — page flip book */}
+      {mode === 'sketchbook' && !isTransitioning && (
+        <SketchbookViewer
+          onClose={closeSketchbook}
+          onProjectSelect={(projectId) => {
+            closeSketchbook()
+            setTimeout(() => goToProject(projectId), 800)
+          }}
+        />
+      )}
+
+      {/* Monitor portfolio now rendered inside 3D scene via <Html transform> in DeskScene */}
     </div>
   )
 }

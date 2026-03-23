@@ -1,220 +1,300 @@
 'use client'
 
-import { ScrollReveal } from './ScrollReveal'
+import { useState, FormEvent } from 'react'
 
-const channels = [
-  { label: 'github', href: 'https://github.com/Andreavilaro0' },
-  { label: 'linkedin', href: 'https://www.linkedin.com/in/andrea-avila-dev' },
-  { label: 'email', href: 'mailto:andrea15one@icloud.com' },
-  { label: 'curriculum vitae', href: '/cv-andrea-avila.pdf', download: true },
-]
+type FormState = 'idle' | 'sending' | 'success' | 'error'
+
+const INPUT_BASE: React.CSSProperties = {
+  width: '100%',
+  background: '#111118',
+  border: '1px solid rgba(255,255,255,0.1)',
+  borderRadius: '6px',
+  color: '#e8e6e3',
+  padding: '12px 16px',
+  fontFamily: 'var(--font-body)',
+  fontSize: '0.9rem',
+  outline: 'none',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.2s',
+}
+
+function ContactForm() {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [formState, setFormState] = useState<FormState>('idle')
+  const [focusedField, setFocusedField] = useState<string | null>(null)
+
+  const borderFor = (field: string) => ({
+    borderColor: focusedField === field ? '#FF2D9B' : 'rgba(255,255,255,0.1)',
+  })
+
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFormState('sending')
+
+    try {
+      const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: 'service_fgljb76',
+          template_id: 'template_moyvd0k',
+          user_id: 'ITA22gpie8HhFEhs7',
+          template_params: {
+            from_name: name,
+            from_email: email,
+            message,
+          },
+        }),
+      })
+
+      if (res.ok) {
+        setFormState('success')
+        setName('')
+        setEmail('')
+        setMessage('')
+      } else {
+        setFormState('error')
+      }
+    } catch {
+      setFormState('error')
+    }
+  }
+
+  const buttonLabel =
+    formState === 'sending' ? 'Sending...' :
+    formState === 'success' ? 'Message sent!' :
+    formState === 'error'   ? 'Failed — try again' :
+    'Send message'
+
+  const buttonColor =
+    formState === 'success' ? '#1db96a' :
+    formState === 'error'   ? '#e03e3e' :
+    '#FF2D9B'
+
+  return (
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Name + Email row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+            Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            onFocus={() => setFocusedField('name')}
+            onBlur={() => setFocusedField(null)}
+            required
+            placeholder="Your name"
+            style={{ ...INPUT_BASE, ...borderFor('name') }}
+          />
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+            Email
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            onFocus={() => setFocusedField('email')}
+            onBlur={() => setFocusedField(null)}
+            required
+            placeholder="you@example.com"
+            style={{ ...INPUT_BASE, ...borderFor('email') }}
+          />
+        </div>
+      </div>
+
+      {/* Message */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          Message
+        </label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onFocus={() => setFocusedField('message')}
+          onBlur={() => setFocusedField(null)}
+          required
+          rows={5}
+          placeholder="Tell me about your project..."
+          style={{
+            ...INPUT_BASE,
+            ...borderFor('message'),
+            resize: 'vertical',
+            lineHeight: 1.6,
+            minHeight: '120px',
+          }}
+        />
+      </div>
+
+      {/* Submit */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+        <button
+          type="submit"
+          disabled={formState === 'sending'}
+          style={{
+            background: buttonColor,
+            color: '#fff',
+            padding: '12px 24px',
+            borderRadius: '6px',
+            border: 'none',
+            fontFamily: 'var(--font-code)',
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: formState === 'sending' ? 'not-allowed' : 'pointer',
+            opacity: formState === 'sending' ? 0.7 : 1,
+            transition: 'opacity 0.2s, background 0.3s',
+          }}
+          onMouseEnter={(e) => { if (formState !== 'sending') e.currentTarget.style.opacity = '0.8' }}
+          onMouseLeave={(e) => { e.currentTarget.style.opacity = formState === 'sending' ? '0.7' : '1' }}
+        >
+          {buttonLabel}
+        </button>
+        {formState === 'error' && (
+          <span style={{ fontFamily: 'var(--font-code)', fontSize: '11px', color: '#e03e3e' }}>
+            Something went wrong. Try emailing directly.
+          </span>
+        )}
+      </div>
+    </form>
+  )
+}
 
 export function Footer() {
   return (
     <footer
       id="contact"
       style={{
-        width: '100%',
-        padding: 'clamp(80px, 14vh, 160px) clamp(32px, 6vw, 96px)',
-        position: 'relative',
+        background: '#050508',
+        padding: 'clamp(64px, 10vh, 120px) clamp(24px, 6vw, 80px)',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Blue signal line — connects about to contact */}
+        <div style={{
+          width: '1px',
+          height: '48px',
+          background: 'linear-gradient(180deg, transparent, #00E5FF, transparent)',
+          margin: '0 auto 32px auto',
+          opacity: 0.3,
+        }} />
 
-      {/* Section label */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '48px' }}>
-        <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>05</span>
-        <span className="badge badge-lime">Contact</span>
-        <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
-      </div>
+        {/* Section label */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '48px' }}>
+          <span style={{
+            fontFamily: 'var(--font-code)', fontSize: '12px', letterSpacing: '0.15em',
+            background: 'linear-gradient(90deg, #FF2D9B, #7B2FFF)',
+            WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
+            textTransform: 'uppercase',
+          }}>Contact</span>
+          <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg, rgba(0,229,255,0.15), rgba(255,255,255,0.06), rgba(0,229,255,0.15))' }} />
+        </div>
 
-      {/* Main content — two columns */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: 'clamp(32px, 6vw, 80px)',
-          alignItems: 'flex-start',
-        }}
-      >
-        {/* Left — CTA headline */}
-        <div style={{ flex: '1 1 400px', maxWidth: '560px' }}>
-          <ScrollReveal>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(3rem, 6vw, 6rem)',
-                lineHeight: 0.95,
-                color: '#FFFFFF',
-                margin: 0,
-                textTransform: 'uppercase',
-              }}
-            >
-              LET&apos;S BUILD
-              <br />
-              <span style={{ color: 'var(--color-pink)' }}>
-                SOMETHING
-              </span>
-            </h2>
-          </ScrollReveal>
-
-          <ScrollReveal delay={150}>
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 1.3vw, 1.15rem)',
-                lineHeight: 1.7,
-                color: 'rgba(255,255,255,0.7)',
-                marginTop: '24px',
-                maxWidth: '420px',
-              }}
-            >
-              Busco oportunidades donde pueda construir sistemas reales.
-              Prácticas, colaboraciones o proyectos — hablemos.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={300}>
+        {/* CTA as code */}
+        <div style={{
+          fontFamily: 'var(--font-code)', fontSize: 'clamp(13px, 1.3vw, 16px)',
+          lineHeight: 1.8, marginBottom: '32px',
+        }}>
+          <div>
+            <span style={{ color: 'rgba(255,255,255,0.3)' }}>{'// '}</span>
+            <span style={{ color: 'rgba(255,255,255,0.55)' }}>Looking for internship opportunities in Madrid</span>
+          </div>
+          <div style={{ marginTop: '4px' }}>
+            <span style={{ color: '#7B2FFF' }}>&lt;</span>
+            <span style={{ color: '#FF2D9B' }}>a</span>
+            <span style={{ color: '#00E5FF' }}> href</span>
+            <span style={{ color: 'rgba(255,255,255,0.3)' }}>=</span>
             <a
               href="mailto:andrea15one@icloud.com"
               style={{
-                display: 'inline-block',
-                marginTop: '32px',
-                fontFamily: 'var(--font-code)',
-                fontSize: '12px',
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                color: '#fff',
-                background: 'var(--color-pink)',
-                textDecoration: 'none',
-                padding: '14px 32px',
-                borderRadius: '0px',
-                border: '3px solid var(--color-text)',
-                boxShadow: '4px 4px 0px var(--color-text)',
-                transition: 'box-shadow 0.2s, transform 0.2s',
+                color: '#BEFF00', textDecoration: 'none',
+                transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.boxShadow = '6px 6px 0px var(--color-text)'
-                e.currentTarget.style.transform = 'translate(-2px, -2px)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = '4px 4px 0px var(--color-text)'
-                e.currentTarget.style.transform = 'translate(0, 0)'
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7' }}
+              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
             >
-              Enviar Mensaje
+              &quot;mailto:andrea15one@icloud.com&quot;
             </a>
-          </ScrollReveal>
+            <span style={{ color: '#7B2FFF' }}>&gt;</span>
+          </div>
+          <div style={{ paddingLeft: '20px' }}>
+            <span style={{ color: '#fff', fontSize: 'clamp(1.5rem, 4vw, 3rem)', fontFamily: 'var(--font-display)', fontWeight: 800, lineHeight: 1.2, display: 'inline-block', margin: '8px 0' }}>
+              Let&apos;s build something.
+            </span>
+          </div>
+          <div>
+            <span style={{ color: '#7B2FFF' }}>&lt;/</span>
+            <span style={{ color: '#FF2D9B' }}>a</span>
+            <span style={{ color: '#7B2FFF' }}>&gt;</span>
+          </div>
         </div>
 
-        {/* Right — Channel links + info */}
-        <div style={{ flex: '1 1 280px', maxWidth: '360px' }}>
-          <div className="label" style={{ marginBottom: '16px', color: 'rgba(255,255,255,0.45)' }}>
-            Channels
-          </div>
-
-          {channels.map((ch) => (
+        {/* Social links */}
+        <div style={{ display: 'flex', gap: '24px', marginBottom: '64px', flexWrap: 'wrap' }}>
+          {[
+            { label: 'GitHub', href: 'https://github.com/Andreavilaro0' },
+            { label: 'LinkedIn', href: 'https://www.linkedin.com/feed/' },
+            { label: 'Email', href: 'mailto:andrea15one@icloud.com' },
+          ].map((link) => (
             <a
-              key={ch.label}
-              href={ch.href}
-              target={ch.label === 'email' || ch.download ? undefined : '_blank'}
-              rel={ch.label === 'email' || ch.download ? undefined : 'noopener noreferrer'}
-              download={ch.download ? 'cv-andrea-avila.pdf' : undefined}
+              key={link.label}
+              href={link.href}
+              target={link.label !== 'Email' ? '_blank' : undefined}
+              rel={link.label !== 'Email' ? 'noopener noreferrer' : undefined}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 0',
-                borderBottom: '3px solid rgba(255,255,255,0.12)',
-                textDecoration: 'none',
-                transition: 'border-color 0.2s',
+                fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.4)',
+                textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase',
+                padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.1)',
+                transition: 'color 0.2s, border-color 0.2s',
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = 'var(--color-pink)'
-                const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement
-                if (arrow) arrow.style.color = 'var(--color-pink)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'
-                const arrow = e.currentTarget.querySelector('span:last-child') as HTMLElement
-                if (arrow) arrow.style.color = 'rgba(255,255,255,0.45)'
-              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#fff' }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
             >
-              <span
-                style={{
-                  fontFamily: 'var(--font-code)',
-                  fontSize: '13px',
-                  letterSpacing: '0.05em',
-                  color: 'rgba(255,255,255,0.85)',
-                  transition: 'color 0.2s',
-                }}
-              >
-                {ch.label}
-              </span>
-              <span
-                style={{
-                  fontFamily: 'var(--font-code)',
-                  fontSize: '14px',
-                  color: 'rgba(255,255,255,0.45)',
-                  transition: 'color 0.2s',
-                }}
-              >
-                →
-              </span>
+              {link.label} ↗
             </a>
           ))}
+        </div>
 
-          {/* Info panel */}
-          <div
-            className="card"
-            style={{
-              marginTop: '32px',
-              padding: '16px',
-            }}
-          >
-            <div className="label" style={{ color: 'var(--color-violet)', marginBottom: '12px' }}>
-              info
-            </div>
-            {[
-              { k: 'Location', v: 'Madrid, Spain' },
-              { k: 'Timezone', v: 'CET (UTC+1)' },
-              { k: 'Languages', v: 'ES / EN' },
-              { k: 'Status', v: 'Open to work', accent: true },
-            ].map((row) => (
-              <div
-                key={row.k}
-                style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  padding: '4px 0',
-                  fontFamily: 'var(--font-code)',
-                  fontSize: '10px',
-                  letterSpacing: '0.05em',
-                }}
-              >
-                <span style={{ color: 'var(--color-muted)', textTransform: 'uppercase' }}>{row.k}</span>
-                <span style={{ color: row.accent ? '#3d6200' : 'var(--color-text)' }}>{row.v}</span>
-              </div>
-            ))}
+        {/* Divider before form */}
+        <div style={{ height: '1px', background: 'rgba(255,255,255,0.06)', marginBottom: '48px' }} />
+
+        {/* Contact form */}
+        <div style={{ maxWidth: '600px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
+            <span style={{
+              fontFamily: 'var(--font-code)', fontSize: '11px', letterSpacing: '0.12em',
+              color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
+            }}>Send a message</span>
+            <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
+          </div>
+          <ContactForm />
+        </div>
+
+        {/* Footer bottom bar */}
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
+          paddingTop: '48px', marginTop: '64px', borderTop: '1px solid rgba(255,255,255,0.04)',
+        }}>
+          <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.08em' }}>
+            Andrea Avila © 2026 — Madrid, Spain
+          </span>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.05em' }}>
+              React · Three.js · Next.js
+            </span>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: '#BEFF00', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              Open to work
+            </span>
           </div>
         </div>
-      </div>
-
-      {/* Bottom line */}
-      <div
-        style={{
-          marginTop: '64px',
-          paddingTop: '16px',
-          borderTop: '3px solid rgba(255,255,255,0.15)',
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          gap: '16px',
-        }}
-      >
-        <span className="label" style={{ color: 'rgba(255,255,255,0.35)' }}>Madrid, Spain</span>
-        <span className="label" style={{ color: 'rgba(255,255,255,0.35)' }}>© {new Date().getFullYear()} Andrea Avila</span>
-        <span className="label" style={{ color: 'rgba(255,255,255,0.35)' }}>Built with Next.js + Three.js + R3F</span>
       </div>
     </footer>
   )

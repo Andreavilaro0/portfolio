@@ -1,11 +1,13 @@
 import * as Sentry from '@sentry/nextjs'
 
 Sentry.init({
-  dsn: 'https://5c620195a6f64ca5b4b1b1fcc86c6b5a@o4511068665544704.ingest.de.sentry.io/4511068692217936',
-  tracesSampleRate: 1.0,
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
-  integrations: [
-    Sentry.replayIntegration(),
-  ],
+  dsn: process.env.NODE_ENV === 'production'
+    ? 'https://5c620195a6f64ca5b4b1b1fcc86c6b5a@o4511068665544704.ingest.de.sentry.io/4511068692217936'
+    : undefined,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 1.0 : 0,
+  replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0,
+  replaysOnErrorSampleRate: process.env.NODE_ENV === 'production' ? 1.0 : 0,
+  integrations: process.env.NODE_ENV === 'production'
+    ? [Sentry.replayIntegration()]
+    : [],
 })

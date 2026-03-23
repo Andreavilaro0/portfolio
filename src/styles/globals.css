@@ -1,22 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-display: "Bebas Neue", "Impact", sans-serif;
+  --font-hand: "Caveat", cursive;
+  --font-display: "Space Grotesk", "Bebas Neue", "Impact", sans-serif;
   --font-body: "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-code: "JetBrains Mono", "Fira Code", "Consolas", monospace;
 
-  /* Neo-pop palette — light base */
-  --color-bg: #F2F0ED;
-  --color-surface: #FFFFFF;
-  --color-text: #1A1A1A;
-  --color-muted: #6B6B6B;
+  /* Sketchbook palette */
+  --color-bg: #F5F0E8;
+  --color-surface: #FAF7F0;
+  --color-text: #2C2C2C;
+  --color-muted: #8B8680;
+  --color-ink: #1a1a2e;
+  --color-pencil: #4a4a4a;
+  --color-border: #C4BFB5;
+  --color-noise: rgba(0, 0, 0, 0.03);
+
+  /* Accent colors (kept) */
   --color-pink: #FF2D9B;
   --color-violet: #7B2FFF;
   --color-lime: #BEFF00;
   --color-cyan: #00E5FF;
-  --color-yellow: #FFD700;
-  --color-border: #1A1A1A;
-  --color-noise: rgba(0, 0, 0, 0.03);
+  --color-yellow: #FFD93D;
+
+  /* Sketchbook extras */
+  --color-tape: #F5E6C8;
+  --color-highlight: #FFF176;
 }
 
 html {
@@ -62,96 +73,63 @@ body {
   color: var(--color-muted);
 }
 
-/* ─── Section divider — brutalist ─── */
+/* ─── Section divider — hand-drawn ─── */
 .section-divider {
   width: 100%;
-  height: 3px;
-  background: var(--color-text);
+  height: 2px;
+  background: var(--color-border);
 }
 
-/* ─── Card — neo-brutalist surface ─── */
+/* ─── Card — notebook page ─── */
 .card {
   background: var(--color-surface);
-  border: 3px solid var(--color-border);
-  border-radius: 0px;
-  box-shadow: 6px 6px 0px var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: box-shadow 0.2s ease, transform 0.2s ease;
   max-width: 100%;
   overflow: hidden;
 }
 
 .card:hover {
-  box-shadow: 8px 8px 0px var(--color-pink);
-  transform: translate(-2px, -2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
 }
 
-/* ─── Tag pill — tech stack badges ─── */
+/* ─── Tag — handwritten label ─── */
 .tag {
-  font-family: var(--font-code);
-  font-size: 11px;
-  letter-spacing: 0.03em;
-  color: var(--color-text);
-  border: 2px solid var(--color-text);
-  border-radius: 0px;
-  padding: 4px 10px;
+  font-family: var(--font-hand);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-pencil);
+  border: 1.5px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px 12px;
   background: transparent;
   transition: background 0.15s, color 0.15s;
 }
 
 .tag:hover {
-  background: var(--color-lime);
+  background: var(--color-highlight);
   color: var(--color-text);
 }
 
-/* ─── Badge — pill de color sólido ─── */
+/* ─── Badge — circled/highlighted note ─── */
 .badge {
-  font-family: var(--font-code);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 4px 12px;
-  border-radius: 0px;
+  font-family: var(--font-hand);
+  font-size: 16px;
   font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 20px;
   display: inline-block;
+  border: 2px solid var(--color-pencil);
+  background: transparent;
 }
 
-.badge-pink { background: var(--color-pink); color: #1a1a1a; }
-.badge-violet { background: var(--color-violet); color: #fff; }
-.badge-lime { background: var(--color-lime); color: var(--color-text); }
-.badge-cyan { background: var(--color-cyan); color: var(--color-text); }
-
-/* ─── Marquee — ticker tape ─── */
-.marquee {
-  overflow: hidden;
-  white-space: nowrap;
-  width: 100%;
-}
-
-.marquee-content {
-  display: inline-block;
-  animation: marquee 20s linear infinite;
-}
-
-@keyframes marquee {
-  0% { transform: translateX(0%); }
-  100% { transform: translateX(-50%); }
-}
-
-/* ─── Sticker — rotated floating element ─── */
-.sticker {
-  display: inline-block;
-  padding: 6px 14px;
-  font-family: var(--font-code);
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  border: 2px solid var(--color-text);
-  background: var(--color-lime);
-  color: var(--color-text);
-  position: absolute;
-  transform: rotate(var(--rotation, -3deg));
-  box-shadow: 3px 3px 0px var(--color-text);
-}
+.badge-pink { background: var(--color-pink); color: #fff; border-color: var(--color-pink); }
+.badge-violet { background: var(--color-violet); color: #fff; border-color: var(--color-violet); }
+.badge-lime { background: var(--color-lime); color: var(--color-text); border-color: var(--color-lime); }
+.badge-cyan { background: var(--color-cyan); color: var(--color-text); border-color: var(--color-cyan); }
 
 /* ─── Monitor scroll (3D screen) ─── */
 .monitor-scroll::-webkit-scrollbar {
@@ -169,20 +147,7 @@ body {
   scrollbar-color: var(--color-pink) transparent;
 }
 
-/* ─── Film grain overlay ─── */
-@keyframes grain {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-5%, -10%); }
-  20% { transform: translate(-15%, 5%); }
-  30% { transform: translate(7%, -25%); }
-  40% { transform: translate(-5%, 25%); }
-  50% { transform: translate(-15%, 10%); }
-  60% { transform: translate(15%, 0%); }
-  70% { transform: translate(0%, 15%); }
-  80% { transform: translate(3%, 35%); }
-  90% { transform: translate(-10%, 10%); }
-}
-
+/* ─── Paper grain overlay ─── */
 .grain-overlay {
   position: fixed;
   inset: -25%;
@@ -190,9 +155,8 @@ body {
   height: 150%;
   pointer-events: none;
   z-index: 999;
-  opacity: 0.04;
+  opacity: 0.03;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-  animation: grain 6s steps(8) infinite;
 }
 
 /* ─── Scroll indicator bounce ─── */
@@ -201,12 +165,77 @@ body {
   50% { transform: translateY(8px); opacity: 0.15; }
 }
 
+/* ═══════════════════════════════════════
+   Portfolio Dark Mode Animations & Color
+   ═══════════════════════════════════════ */
+
+/* Gradient text for headings */
+.gradient-text {
+  background: linear-gradient(135deg, #FF2D9B, #7B2FFF, #00E5FF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Animated gradient border */
+@keyframes border-flow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glow-border {
+  position: relative;
+}
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #FF2D9B, #7B2FFF, #00E5FF, #BEFF00, #FF2D9B);
+  background-size: 300% 100%;
+  animation: border-flow 6s linear infinite;
+  z-index: -1;
+  opacity: 0.4;
+}
+
+/* Hover glow effect for project cards */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,0); }
+  50% { box-shadow: 0 0 20px rgba(0,229,255,0.08); }
+}
+
+/* Smooth scroll reveal */
+@keyframes reveal-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tag shimmer on hover */
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Color accent bar animations */
+@keyframes color-slide {
+  0% { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+
+/* Floating particles subtle */
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-8px) rotate(1deg); }
+  66% { transform: translateY(4px) rotate(-1deg); }
+}
+
 /* ─── Focus-visible (a11y) ─── */
 a:focus-visible,
 button:focus-visible {
   outline: 3px solid var(--color-violet);
   outline-offset: 2px;
-  border-radius: 0px;
+  border-radius: 2px;
 }
 
 /* ─── Reduced motion ─── */
@@ -218,4 +247,114 @@ button:focus-visible {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ═══════════════════════════════════════════════════
+   Sketchbook utilities
+═══════════════════════════════════════════════════ */
+
+/* Graph paper grid background */
+.paper-bg {
+  position: relative;
+  background-color: var(--color-bg);
+}
+.paper-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-size: 24px 24px;
+  background-image:
+    linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+  pointer-events: none;
+}
+
+/* Masking tape strip */
+.tape {
+  position: absolute;
+  width: 80px;
+  height: 28px;
+  background: linear-gradient(
+    135deg,
+    rgba(245, 230, 200, 0.7) 0%,
+    rgba(245, 230, 200, 0.5) 50%,
+    rgba(245, 230, 200, 0.7) 100%
+  );
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* Handwritten annotation style */
+.annotation {
+  font-family: var(--font-hand);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 500;
+  color: var(--color-pencil);
+  line-height: 1.4;
+}
+
+/* Hand-drawn border (dashed, organic feel) */
+.sketch-border {
+  border: 2px dashed var(--color-border);
+  border-radius: 4px;
+}
+
+/* Pencil underline (wavy via background) */
+.pencil-underline {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,3 C10,1 20,5 30,3 C40,1 50,5 60,3 C70,1 80,5 90,3 L100,3' fill='none' stroke='%234a4a4a' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: bottom;
+  background-size: 100px 6px;
+  padding-bottom: 6px;
+}
+
+/* Paper page with subtle shadow + slight rotation */
+.page {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.page:nth-child(odd) {
+  transform: rotate(0.3deg);
+}
+.page:nth-child(even) {
+  transform: rotate(-0.3deg);
+}
+
+/* Page number in margin */
+.page-number {
+  font-family: var(--font-hand);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-muted);
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+/* Responsive mockups: laptop on desktop, phone on mobile */
+.mockup-desktop { display: block; }
+.mockup-mobile { display: none; }
+
+@media (max-width: 640px) {
+  .mockup-desktop { display: none; }
+  .mockup-mobile { display: block; }
+}
+
+/* ─── Retro FPS click feedback ─── */
+@keyframes fps-flash {
+  0% { opacity: 0.2; }
+  100% { opacity: 0; }
+}
+
+@keyframes fps-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, 2px); }
+  80% { transform: translate(1px, -2px); }
 }

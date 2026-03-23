@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andrea Avila — Portfolio</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 62.5%; }
+    body {
+      background: #0a0a0f;
+      color: #e8e6e3;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 1.4rem;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 24px; }
+
+    /* Video Hero */
+    .hero {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      background: #000;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 1s ease;
+    }
+    .hero .static-frame {
+      position: absolute;
+      inset: 0;
+      background: url('/Create_the_same_202603221527.png') center / cover;
+      opacity: 0;
+      transition: opacity 1.2s ease;
+    }
+    .hero .text-overlay {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 24px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 1s ease 0.3s, transform 1s ease 0.3s;
+    }
+    .hero.revealed .static-frame { opacity: 1; }
+    .hero.revealed video { opacity: 0; }
+    .hero.revealed .text-overlay { opacity: 1; transform: translateY(0); }
+    .hero h1 {
+      font-size: clamp(3.2rem, 8vw, 7.5rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      color: #fff;
+      margin: 0;
+    }
+    .hero .line2 {
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
+    }
+    .hero.done .line2 { opacity: 1; transform: translateY(0); }
+    .hero .sub {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: clamp(0.8rem, 1.2vw, 1rem);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.3);
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 1s ease 1s;
+    }
+    .hero.done .sub { opacity: 1; }
+    .hero .blue-line {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #00E5FF, transparent);
+      opacity: 0;
+      transition: opacity 1.5s ease 1.2s;
+    }
+    .hero.done .blue-line { opacity: 0.6; }
+
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      margin: 28px 0;
+    }
+
+    /* Projects */
+    .project { margin-bottom: 28px; padding-bottom: 28px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .project:last-child { border-bottom: none; }
+    .project-meta {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .project-num {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem; color: #6B6B7B;
+      letter-spacing: 0.1em;
+    }
+    .project-badge {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1rem;
+      padding: 2px 10px;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .project h2 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+      margin-bottom: 6px;
+    }
+    .project p { font-size: 1.2rem; color: #6B6B7B; margin-bottom: 8px; }
+    .project .context { font-family: 'SF Mono', 'Consolas', monospace; font-size: 1.1rem; opacity: 0.7; }
+    .project .highlight {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem; color: #6B6B7B; line-height: 1.6;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0; }
+    .tags span {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1rem;
+      padding: 2px 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #e8e6e3;
+    }
+    .links { display: flex; gap: 14px; margin-top: 6px; }
+    .links a {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem;
+      color: #00E5FF;
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+    .links a.pink { color: #C4007A; }
+
+    /* Skills */
+    .section-label {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #6B6B7B;
+      margin-bottom: 12px;
+    }
+    .skill-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .skill-name {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem; width: 130px; flex-shrink: 0;
+    }
+    .skill-bar { flex: 1; height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+    .skill-fill { height: 100%; background: #FF2D9B; border-radius: 2px; }
+
+    /* Contact */
+    .contact a {
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem;
+      color: #00E5FF;
+      text-decoration: none;
+      margin-right: 14px;
+    }
+    .contact a:hover { text-decoration: underline; }
+    .open-badge {
+      display: inline-block;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1rem;
+      padding: 2px 10px;
+      background: #BEFF00;
+      color: #0a0a0f;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .contact-row {
+      display: flex; gap: 14px; align-items: center;
+      font-family: 'SF Mono', 'Consolas', monospace;
+      font-size: 1.1rem; color: #6B6B7B;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Video Hero — full width, outside container -->
+  <div class="hero" id="hero">
+    <video id="hero-video" muted playsinline preload="auto">
+      <source src="/Black_layers_with_202603221514.mp4" type="video/mp4">
+    </video>
+    <div class="static-frame"></div>
+    <div class="text-overlay">
+      <h1>Build systems.</h1>
+      <h1 class="line2">Not pages.</h1>
+      <p class="sub">Andrea Avila — Full-Stack Developer</p>
+    </div>
+    <div class="blue-line"></div>
+  </div>
+
+  <script>
+    var heroVideo = document.getElementById('hero-video');
+    var hero = document.getElementById('hero');
+    if (heroVideo) {
+      heroVideo.play().catch(function(){});
+      heroVideo.addEventListener('ended', function() {
+        hero.classList.add('revealed');
+        setTimeout(function() { hero.classList.add('done'); }, 500);
+      });
+    }
+  </script>
+
+  <div class="container">
+
+    <!-- Projects -->
+    <div class="project">
+      <div class="project-meta">
+        <span class="project-num">01</span>
+        <span class="project-badge" style="background:#FF2D9B">AI Voice Assistant</span>
+      </div>
+      <h2>CLARA — CIVICAID</h2>
+      <p>Asistente de voz IA multilingue para conectar poblaciones vulnerables con tramites gubernamentales. Soporte en 8 idiomas.</p>
+      <p class="context">Hackathon OdiseIA4Good 2026 — 300+ participantes. Lidere equipo de 4.</p>
+      <div class="highlight">→ 1er lugar — OdiseIA4Good 2026</div>
+      <div class="highlight">→ 469+ tests automatizados</div>
+      <div class="highlight">→ Arquitectura: React + Python + Gemini + ElevenLabs</div>
+      <div class="tags">
+        <span>React</span><span>TypeScript</span><span>Python</span><span>Gemini</span><span>ElevenLabs</span>
+      </div>
+      <div class="links">
+        <a class="pink" href="https://andreavilaro0.github.io/civicaid-voice/" target="_blank">[demo]</a>
+        <a class="pink" href="https://github.com/Andreavilaro0/civicaid-voice" target="_blank">[code]</a>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span class="project-num">02</span>
+        <span class="project-badge" style="background:#00E5FF">Photography</span>
+      </div>
+      <h2>CAPTURING MOMENTS</h2>
+      <p>Portfolio editorial de street photography con diseno responsive, animaciones scroll-based y galeria dinamica.</p>
+      <div class="highlight">→ Diseno y desarrollo completo</div>
+      <div class="highlight">→ GSAP scroll animations</div>
+      <div class="tags"><span>HTML/CSS</span><span>JavaScript</span><span>GSAP</span></div>
+      <div class="links"><a href="https://andreavilaro0.github.io/plantilla/" target="_blank">[view]</a></div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span class="project-num">03</span>
+        <span class="project-badge" style="background:#00E5FF">Zumo 32U4</span>
+      </div>
+      <h2>ASTI ROBOTICS</h2>
+      <p>Robot autonomo Zumo 32U4 para competencia nacional. Software completo: navegacion, sensores y estrategia.</p>
+      <div class="highlight">→ Finalista nacional — ASTI Robotics Challenge</div>
+      <div class="highlight">→ Software del robot completo en C++</div>
+      <div class="highlight">→ 50+ equipos universitarios</div>
+      <div class="tags"><span>C++</span><span>Arduino</span></div>
+      <div class="links"><a href="https://www.udit.es/proyectos-de-exito/tres-nuevos-equipos-de-estudiantes-de-udit-se-clasifican-para-la-final-del-asti-robotics-challenge/" target="_blank">[info]</a></div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span class="project-num">04</span>
+        <span class="project-badge" style="background:#00E5FF">Productivity App</span>
+      </div>
+      <h2>TASK DASHBOARD</h2>
+      <p>Dashboard de tareas con widgets interactivos: mapa, calendario, estados, prioridades y filtros.</p>
+      <p class="context">Sprint 6 — Frontend I, UDIT Madrid</p>
+      <div class="highlight">→ Dashboard con widgets dinamicos</div>
+      <div class="highlight">→ Mapa interactivo integrado</div>
+      <div class="tags"><span>JavaScript</span><span>HTML</span><span>CSS</span></div>
+      <div class="links">
+        <a href="https://andreavilaro0.github.io/todo-list-dashboard/" target="_blank">[demo]</a>
+        <a href="https://github.com/Andreavilaro0/todo-list-dashboard" target="_blank">[code]</a>
+      </div>
+    </div>
+
+    <div class="project">
+      <div class="project-meta">
+        <span class="project-num">05</span>
+        <span class="project-badge" style="background:#7B2FFF">OS Simulation</span>
+      </div>
+      <h2>KERNEL SIM</h2>
+      <p>Simulador de sistema operativo con gestion de procesos y memoria. FIFO, SJF y Round Robin en tiempo real.</p>
+      <div class="highlight">→ Simulacion completa de scheduling</div>
+      <div class="highlight">→ Visualizacion en tiempo real</div>
+      <div class="tags"><span>C</span><span>Sistemas</span></div>
+      <div class="links"><a href="https://github.com/gabrielcclv/SistemasOperativos" target="_blank">[code]</a></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Skills -->
+    <div>
+      <div class="section-label">Stack</div>
+      <div class="skill-row"><span class="skill-name">React / Next.js</span><div class="skill-bar"><div class="skill-fill" style="width:90%"></div></div></div>
+      <div class="skill-row"><span class="skill-name">TypeScript</span><div class="skill-bar"><div class="skill-fill" style="width:85%"></div></div></div>
+      <div class="skill-row"><span class="skill-name">Python</span><div class="skill-bar"><div class="skill-fill" style="width:80%"></div></div></div>
+      <div class="skill-row"><span class="skill-name">Three.js / R3F</span><div class="skill-bar"><div class="skill-fill" style="width:75%"></div></div></div>
+      <div class="skill-row"><span class="skill-name">C++ / Arduino</span><div class="skill-bar"><div class="skill-fill" style="width:70%"></div></div></div>
+      <div class="skill-row"><span class="skill-name">GSAP</span><div class="skill-bar"><div class="skill-fill" style="width:75%"></div></div></div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- Contact -->
+    <div class="contact">
+      <div class="section-label">Let's connect</div>
+      <p style="font-family:'SF Mono','Consolas',monospace;font-size:1.2rem;font-weight:600;margin-bottom:10px">andrea15one@icloud.com</p>
+      <div style="margin-bottom:10px">
+        <a href="https://github.com/Andreavilaro0" target="_blank">[github]</a>
+        <a href="https://www.linkedin.com/in/andrea-avila-dev" target="_blank">[linkedin]</a>
+        <a href="mailto:andrea15one@icloud.com">[email]</a>
+      </div>
+      <div class="contact-row">
+        <span>Madrid, Spain</span>
+        <span>ES / EN</span>
+        <span class="open-badge">Open to work</span>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

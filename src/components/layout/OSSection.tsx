@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { ScrollReveal } from './ScrollReveal'
-import { LaptopMockup } from '../ui/LaptopMockup'
+import { HandDrawnLine } from './HandDrawnLine'
 
 const processes = [
   { pid: 1024, name: 'init', state: 'running', mem: '2.1MB', cpu: '0.1%' },
@@ -41,171 +41,266 @@ export function OSSection() {
   return (
     <section
       id="os-section"
+      className="paper-bg"
       style={{
         width: '100%',
-        padding: 'clamp(64px, 12vh, 120px) clamp(32px, 6vw, 96px)',
+        padding: 'clamp(64px, 12vh, 120px) clamp(24px, 6vw, 96px)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
+      {/* Page number */}
+      <span className="page-number">pg. 05</span>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'flex-start' }}>
-        {/* Left — Info */}
-        <div style={{ flex: '1 1 320px', maxWidth: '480px' }}>
-          <ScrollReveal>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>04</span>
-              <span className="badge badge-violet">Kernel</span>
-              <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ OS Simulation</span>
-              <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
-            </div>
-          </ScrollReveal>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        {/* Title */}
+        <ScrollReveal>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+              lineHeight: 0.95,
+              fontWeight: 900,
+              color: 'var(--color-text)',
+              margin: '0 0 8px 0',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            KERNEL SIM
+          </h2>
+          <HandDrawnLine variant={0} opacity={0.3} color="var(--color-pencil)" />
+        </ScrollReveal>
 
-          <ScrollReveal delay={100}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
-                lineHeight: 1,
-                letterSpacing: '-0.02em',
-                color: '#FFFFFF',
-                margin: 0,
-                textTransform: 'uppercase',
-              }}
-            >
-              SISTEMAS<br />OPERATIVOS
-            </h2>
-          </ScrollReveal>
+        {/* Handwritten question */}
+        <ScrollReveal delay={100}>
+          <span
+            style={{
+              fontFamily: 'var(--font-hand)',
+              fontSize: '1.2rem',
+              fontWeight: 600,
+              color: 'var(--color-muted)',
+              display: 'inline-block',
+              marginTop: '16px',
+              transform: 'rotate(-1deg)',
+            }}
+          >
+            cual gana? →
+          </span>
+        </ScrollReveal>
 
-          <ScrollReveal delay={200}>
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
-                lineHeight: 1.7,
-                color: 'rgba(255,255,255,0.7)',
-                marginTop: '20px',
-              }}
-            >
-              Simulación de sistemas operativos con gestión de procesos
-              y memoria. FIFO, SJF, Round Robin — ver los algoritmos
-              competir por recursos en tiempo real.
-            </p>
-          </ScrollReveal>
-
-          <ScrollReveal delay={250}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
-              {['C', 'Sistemas', 'Universidad'].map((tag) => (
-                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
+        {/* Blueprint: scheduling diagram */}
+        <ScrollReveal delay={150}>
+          <div style={{ marginTop: '20px' }}>
+            <svg width="100%" viewBox="0 0 340 70" fill="none" aria-hidden="true" style={{ maxWidth: '340px' }}>
+              {[
+                { x: 0, label: 'FIFO' },
+                { x: 115, label: 'SJF' },
+                { x: 230, label: 'Round Robin' },
+              ].map((box) => (
+                <g key={box.label}>
+                  <rect x={box.x} y="8" width="95" height="28" rx="2" stroke="var(--color-pencil)" strokeWidth="1.5" fill="none" strokeDasharray="4 2" />
+                  <text x={box.x + 47} y="26" textAnchor="middle" fontFamily="var(--font-code)" fontSize="9" fill="var(--color-pencil)">{box.label}</text>
+                </g>
               ))}
-            </div>
-          </ScrollReveal>
+              {/* Time arrows */}
+              <line x1="0" y1="50" x2="325" y2="50" stroke="var(--color-muted)" strokeWidth="1" markerEnd="url(#arrowhead-os)" />
+              <defs>
+                <marker id="arrowhead-os" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                  <polygon points="0 0, 6 2, 0 4" fill="var(--color-muted)" />
+                </marker>
+              </defs>
+              <line x1="0" y1="46" x2="0" y2="54" stroke="var(--color-muted)" strokeWidth="1" />
+              <text x="0" y="64" fontFamily="var(--font-code)" fontSize="8" fill="var(--color-muted)">t=0</text>
+              <text x="325" y="64" textAnchor="end" fontFamily="var(--font-code)" fontSize="8" fill="var(--color-muted)">t=n</text>
+              <text x="162" y="64" textAnchor="middle" fontFamily="var(--font-hand)" fontSize="10" fill="var(--color-muted)">tiempo de ejecución →</text>
+            </svg>
+          </div>
+        </ScrollReveal>
 
-          <ScrollReveal delay={300}>
-            <a
-              href="https://github.com/gabrielcclv/SistemasOperativos"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                marginTop: '32px',
-                fontFamily: 'var(--font-code)',
-                fontSize: '12px',
-                color: '#FF6FBF',
-                textDecoration: 'none',
-                letterSpacing: '0.05em',
-                transition: 'opacity 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.7')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              [github]
-            </a>
-          </ScrollReveal>
-        </div>
-
-        {/* Right — Laptop mockup with terminal */}
-        <div style={{ flex: '1 1 400px' }}>
-          <LaptopMockup>
-            <div tabIndex={0} role="region" aria-label="Process monitor" style={{ width: '100%', height: '100%', background: '#1A1A1A', padding: '16px', fontFamily: 'var(--font-code)', fontSize: '11px', overflowX: 'auto' }}>
-              {/* Terminal header */}
-              <div
+        {/* Two-column layout */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'clamp(32px, 5vw, 64px)',
+            alignItems: 'flex-start',
+            marginTop: '32px',
+          }}
+        >
+          {/* LEFT — Info */}
+          <div style={{ flex: '1 1 300px', maxWidth: '420px' }}>
+            <ScrollReveal delay={200}>
+              <p
                 style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  marginBottom: '12px',
+                  fontSize: 'clamp(1rem, 1.2vw + 0.4rem, 1.15rem)',
+                  lineHeight: 1.7,
+                  color: 'var(--color-text)',
+                  margin: 0,
                 }}
               >
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#FF2D9B' }} />
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#BEFF00' }} />
-                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#7B2FFF' }} />
-                <span style={{ marginLeft: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.55)' }}>
-                  process_monitor — htop
-                </span>
-              </div>
+                Simulación de sistemas operativos con gestión de procesos
+                y memoria. FIFO, SJF, Round Robin — ver los algoritmos
+                competir por recursos en tiempo real.
+              </p>
+            </ScrollReveal>
 
-              {/* Table header */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '50px 100px 70px 60px 50px',
-                  gap: '6px',
-                  color: 'rgba(255,255,255,0.55)',
-                  paddingBottom: '6px',
-                  borderBottom: '1px solid rgba(255,255,255,0.08)',
-                  marginBottom: '4px',
-                  fontSize: '10px',
-                }}
-              >
-                <span>PID</span>
-                <span>NAME</span>
-                <span>STATE</span>
-                <span>MEM</span>
-                <span>CPU</span>
+            <ScrollReveal delay={270}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '24px' }}>
+                {[
+                  'Gestión de procesos en tiempo real',
+                  'FIFO / SJF / Round Robin',
+                  'Detección de deadlocks',
+                ].map((h) => (
+                  <span
+                    key={h}
+                    style={{
+                      fontFamily: 'var(--font-hand)',
+                      fontSize: '1rem',
+                      fontWeight: 600,
+                      color: 'var(--color-pencil)',
+                    }}
+                  >
+                    → {h}
+                  </span>
+                ))}
               </div>
+            </ScrollReveal>
 
-              {/* Rows */}
-              {processes.map((proc, i) => (
-                <div
-                  key={proc.pid}
+            <ScrollReveal delay={320}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
+                {['C', 'Sistemas', 'Universidad'].map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={370}>
+              <div style={{ marginTop: '28px' }}>
+                <a
+                  href="https://github.com/gabrielcclv/SistemasOperativos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pencil-underline"
                   style={{
-                    display: 'grid',
-                    gridTemplateColumns: '50px 100px 70px 60px 50px',
-                    gap: '6px',
-                    padding: '4px 0',
-                    opacity: i < visibleRows ? 1 : 0,
-                    transform: i < visibleRows ? 'translateX(0)' : 'translateX(-10px)',
-                    transition: 'opacity 0.3s ease, transform 0.3s ease',
-                    fontSize: '10px',
+                    fontFamily: 'var(--font-hand)',
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    color: 'var(--color-pencil)',
+                    textDecoration: 'none',
                   }}
                 >
-                  <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.pid}</span>
-                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>{proc.name}</span>
-                  <span
+                  [github →]
+                </a>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          {/* RIGHT — Terminal in sketch border */}
+          <ScrollReveal delay={200}>
+            <div style={{ flex: '2 1 460px', minWidth: 0 }}>
+              <div
+                className="sketch-border"
+                style={{ overflow: 'hidden' }}
+              >
+                <div
+                  tabIndex={0}
+                  role="region"
+                  aria-label="Process monitor"
+                  style={{
+                    width: '100%',
+                    background: '#1A1A1A',
+                    padding: '16px',
+                    fontFamily: 'var(--font-code)',
+                    fontSize: '11px',
+                    overflowX: 'auto',
+                  }}
+                >
+                  {/* Terminal header */}
+                  <div
                     style={{
-                      color:
-                        proc.state === 'running'
-                          ? '#BEFF00'
-                          : proc.state === 'waiting'
-                            ? '#FFD700'
-                            : 'rgba(255,255,255,0.55)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '12px',
                     }}
                   >
-                    {proc.state}
-                  </span>
-                  <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.mem}</span>
-                  <span
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-pink)' }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-lime)' }} />
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--color-violet)' }} />
+                    <span style={{ marginLeft: '6px', fontSize: '9px', color: 'rgba(255,255,255,0.55)' }}>
+                      process_monitor — htop
+                    </span>
+                  </div>
+
+                  {/* Table header */}
+                  <div
                     style={{
-                      color: parseFloat(proc.cpu) > 5 ? '#FF2D9B' : 'rgba(255,255,255,0.55)',
+                      display: 'grid',
+                      gridTemplateColumns: '50px 100px 70px 60px 50px',
+                      gap: '6px',
+                      color: 'rgba(255,255,255,0.55)',
+                      paddingBottom: '6px',
+                      borderBottom: '1px solid rgba(255,255,255,0.08)',
+                      marginBottom: '4px',
+                      fontSize: '10px',
                     }}
                   >
-                    {proc.cpu}
-                  </span>
+                    <span>PID</span>
+                    <span>NAME</span>
+                    <span>STATE</span>
+                    <span>MEM</span>
+                    <span>CPU</span>
+                  </div>
+
+                  {/* Rows */}
+                  {processes.map((proc, i) => (
+                    <div
+                      key={proc.pid}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '50px 100px 70px 60px 50px',
+                        gap: '6px',
+                        padding: '4px 0',
+                        opacity: i < visibleRows ? 1 : 0,
+                        transform: i < visibleRows ? 'translateX(0)' : 'translateX(-10px)',
+                        transition: 'opacity 0.3s ease, transform 0.3s ease',
+                        fontSize: '10px',
+                      }}
+                    >
+                      <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.pid}</span>
+                      <span style={{ color: 'rgba(255,255,255,0.65)' }}>{proc.name}</span>
+                      <span
+                        style={{
+                          color:
+                            proc.state === 'running'
+                              ? 'var(--color-lime)'
+                              : proc.state === 'waiting'
+                                ? '#FFD700'
+                                : 'rgba(255,255,255,0.55)',
+                        }}
+                      >
+                        {proc.state}
+                      </span>
+                      <span style={{ color: 'rgba(255,255,255,0.55)' }}>{proc.mem}</span>
+                      <span
+                        style={{
+                          color: parseFloat(proc.cpu) > 5 ? 'var(--color-pink)' : 'rgba(255,255,255,0.55)',
+                        }}
+                      >
+                        {proc.cpu}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
-          </LaptopMockup>
+          </ScrollReveal>
         </div>
+      </div>
+
+      {/* Bottom divider */}
+      <div style={{ marginTop: '48px', position: 'relative', zIndex: 1 }}>
+        <HandDrawnLine variant={1} opacity={0.2} color="var(--color-border)" />
       </div>
     </section>
   )

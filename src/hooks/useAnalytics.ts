@@ -11,6 +11,7 @@ type AnalyticsEvent =
   | 'fallback_activated'
   | 'project_viewed'
   | 'project_navigated'
+  | 'object_focused'
 
 export function useAnalytics() {
   const track = useCallback((event: AnalyticsEvent, detail?: Record<string, unknown>) => {

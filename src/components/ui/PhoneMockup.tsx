@@ -3,15 +3,15 @@ interface PhoneMockupProps {
   color?: string
 }
 
-export function PhoneMockup({ children, color = 'var(--color-text)' }: PhoneMockupProps) {
+export function PhoneMockup({ children, color = 'rgba(255,255,255,0.2)' }: PhoneMockupProps) {
   return (
     <div
       style={{
         display: 'inline-block',
         border: `4px solid ${color}`,
-        borderRadius: '0px',
-        boxShadow: `8px 8px 0px ${color}`,
-        background: 'var(--color-surface)',
+        borderRadius: '12px',
+        boxShadow: `0 4px 20px rgba(0,0,0,0.4)`,
+        background: '#111118',
         padding: '0',
         maxWidth: '320px',
         width: '100%',
@@ -25,7 +25,7 @@ export function PhoneMockup({ children, color = 'var(--color-text)' }: PhoneMock
           justifyContent: 'space-between',
           padding: '6px 12px',
           borderBottom: `3px solid ${color}`,
-          background: 'var(--color-bg)',
+          background: '#0d0d14',
         }}
       >
         <span
@@ -65,7 +65,7 @@ export function PhoneMockup({ children, color = 'var(--color-text)' }: PhoneMock
           display: 'flex',
           justifyContent: 'center',
           borderTop: `3px solid ${color}`,
-          background: 'var(--color-bg)',
+          background: '#0d0d14',
         }}
       >
         <div

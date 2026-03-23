@@ -1,65 +1,46 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useMemo, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, Preload, Environment } from '@react-three/drei'
+import { useGLTF, Preload, Environment, Html } from '@react-three/drei'
 import { EffectComposer, Vignette, ToneMapping } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
 import * as THREE from 'three'
-import gsap from 'gsap'
 import { CameraRig } from './CameraRig'
 import { DeskInteractions } from './DeskInteractions'
 import { DustParticles } from './DustParticles'
-import { ScreenProjector } from './ScreenAlignedOverlay'
-import type { ScreenRect } from './ScreenAlignedOverlay'
-// SnakeGame is rendered in ExperienceWrapper as DOM overlay
+import { DeskObjects } from './DeskObjects'
+// Portfolio loads as iframe from /portfolio route
 import type { ExperienceMode } from './ExperienceWrapper'
 import { useFPSMonitor } from '@/hooks/useFPSMonitor'
 
 const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
 // Hide objects with broken textures or too heavy geometry
-const HIDE_OBJECTS: string[] = [
-  'plant_left', 'plant_right',  // pixelated voxel artifacts
-]
+const HIDE_OBJECTS: string[] = ['object_6_1', 'object_6_2', 'object_6_3', 'object_6_4', 'object_6_5', 'object_6_6', 'desk_lamp']
 
 interface DeskSceneProps {
   mode: ExperienceMode
   onLoaded: () => void
   onProgress: (p: number) => void
   onIntroComplete: () => void
-  onScreenBounds?: (bounds: {
-    monitor: THREE.Vector3[]
-    macbook: THREE.Vector3[]
-  }) => void
-  onMonitorRect?: (rect: ScreenRect) => void
-  onMacbookRect?: (rect: ScreenRect) => void
   onProjectSelect?: (projectId: string) => void
   onObjectFocus?: (objectName: string) => void
   focusedObject?: string | null
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect, onObjectFocus, focusedObject }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, onObjectFocus, focusedObject }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
   onProgress: (p: number) => void
-  onScreenBounds?: (bounds: { monitor: THREE.Vector3[]; macbook: THREE.Vector3[] }) => void
-  onMonitorRect?: (rect: ScreenRect) => void
-  onMacbookRect?: (rect: ScreenRect) => void
   onObjectFocus?: (objectName: string) => void
   focusedObject?: string | null
   onProjectSelect?: (projectId: string) => void
 }) {
-  const { scene, nodes } = useGLTF(MODEL_PATH)
+  const { scene } = useGLTF(MODEL_PATH)
   const hasLoaded = useRef(false)
   const ambientRef = useRef<THREE.AmbientLight>(null)
-  const macbookSpotRef = useRef<THREE.SpotLight>(null)
-  const prevModeRef = useRef<ExperienceMode>('loading')
-  const [monitorCorners3D, setMonitorCorners3D] = useState<THREE.Vector3[]>([])
-  const [macbookCorners3D, setMacbookCorners3D] = useState<THREE.Vector3[]>([])
-
-  // macbookCenter removed — arcade is now a DOM overlay
 
   useEffect(() => {
     const manager = THREE.DefaultLoadingManager
@@ -80,6 +61,15 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
           if (child instanceof THREE.Mesh) names.push(child.name)
         })
         console.log('GLB mesh names:', names.join(', '))
+        // Log Box003 position for camera calibration
+        scene.traverse((child) => {
+          if (child instanceof THREE.Mesh && child.name === 'Box003') {
+            const box = new THREE.Box3().setFromObject(child)
+            const center = new THREE.Vector3()
+            box.getCenter(center)
+            console.log(`BOX003 center: (${center.x.toFixed(2)}, ${center.y.toFixed(2)}, ${center.z.toFixed(2)})`)
+          }
+        })
       }
 
       scene.traverse((child) => {
@@ -103,6 +93,16 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             return
           }
 
+
+          // Monitor screen — hide the flat screen panels so Html shows cleanly
+          if (child.name === 'FRHIeNGciselOUD' || (nameLower.includes('monitor') && nameLower.includes('screen'))) {
+            child.visible = false
+          }
+          // Also hide the glass/quad screen surfaces
+          if (nameLower === 'monitor_screen_glass' || nameLower === 'monitor_screen_quad' || nameLower === 'monitor_inner_panel') {
+            child.visible = false
+          }
+
           // Monitor stand/base — fix checkerboard UV artifact
           if (nameLower.includes('monitor')) {
             const geo = child.geometry
@@ -120,11 +120,11 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
             }
           }
 
-          // Desk surface — lighter warm white to match Blender
+          // Desk surface — light natural wood
           if (nameLower.includes('desk')) {
             child.material = new THREE.MeshStandardMaterial({
-              color: '#f0ece6',
-              roughness: 0.4,
+              color: '#d4b896',
+              roughness: 0.65,
               metalness: 0.0,
             })
           }
@@ -146,90 +146,101 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         }
       })
 
-      onLoaded()
-
-      // Extract screen corners for DOM overlay alignment
-      const extractCorners = (meshNames: string[]): THREE.Vector3[] => {
-        const box = new THREE.Box3()
-        let found = false
-        scene.traverse((child) => {
-          if (child instanceof THREE.Mesh) {
-            const name = child.name.toLowerCase()
-            if (meshNames.some(n => name.includes(n))) {
-              if (!found) {
-                box.setFromObject(child)
-                found = true
-              } else {
-                box.expandByObject(child)
-              }
-            }
+      // Push monitor screen behind the Html overlay
+      const monitorScreen = scene.getObjectByName('FRHIeNGciselOUD')
+      if (monitorScreen) {
+        monitorScreen.traverse((c) => {
+          if (c instanceof THREE.Mesh) {
+            c.material = new THREE.MeshBasicMaterial({ color: '#0a0a0f' })
+            c.position.z -= 0.5
+            c.renderOrder = -1
           }
         })
-        if (!found) return []
-        const min = box.min
-        const max = box.max
-        return [
-          new THREE.Vector3(min.x, max.y, min.z), // top-left
-          new THREE.Vector3(max.x, max.y, min.z), // top-right
-          new THREE.Vector3(min.x, min.y, min.z), // bottom-left
-          new THREE.Vector3(max.x, min.y, min.z), // bottom-right
-        ]
       }
 
-      const monitorCorners = extractCorners(['frhiengciseloud'])
-      const macbookCorners = extractCorners(['macbook_screen', 'macbook_display'])
-
-      // Store corners for ScreenProjector
-      if (monitorCorners.length === 4) setMonitorCorners3D(monitorCorners)
-      const resolvedMacbook = macbookCorners.length === 4 ? macbookCorners : [
-        // Fallback from Blender data (Three.js coords): MacBook screen area
-        new THREE.Vector3(-6.16, 8.53, -0.08),
-        new THREE.Vector3(-3.11, 8.53, -0.08),
-        new THREE.Vector3(-6.16, 6.47, -2.28),
-        new THREE.Vector3(-3.11, 6.47, -2.28),
-      ]
-      setMacbookCorners3D(resolvedMacbook)
-
-      if (onScreenBounds && monitorCorners.length === 4) {
-        onScreenBounds({
-          monitor: monitorCorners,
-          macbook: resolvedMacbook,
-        })
-      }
+      onLoaded()
     }
-  }, [scene, onLoaded, onScreenBounds])
+  }, [scene, onLoaded])
 
-  // Contextual lighting for macbook mode
+  // Send boot signal to iframe when camera arrives at monitor
   useEffect(() => {
-    const from = prevModeRef.current
-    prevModeRef.current = mode
-
-    if (mode === 'macbook' && from !== 'macbook') {
-      if (ambientRef.current) gsap.to(ambientRef.current, { intensity: 0.10, duration: 1 })
-      if (macbookSpotRef.current) gsap.to(macbookSpotRef.current, { intensity: 3, duration: 1 })
-    } else if (from === 'macbook' && mode !== 'macbook') {
-      if (ambientRef.current) gsap.to(ambientRef.current, { intensity: 0.25, duration: 1 })
-      if (macbookSpotRef.current) gsap.to(macbookSpotRef.current, { intensity: 0, duration: 1 })
+    if (mode === 'seated') {
+      const iframe = document.getElementById('portfolio-iframe') as HTMLIFrameElement
+      if (iframe?.contentWindow) {
+        iframe.contentWindow.postMessage({ type: 'boot' }, '*')
+      }
     }
   }, [mode])
-
-  useEffect(() => {
-    if (macbookSpotRef.current) {
-      macbookSpotRef.current.target.position.set(-3.5, 7.5, 0.5)
-      macbookSpotRef.current.target.updateMatrixWorld()
-    }
-  }, [])
-
-  // Screen glow removed — using baked textures from Blender
 
   return (
     <>
       <color attach="background" args={['#FAC8A5']} />
 
-      {/* Environment map — reduced intensity to avoid overexposure */}
+      {/* Environment map */}
       <Environment preset="studio" environmentIntensity={0.4} />
 
       <primitive object={scene} />
+
+      {/* Dark bezel frame with rounded corners */}
+      <mesh position={[0, 10.45, 0.5]}>
+        <shapeGeometry args={[(() => {
+          const w = 7.4, h = 4.4, r = 0.15
+          const shape = new THREE.Shape()
+          shape.moveTo(-w/2 + r, -h/2)
+          shape.lineTo(w/2 - r, -h/2)
+          shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r)
+          shape.lineTo(w/2, h/2 - r)
+          shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2)
+          shape.lineTo(-w/2 + r, h/2)
+          shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r)
+          shape.lineTo(-w/2, -h/2 + r)
+          shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2)
+          return shape
+        })()]} />
+        <meshStandardMaterial color="#6a6a75" metalness={0.9} roughness={0.1} side={2} />
+      </mesh>
+
+      {/* ⚠️ LOCKED — Portfolio position calibrated manually. DO NOT CHANGE these values. */}
+      {mode !== 'loading' && (
+        <Html
+          transform
+          position={[-0.02, 10.43, 1.62]}
+          scale={[-0.25, 0.25, 0.25]}
+          style={{
+            width: '1640px',
+            height: '980px',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div style={{
+            width: '100%',
+            height: '100%',
+            background: '#000',
+            overflow: 'hidden',
+            borderRadius: '16px',
+            position: 'relative',
+            border: '8px solid #2a2a30',
+            boxShadow: 'inset 0 0 30px rgba(0,0,0,0.8), 0 0 0 2px #1a1a1f',
+          }}>
+          {/* Real iframe — full page with its own window, scroll, GSAP */}
+          <iframe
+            src="/portfolio-os/index.html"
+            id="portfolio-iframe"
+            style={{
+              width: '100%',
+              height: '100%',
+              border: 'none',
+              borderRadius: '8px',
+              background: '#0a0a0f',
+            }}
+            title="Andrea Avila Portfolio"
+          />
+          </div>
+        </Html>
+      )}
+
+      {/* Additional desk objects from Sketchfab */}
+      <DeskObjects />
 
       {/* Lighting — HDRI does the heavy lifting, minimal fill */}
       <ambientLight ref={ambientRef} intensity={0.15} color="#FFF8F0" />
@@ -238,14 +249,6 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
         intensity={0.6}
         color="#FFF8F0"
       />
-      <spotLight
-        ref={macbookSpotRef}
-        position={[-3.5, 12, -3.5]}
-        angle={0.4}
-        penumbra={0.5}
-        intensity={0}
-        color="#FFFFFF"
-      />
 
       <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} onObjectFocus={onObjectFocus} />
       <DustParticles />
@@ -253,18 +256,11 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onScreenBounds, on
       {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
 
       <CameraRig mode={mode} onIntroComplete={onIntroComplete} focusedObject={focusedObject} />
-
-      {monitorCorners3D.length === 4 && onMonitorRect && (
-        <ScreenProjector corners={monitorCorners3D} onUpdate={onMonitorRect} padding={6} />
-      )}
-      {macbookCorners3D.length === 4 && onMacbookRect && (
-        <ScreenProjector corners={macbookCorners3D} onUpdate={onMacbookRect} padding={4} />
-      )}
     </>
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScreenBounds, onMonitorRect, onMacbookRect, onProjectSelect, onObjectFocus, focusedObject }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProjectSelect, onObjectFocus, focusedObject }: DeskSceneProps) {
   const handleLowFPS = useCallback((avgFPS: number) => {
     console.warn(`[FPS Monitor] Low FPS detected — avg: ${avgFPS}`)
   }, [])
@@ -284,15 +280,12 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onScree
           mode={mode}
           onIntroComplete={onIntroComplete}
           onProgress={onProgress}
-          onScreenBounds={onScreenBounds}
-          onMonitorRect={onMonitorRect}
-          onMacbookRect={onMacbookRect}
           onProjectSelect={onProjectSelect}
           onObjectFocus={onObjectFocus}
           focusedObject={focusedObject}
         />
         <EffectComposer multisampling={0}>
-          <Vignette eskil={false} offset={0.3} darkness={0.5} />
+          <Vignette eskil={false} offset={0.25} darkness={0.7} />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
         <Preload all />

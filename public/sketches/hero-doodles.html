@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>p5.brush — Hero Doodles</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.0.0-beta"></script>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #F5F0E8; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+function setup() {
+  createCanvas(1200, 400, WEBGL);
+  brush.load();
+  translate(-width / 2, -height / 2);
+
+  background(245, 240, 232);
+  randomSeed(42);
+
+  // Flow field for organic movement
+  brush.field("curved");
+
+  // Scattered flow lines in graphite
+  brush.set("cpencil", "#4a4a4a", 0.6);
+  for (let i = 0; i < 60; i++) {
+    let x = random(width);
+    let y = random(height);
+    brush.flowLine(x, y, random(40, 180), random(TWO_PI));
+  }
+
+  // Small circles — like doodled dots
+  brush.noField();
+  brush.set("2H", "#4a4a4a", 0.4);
+  for (let i = 0; i < 15; i++) {
+    let x = random(60, width - 60);
+    let y = random(40, height - 40);
+    let r = random(4, 12);
+    brush.noFill();
+    brush.circle(x, y, r, true);
+  }
+
+  // X-marks
+  brush.set("HB", "#4a4a4a", 0.5);
+  for (let i = 0; i < 8; i++) {
+    let x = random(80, width - 80);
+    let y = random(50, height - 50);
+    let s = random(6, 14);
+    brush.line(x - s, y - s, x + s, y + s);
+    brush.line(x + s, y - s, x - s, y + s);
+  }
+
+  // Small arrows
+  brush.set("pen", "#4a4a4a", 0.4);
+  for (let i = 0; i < 6; i++) {
+    let x = random(100, width - 100);
+    let y = random(60, height - 60);
+    let angle = random(TWO_PI);
+    let len = random(20, 50);
+    let ex = x + cos(angle) * len;
+    let ey = y + sin(angle) * len;
+    brush.line(x, y, ex, ey);
+    // arrowhead
+    brush.line(ex, ey, ex - cos(angle - 0.4) * 10, ey - sin(angle - 0.4) * 10);
+    brush.line(ex, ey, ex - cos(angle + 0.4) * 10, ey - sin(angle + 0.4) * 10);
+  }
+
+  // Tiny stars (5-point)
+  brush.set("2B", "#4a4a4a", 0.3);
+  for (let i = 0; i < 10; i++) {
+    let cx = random(40, width - 40);
+    let cy = random(30, height - 30);
+    let s = random(3, 8);
+    for (let j = 0; j < 4; j++) {
+      let a = (j / 4) * PI;
+      brush.line(cx - cos(a) * s, cy - sin(a) * s, cx + cos(a) * s, cy + sin(a) * s);
+    }
+  }
+}
+</script>
+</body>
+</html>

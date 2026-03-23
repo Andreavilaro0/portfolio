@@ -2,122 +2,200 @@
 
 import { ScrollReveal } from './ScrollReveal'
 import { BrowserMockup } from '../ui/BrowserMockup'
+import { PhoneMockup } from '../ui/PhoneMockup'
+import { MaskingTape } from '../ui/MaskingTape'
+import { HandDrawnLine } from './HandDrawnLine'
 
 export function CapturingMomentsSection() {
   return (
     <section
+      className="paper-bg"
       style={{
         width: '100%',
-        padding: 'clamp(64px, 12vh, 120px) clamp(32px, 6vw, 96px)',
+        padding: 'clamp(64px, 12vh, 120px) clamp(24px, 6vw, 96px)',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
-      {/* Section divider */}
-      <div className="section-divider" style={{ marginBottom: '48px', background: 'rgba(255,255,255,0.15)' }} />
+      {/* Page number */}
+      <span className="page-number">pg. 02</span>
 
-      {/* Label */}
-      <ScrollReveal>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>02</span>
-          <span className="badge badge-cyan">Lens</span>
-          <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>/ Photography Portfolio</span>
-          <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
-        </div>
-      </ScrollReveal>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {/* Title */}
+        <ScrollReveal>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(2.5rem, 5vw, 4.5rem)',
+              lineHeight: 0.95,
+              fontWeight: 900,
+              color: 'var(--color-text)',
+              margin: '0 0 8px 0',
+              letterSpacing: '-0.02em',
+            }}
+          >
+            CAPTURING MOMENTS
+          </h2>
+          <HandDrawnLine variant={0} opacity={0.3} color="var(--color-pencil)" />
+        </ScrollReveal>
 
-      {/* Two columns: info left, browser mockup right */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(32px, 4vw, 64px)', alignItems: 'center' }}>
-        {/* Left — Info */}
-        <div style={{ flex: '1 1 400px', maxWidth: '560px' }}>
-          <ScrollReveal delay={100}>
-            <h2
+        {/* Annotation */}
+        <ScrollReveal delay={100}>
+          <div style={{ marginTop: '16px', display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <span
               style={{
-                fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(2.5rem, 5vw, 5rem)',
-                lineHeight: 1,
-                letterSpacing: '-0.02em',
-                color: '#FFFFFF',
-                margin: 0,
-                textTransform: 'uppercase',
+                fontFamily: 'var(--font-hand)',
+                fontSize: '1.2rem',
+                fontWeight: 600,
+                color: 'var(--color-pencil)',
+                transform: 'rotate(-1deg)',
+                display: 'inline-block',
               }}
             >
-              CAPTURING<br />MOMENTS
-            </h2>
-          </ScrollReveal>
+              ← diseño editorial
+            </span>
+            <span
+              style={{
+                fontFamily: 'var(--font-hand)',
+                fontSize: '1rem',
+                fontWeight: 600,
+                color: 'var(--color-muted)',
+              }}
+            >
+              ✓ GSAP
+            </span>
+          </div>
+        </ScrollReveal>
 
-          <ScrollReveal delay={200}>
+        {/* Blueprint: page wireframe */}
+        <ScrollReveal delay={150}>
+          <div style={{ marginTop: '24px', marginBottom: '24px' }}>
+            <svg width="100%" viewBox="0 0 300 60" fill="none" aria-hidden="true" style={{ maxWidth: '300px' }}>
+              {[
+                { x: 0, label: 'hero' },
+                { x: 100, label: 'gallery' },
+                { x: 200, label: 'about' },
+              ].map((box) => (
+                <g key={box.label}>
+                  <rect x={box.x} y="8" width="80" height="30" rx="2" stroke="var(--color-pencil)" strokeWidth="1.5" fill="none" strokeDasharray="4 2" />
+                  <text x={box.x + 40} y="27" textAnchor="middle" fontFamily="var(--font-code)" fontSize="9" fill="var(--color-pencil)">{box.label}</text>
+                </g>
+              ))}
+              {[80, 180].map((x) => (
+                <g key={x}>
+                  <line x1={x} y1="23" x2={x + 20} y2="23" stroke="var(--color-pencil)" strokeWidth="1.2" markerEnd="url(#arrowhead-photo)" />
+                </g>
+              ))}
+              <defs>
+                <marker id="arrowhead-photo" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                  <polygon points="0 0, 6 2, 0 4" fill="var(--color-pencil)" />
+                </marker>
+              </defs>
+              <text x="150" y="55" textAnchor="middle" fontFamily="var(--font-hand)" fontSize="11" fill="var(--color-muted)">scroll flow →</text>
+            </svg>
+          </div>
+        </ScrollReveal>
+
+        {/* Mockups with tape */}
+        <ScrollReveal delay={200}>
+          <div style={{ display: 'flex', gap: '24px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+            {/* Browser mockup */}
+            <div style={{ flex: '1 1 400px', position: 'relative' }}>
+              <MaskingTape position="top-left" />
+              <MaskingTape position="bottom-right" rotation={-12} />
+              <BrowserMockup url="andreavilaro0.github.io/plantilla">
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  poster="/projects/photo-desktop.png"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', minHeight: 'clamp(260px, 40vw, 520px)' }}
+                >
+                  <source src="/videos/plantilla-showcase.mp4" type="video/mp4" />
+                </video>
+              </BrowserMockup>
+            </div>
+            {/* Phone mockup */}
+            <div style={{ flex: '0 0 auto', maxWidth: '160px', position: 'relative' }}>
+              <MaskingTape position="top-right" rotation={20} />
+              <PhoneMockup>
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                >
+                  <source src="/projects/photo-mobile.mp4" type="video/mp4" />
+                </video>
+              </PhoneMockup>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        {/* Bottom info row */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 'clamp(24px, 4vw, 64px)',
+            alignItems: 'flex-start',
+            marginTop: '32px',
+          }}
+        >
+          <ScrollReveal delay={280}>
             <p
               style={{
-                fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
+                flex: '1 1 320px',
+                maxWidth: '500px',
+                fontSize: 'clamp(1rem, 1.2vw + 0.4rem, 1.15rem)',
                 lineHeight: 1.7,
-                color: 'rgba(255,255,255,0.7)',
-                marginTop: '20px',
-                maxWidth: '480px',
+                color: 'var(--color-text)',
+                margin: 0,
               }}
             >
-              Portafolio de fotografía con diseño editorial,
-              animaciones GSAP y galería dinámica. Street photography
-              capturando momentos reales en la ciudad.
+              Portafolio de fotografía con diseño editorial, animaciones GSAP
+              y galería dinámica. Street photography capturando momentos
+              reales en la ciudad.
             </p>
           </ScrollReveal>
 
-          <ScrollReveal delay={300}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '24px' }}>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
-                → Diseño editorial responsive
+          <ScrollReveal delay={340}>
+            <div style={{ flex: '1 1 200px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '20px' }}>
+                {['HTML/CSS', 'JavaScript', 'GSAP'].map((tag) => (
+                  <span key={tag} className="tag">{tag}</span>
+                ))}
               </div>
-              <div style={{ fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>
-                → Animaciones scroll-based
-              </div>
+              <a
+                href="https://andreavilaro0.github.io/plantilla/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pencil-underline"
+                style={{
+                  fontFamily: 'var(--font-hand)',
+                  fontSize: '1.2rem',
+                  fontWeight: 700,
+                  color: 'var(--color-pencil)',
+                  textDecoration: 'none',
+                }}
+              >
+                [ver proyecto →]
+              </a>
             </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={350}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '24px' }}>
-              {['HTML/CSS', 'JavaScript', 'GSAP'].map((tag) => (
-                <span key={tag} className="tag" style={{ color: 'rgba(255,255,255,0.8)', borderColor: 'rgba(255,255,255,0.25)' }}>{tag}</span>
-              ))}
-            </div>
-          </ScrollReveal>
-
-          <ScrollReveal delay={400}>
-            <a
-              href="https://andreavilaro0.github.io/plantilla/"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: 'inline-block',
-                marginTop: '32px',
-                fontFamily: 'var(--font-code)',
-                fontSize: '12px',
-                color: '#FF6FBF',
-                textDecoration: 'none',
-                letterSpacing: '0.05em',
-                transition: 'opacity 0.2s',
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.6')}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
-            >
-              [view project]
-            </a>
           </ScrollReveal>
         </div>
+      </div>
 
-        {/* Right — Browser mockup with video */}
-        <ScrollReveal delay={150}>
-          <div style={{ flex: '1 1 400px' }}>
-            <BrowserMockup url="andreavilaro0.github.io/plantilla">
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              >
-                <source src="/videos/plantilla-showcase.mp4" type="video/mp4" />
-              </video>
-            </BrowserMockup>
-          </div>
-        </ScrollReveal>
+      {/* Bottom divider */}
+      <div style={{ marginTop: '48px', position: 'relative', zIndex: 1 }}>
+        <HandDrawnLine variant={1} opacity={0.2} color="var(--color-border)" />
       </div>
     </section>
   )

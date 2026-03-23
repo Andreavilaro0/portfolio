@@ -22,3 +22,12 @@ public/models/*.fbx
 public/models/*.blend
 public/models/*.blend1
 .agents/
+
+# Large unused files
+public/Use_the_uploaded_202603221625.mp4
+public/Mechanical_components_forming_202603211536.mp4
+public/hero-loop.mp4
+public/hero-loop-mobile.mp4
+test-results/
+test-errors.mjs
+src/app/portfolio-lite/

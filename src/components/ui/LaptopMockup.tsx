@@ -8,9 +8,9 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
       {/* Screen */}
       <div
         style={{
-          border: '4px solid var(--color-border)',
+          border: '1px solid rgba(255,255,255,0.1)',
           borderBottom: 'none',
-          boxShadow: '6px -2px 0px var(--color-text)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
           overflow: 'hidden',
           background: '#1A1A1A',
           position: 'relative',
@@ -23,7 +23,7 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
             justifyContent: 'center',
             padding: '4px 0',
             background: '#111',
-            borderBottom: '2px solid var(--color-border)',
+            borderBottom: '1px solid rgba(255,255,255,0.1)',
           }}
         >
           <div
@@ -31,7 +31,7 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
               width: 6,
               height: 6,
               borderRadius: '50%',
-              background: 'var(--color-muted)',
+              background: 'rgba(255,255,255,0.3)',
             }}
           />
         </div>
@@ -48,10 +48,10 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
       <div
         style={{
           height: '14px',
-          background: 'var(--color-bg)',
-          border: '4px solid var(--color-border)',
-          borderTop: '3px solid var(--color-border)',
-          boxShadow: '6px 6px 0px var(--color-text)',
+          background: '#0d0d14',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderTop: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
           position: 'relative',
         }}
       >
@@ -64,7 +64,7 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
             transform: 'translate(-50%, -50%)',
             width: '20%',
             height: '2px',
-            background: 'var(--color-border)',
+            background: 'rgba(255,255,255,0.15)',
           }}
         />
       </div>

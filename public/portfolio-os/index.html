@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Andrea OS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Fullscreen boot terminal -->
+  <div id="boot-screen">
+    <div id="boot-terminal"></div>
+  </div>
+
+  <!-- Desktop (hidden until boot completes) -->
+  <div id="desktop">
+    <div class="icon finder" data-application="finder">Finder</div>
+    <div class="icon textedit" data-application="textedit">TextEdit</div>
+    <div class="icon link-icon" onclick="window.open('https://www.linkedin.com/feed/','_blank')">LinkedIn</div>
+    <div class="icon link-icon" onclick="window.open('mailto:andrea15one@icloud.com')">Email</div>
+    <div class="icon link-icon" onclick="window.open('https://github.com/Andreavilaro0','_blank')">GitHub</div>
+    <div class="icon link-icon" onclick="window.open('/cv-andrea-avila.pdf','_blank')">CV</div>
+
+    <ul class="contextmenu hidden">
+      <li class="rename">Rename</li>
+    </ul>
+  </div>
+
+  <!-- Templates -->
+  <template id="tmpl-finder">
+    <section class="window finder" data-application="finder" data-title="Finder">
+      <header>
+        <span class="action close"></span>
+        <span class="action minimize"></span>
+        <span class="action maximize"></span>
+        <div class="action-bar">
+          <div class="button-group">
+            <span class="action-button back" data-icon="back"></span>
+            <span class="action-button forward" data-icon="forward"></span>
+          </div>
+          <input type="text" name="path">
+          <input type="text" name="search" placeholder="Search">
+          <div class="button-group">
+            <span class="action-button folder" data-icon="folder"></span>
+            <span class="action-button file" data-icon="file"></span>
+          </div>
+        </div>
+      </header>
+      <aside>
+        <section>
+          <h1>Favorites</h1>
+          <ul class="favorites"></ul>
+        </section>
+      </aside>
+      <main></main>
+    </section>
+  </template>
+
+  <template id="tmpl-terminal">
+    <section class="window terminal" data-application="terminal" data-title="Terminal">
+      <header>
+        <span class="action close"></span>
+        <span class="action minimize"></span>
+        <span class="action maximize"></span>
+      </header>
+      <main>
+        <div class="contents">
+          <div class="prompt">
+            <span>/</span>
+            <textarea class="autosize" data-capture-enter="true" spellcheck="false"></textarea>
+          </div>
+        </div>
+      </main>
+    </section>
+  </template>
+
+  <template id="tmpl-textedit">
+    <section class="window textedit" data-application="textedit" data-title="TextEdit — Untitled">
+      <header>
+        <span class="action close"></span>
+        <span class="action minimize"></span>
+        <span class="action maximize"></span>
+      </header>
+      <main>
+        <textarea spellcheck="false"></textarea>
+      </main>
+    </section>
+  </template>
+
+  <template id="tmpl-alert">
+    <section class="window alert focused">
+      <header>
+        <span class="action close"></span>
+      </header>
+      <main>
+        <h4>Error</h4>
+        <p></p>
+      </main>
+    </section>
+  </template>
+
+  <template id="tmpl-filebrowser">
+    <section class="window filebrowser" data-title="">
+      <header>
+        <span class="action close"></span>
+      </header>
+      <main>
+        <ul></ul>
+        <div class="file-info clearfix">
+          <label>Filename:</label>
+          <input type="text" name="filename">
+          <span class="action-button" data-icon="check"></span>
+        </div>
+      </main>
+    </section>
+  </template>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

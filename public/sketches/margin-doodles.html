@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>p5.brush — Margin Doodles</title>
+  <script src="https://cdn.jsdelivr.net/npm/p5@2/lib/p5.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/p5.brush@2.0.0-beta"></script>
+  <style>
+    html, body { margin: 0; padding: 0; overflow: hidden; background: #F5F0E8; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script>
+function setup() {
+  createCanvas(200, 600, WEBGL);
+  brush.load();
+  translate(-width / 2, -height / 2);
+
+  background(245, 240, 232);
+  randomSeed(77);
+
+  let cx = width / 2;
+
+  // Tiny stars
+  brush.set("2B", "#4a4a4a", 0.4);
+  for (let i = 0; i < 8; i++) {
+    let x = random(30, width - 30);
+    let y = random(30, height - 30);
+    let s = random(3, 7);
+    for (let j = 0; j < 4; j++) {
+      let a = (j / 4) * PI + random(-0.1, 0.1);
+      brush.line(x - cos(a) * s, y - sin(a) * s, x + cos(a) * s, y + sin(a) * s);
+    }
+  }
+
+  // Small circles
+  brush.set("HB", "#4a4a4a", 0.3);
+  brush.noFill();
+  for (let i = 0; i < 6; i++) {
+    let x = random(40, width - 40);
+    let y = random(50, height - 50);
+    brush.circle(x, y, random(3, 10), true);
+  }
+
+  // Dots scattered
+  brush.set("pen", "#4a4a4a", 0.3);
+  for (let i = 0; i < 20; i++) {
+    let x = random(20, width - 20);
+    let y = random(20, height - 20);
+    brush.circle(x, y, 1);
+  }
+
+  // Small arrows pointing down
+  brush.set("pen", "#4a4a4a", 0.35);
+  for (let i = 0; i < 4; i++) {
+    let x = random(40, width - 40);
+    let y = random(80, height - 80);
+    brush.line(x, y, x, y + 20);
+    brush.line(x, y + 20, x - 5, y + 14);
+    brush.line(x, y + 20, x + 5, y + 14);
+  }
+
+  // Wavy lines
+  brush.wiggle(3);
+  brush.set("2H", "#8B8680", 0.3);
+  for (let i = 0; i < 3; i++) {
+    let y = random(100, height - 100);
+    brush.line(20, y, width - 20, y);
+  }
+}
+</script>
+</body>
+</html>

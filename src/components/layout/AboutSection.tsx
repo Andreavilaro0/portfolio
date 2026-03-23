@@ -1,155 +1,265 @@
 'use client'
 
-import { ScrollReveal } from './ScrollReveal'
-import { CountUp } from './CountUp'
+import { useRef, useEffect, useState, useCallback } from 'react'
+import { animate, stagger, utils } from 'animejs'
+// GitHubCalendar moved to SkillsSection
+
+const NEOFETCH_LINES = [
+  { label: 'OS', value: 'Engineer v4.0 (4th semester)', color: '#FF2D9B' },
+  { label: 'Host', value: 'Madrid, Spain', color: '#FF2D9B' },
+  { label: 'Origin', value: 'Mexico → Cambridge → Madrid', color: '#FF2D9B' },
+  { label: 'Shell', value: 'React / TypeScript / C++', color: '#00E5FF' },
+  { label: 'Terminal', value: 'VS Code + Cursor', color: '#00E5FF' },
+  { label: 'Packages', value: 'Three.js, GSAP, Tailwind, Laravel', color: '#BEFF00' },
+  { label: 'Also', value: 'SQL, MongoDB, Node.js, Arduino', color: '#BEFF00' },
+  { label: 'Tools', value: 'Figma, Canva, Blender, Claude', color: '#7B2FFF' },
+  { label: 'Uptime', value: 'Since 2024 @ UDIT Madrid', color: '#7B2FFF' },
+  { label: 'Memory', value: '10+ technologies loaded', color: '#7B2FFF' },
+]
+
+const BIO_LINES = [
+  'From running a family business in Mexico to winning',
+  'robotics competitions and building interactive web',
+  'experiences in Spain.',
+  '',
+  'I specialize in creative development: the space where',
+  'engineering meets design. I build things that move,',
+  'respond, and feel alive.',
+]
+
+const PALETTE_COLORS = ['#2C2C2C', '#FF2D9B', '#BEFF00', '#00E5FF', '#7B2FFF', '#FFD93D', '#e8e6e3', '#fff']
 
 export function AboutSection() {
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+  const [showCursor, setShowCursor] = useState(true)
+  const hasAnimated = useRef(false)
+
+  // Detect when section enters viewport
+  useEffect(() => {
+    const el = sectionRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect() } },
+      { threshold: 0.05 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  // Anime.js animation — tokens fly in
+  const runAnimation = useCallback(() => {
+    if (hasAnimated.current || !contentRef.current) return
+    hasAnimated.current = true
+
+    const spans = contentRef.current.querySelectorAll('[data-animate]')
+    if (!spans.length) return
+
+    // Set initial state
+    utils.set(spans, {
+      opacity: 0,
+      translateY: () => utils.random(-40, 40),
+      translateX: () => utils.random(-30, 30),
+      rotate: () => utils.random(-15, 15),
+      scale: 0.8,
+    })
+
+    // Animate in
+    animate(spans, {
+      opacity: [0, 1],
+      translateY: 0,
+      translateX: 0,
+      rotate: 0,
+      scale: 1,
+      duration: 800,
+      delay: stagger(20, { from: 'first' }),
+      ease: 'outExpo',
+    })
+  }, [])
+
+  useEffect(() => {
+    if (visible) {
+      // Small delay to ensure DOM is painted
+      const timer = setTimeout(runAnimation, 200)
+      return () => clearTimeout(timer)
+    }
+  }, [visible, runAnimation])
+
+  // Blinking cursor
+  useEffect(() => {
+    const interval = setInterval(() => setShowCursor(prev => !prev), 530)
+    return () => clearInterval(interval)
+  }, [])
+
+  const codeFont: React.CSSProperties = {
+    fontFamily: 'var(--font-code)',
+    fontSize: 'clamp(11px, 1.2vw, 14px)',
+    lineHeight: 1.8,
+    letterSpacing: '0.02em',
+  }
+
+  const prompt = (
+    <>
+      <span style={{ color: '#BEFF00' }}>andrea</span>
+      <span style={{ color: 'rgba(255,255,255,0.3)' }}>@</span>
+      <span style={{ color: '#00E5FF' }}>portfolio</span>
+      <span style={{ color: 'rgba(255,255,255,0.3)' }}> ~ % </span>
+    </>
+  )
+
   return (
     <section
       id="about"
+      ref={sectionRef}
       style={{
-        width: '100%',
-        minHeight: '100dvh',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        overflow: 'hidden',
-        padding: 'clamp(48px, 8vh, 96px) clamp(32px, 6vw, 96px)',
+        padding: 'clamp(48px, 8vh, 96px) clamp(16px, 4vw, 80px)',
+        maxWidth: '1200px',
+        margin: '0 auto',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      <div style={{ flex: '1 1 480px', maxWidth: '600px' }}>
-        <ScrollReveal>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <span className="label" style={{ color: 'rgba(255,255,255,0.45)' }}>00</span>
-            <span className="badge badge-violet">About</span>
-            <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.15)' }} />
+      {/* Blue signal line — connects projects to about */}
+      <div style={{
+        width: '1px',
+        height: '48px',
+        background: 'linear-gradient(180deg, transparent, #00E5FF, transparent)',
+        margin: '0 auto 32px auto',
+        opacity: 0.3,
+      }} />
+
+      {/* Terminal window */}
+      <div style={{
+        background: '#0d0d14',
+        border: '1px solid rgba(0,229,255,0.1)',
+        borderRadius: '10px',
+        overflow: 'hidden',
+        boxShadow: '0 0 40px rgba(0,229,255,0.03)',
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(20px)',
+        transition: 'opacity 0.6s ease, transform 0.6s ease',
+      }}>
+        {/* Title bar */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '12px 16px',
+          background: '#08080c',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}>
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57' }} />
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#febc2e' }} />
+          <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#28c840' }} />
+          <span style={{
+            marginLeft: '12px',
+            fontFamily: 'var(--font-code)',
+            fontSize: '12px',
+            color: 'rgba(255,255,255,0.3)',
+          }}>
+            andrea@portfolio — kitty
+          </span>
+        </div>
+
+        {/* Content */}
+        <div ref={contentRef} style={{ padding: 'clamp(16px, 3vw, 32px)', ...codeFont }}>
+          {/* neofetch command */}
+          <div data-animate style={{ marginBottom: '20px' }}>
+            {prompt}
+            <span style={{ color: '#e8e6e3' }}>neofetch</span>
           </div>
-        </ScrollReveal>
 
-        <ScrollReveal delay={100}>
-          <h2
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(3rem, 6vw, 6rem)',
-              lineHeight: 0.95,
-              color: '#FFFFFF',
-              margin: '0 0 24px 0',
-            }}
-          >
-            MEXICANA.<br />
-            INGENIERA.<br />
-            <span style={{ color: 'var(--color-pink)' }}>BUILDER.</span>
-          </h2>
-        </ScrollReveal>
+          {/* Photo + Info layout */}
+          <div style={{
+            display: 'flex',
+            gap: 'clamp(16px, 3vw, 40px)',
+            flexWrap: 'wrap',
+            marginBottom: '24px',
+          }}>
+            {/* Photo */}
+            <div data-animate style={{ flexShrink: 0 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/andrea.png"
+                alt="Andrea Avila"
+                style={{
+                  width: 'clamp(100px, 15vw, 160px)',
+                  height: 'auto',
+                  borderRadius: '6px',
+                  border: '2px solid rgba(255,255,255,0.08)',
+                  display: 'block',
+                }}
+              />
+            </div>
 
-        <ScrollReveal delay={200}>
-          <p
-            style={{
-              fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
-              lineHeight: 1.8,
-              color: 'rgba(255,255,255,0.7)',
-              maxWidth: '480px',
-            }}
-          >
-            Mexicana viviendo en Madrid. Estudiante de 4o semestre de ingeniería.
-            De gestionar un negocio familiar en México a ganar hackathones y llegar
-            a la final nacional de robótica en España.
-          </p>
-        </ScrollReveal>
+            {/* Neofetch info */}
+            <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+              <div data-animate style={{ color: '#FF2D9B', fontWeight: 700, fontSize: 'clamp(14px, 1.5vw, 18px)' }}>
+                andrea avila
+              </div>
+              <div data-animate style={{ color: 'rgba(255,255,255,0.15)', marginBottom: '6px' }}>
+                ──────────────────
+              </div>
 
-        <ScrollReveal delay={250}>
-          <p
-            style={{
-              fontSize: 'clamp(0.95rem, 1.1vw + 0.5rem, 1.15rem)',
-              lineHeight: 1.8,
-              color: 'rgba(255,255,255,0.7)',
-              maxWidth: '480px',
-              marginTop: '16px',
-            }}
-          >
-            Construyo productos web con React, TypeScript y Python.
-            Me especializo en experiencias interactivas con Three.js y animación.
-          </p>
-        </ScrollReveal>
-
-        <ScrollReveal delay={300}>
-          <div style={{ display: 'flex', gap: '24px', marginTop: '32px', flexWrap: 'wrap' }}>
-            {[
-              { number: '4°', label: 'Semestre' },
-              { number: '10+', label: 'Tecnologías' },
-              { number: '2028', label: 'Graduación' },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="card"
-                style={{ padding: '16px 24px', textAlign: 'center' }}
-              >
-                <CountUp
-                  value={stat.number}
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '2.5rem',
-                    color: 'var(--color-text)',
-                  }}
-                />
-                <div className="label" style={{ marginTop: '4px' }}>
-                  {stat.label}
+              {NEOFETCH_LINES.map((line) => (
+                <div data-animate key={line.label} style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ color: line.color, fontWeight: 600, minWidth: '75px' }}>
+                    {line.label}:
+                  </span>
+                  <span style={{ color: 'rgba(255,255,255,0.65)' }}>
+                    {line.value}
+                  </span>
                 </div>
+              ))}
+
+              {/* Palette */}
+              <div data-animate style={{ display: 'flex', gap: '5px', marginTop: '12px' }}>
+                {PALETTE_COLORS.map((c) => (
+                  <div key={c} style={{ width: '13px', height: '13px', borderRadius: '50%', background: c }} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* cat about.txt */}
+          <div data-animate style={{ marginTop: '8px' }}>
+            {prompt}
+            <span style={{ color: '#e8e6e3' }}>cat about.txt</span>
+          </div>
+
+          <div style={{ marginTop: '8px', color: 'rgba(255,255,255,0.55)' }}>
+            {BIO_LINES.map((line, i) => (
+              <div data-animate key={i} style={{ minHeight: line ? 'auto' : '10px' }}>
+                {line}
               </div>
             ))}
           </div>
-        </ScrollReveal>
-      </div>
 
-      {/* Right side — photo + stickers */}
-      <ScrollReveal delay={150}>
-        <div
-          style={{
-            flex: '1 1 400px',
-            minHeight: '400px',
-            position: 'relative',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          {/* Photo */}
-          <div
-            style={{
-              position: 'relative',
-              border: '4px solid var(--color-border)',
-              boxShadow: '10px 10px 0px var(--color-text)',
-              overflow: 'hidden',
-              maxWidth: '360px',
-              width: '100%',
-            }}
-          >
-            <img
-              src="/images/andrea.png"
-              alt="Andrea Avila"
-              style={{
-                width: '100%',
-                height: 'auto',
-                display: 'block',
-              }}
-            />
+          {/* echo $STATUS */}
+          <div data-animate style={{ marginTop: '16px' }}>
+            {prompt}
+            <span style={{ color: '#e8e6e3' }}>echo $STATUS</span>
           </div>
 
-          {/* Stickers around photo */}
-          <div className="sticker" style={{ top: '2%', right: '5%', '--rotation': '-5deg', background: 'var(--color-lime)' } as React.CSSProperties}>
-            REACT + TYPESCRIPT
+          <div data-animate style={{ marginTop: '4px' }}>
+            <span style={{ color: '#BEFF00', fontWeight: 600 }}>
+              → Open to work — internships in Madrid
+            </span>
           </div>
-          <div className="sticker" style={{ bottom: '15%', left: '0%', '--rotation': '4deg', background: 'var(--color-pink)', color: '#fff' } as React.CSSProperties}>
-            PYTHON
-          </div>
-          <div className="sticker" style={{ top: '40%', right: '0%', '--rotation': '7deg', background: 'var(--color-violet)', color: '#fff' } as React.CSSProperties}>
-            C++ / ARDUINO
-          </div>
-          <div className="sticker" style={{ bottom: '5%', right: '10%', '--rotation': '-3deg', background: 'var(--color-cyan)' } as React.CSSProperties}>
-            THREE.JS
+
+          {/* Cursor */}
+          <div style={{ marginTop: '12px' }}>
+            {prompt}
+            <span style={{
+              color: '#e8e6e3',
+              opacity: showCursor ? 1 : 0,
+              transition: 'opacity 0.1s',
+            }}>█</span>
           </div>
         </div>
-      </ScrollReveal>
+      </div>
+
+      {/* GitHub Calendar moved to SkillsSection */}
     </section>
   )
 }

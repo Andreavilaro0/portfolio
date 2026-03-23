@@ -62,7 +62,8 @@ export function ScreenProjector({ corners, onUpdate, padding = 4 }: ScreenProjec
     }
 
     // Only update if changed (avoids React re-renders every frame)
-    const key = `${Math.round(rect.top)},${Math.round(rect.left)},${Math.round(rect.width)},${Math.round(rect.height)}`
+    const r = (v: number) => Math.round(v * 2) / 2 // 0.5px precision for smoother tracking
+    const key = `${r(rect.top)},${r(rect.left)},${r(rect.width)},${r(rect.height)}`
     if (key !== prevRect.current) {
       prevRect.current = key
       onUpdate(rect)

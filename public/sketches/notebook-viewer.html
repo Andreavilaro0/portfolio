@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sketchbook — Andrea Avila</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat&family=Indie+Flower&family=Nothing+You+Could+Do&family=Reenie+Beanie&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #2a2018;
+      font-family: sans-serif;
+      margin: 0;
+    }
+
+    :root {
+      --width: min(1000px, 90vw);
+      --height: min(75vh, 700px);
+    }
+
+    .container {
+      overflow: clip;
+      width: 100vw;
+      height: 100dvh;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .book-container {
+      width: var(--width);
+      height: var(--height);
+      position: relative;
+      background: #f5f0e6;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.1);
+      cursor: grab;
+      touch-action: none;
+      border-radius: 2px;
+    }
+
+    .book-container:active { cursor: grabbing; }
+
+    .page {
+      width: calc(var(--width) / 2);
+      height: var(--height);
+      position: absolute;
+      top: 0;
+      box-sizing: border-box;
+      background-color: #f5f0e6;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    /* Grid paper texture */
+    .page::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(140,160,180,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140,160,180,0.07) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    #left-front, #left-under {
+      left: 0;
+      background-image: linear-gradient(to left, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0) 8%);
+    }
+    #right-front, #right-under {
+      left: 50%;
+      background-image: linear-gradient(to right, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0) 8%);
+      border-left: 1px solid #d8d0c4;
+    }
+
+    .front-page { z-index: 2; }
+
+    .flap {
+      width: var(--width);
+      height: var(--height);
+      position: absolute;
+      top: 0; left: 0;
+      z-index: 5;
+      filter: drop-shadow(0px 0px 10px rgba(0,0,0,0.4));
+      pointer-events: none;
+      display: none;
+    }
+
+    .flap-content {
+      width: calc(var(--width) / 2);
+      height: var(--height);
+      position: absolute;
+      top: 0; left: 0;
+      box-sizing: border-box;
+      background-color: #f5f0e6;
+      overflow: hidden;
+    }
+
+    /* Grid on flap too */
+    .flap-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(140,160,180,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(140,160,180,0.07) 1px, transparent 1px);
+      background-size: 20px 20px;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .fold-gradient {
+      position: absolute;
+      width: calc(var(--width) * 3);
+      height: calc(var(--width) * 3);
+      left: calc(var(--width) * -1.5);
+      top: calc(var(--width) * -1.5);
+      background: linear-gradient(to right,
+        transparent 49.5%,
+        rgba(0,0,0,0.25) 50%,
+        rgba(255,255,255,0.6) 51.5%,
+        rgba(0,0,0,0.04) 58%,
+        transparent 65%
+      );
+    }
+
+    /* Page content */
+    .page-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .page-content img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .page-number {
+      position: absolute;
+      bottom: 12px;
+      color: rgba(0,0,0,0.15);
+      font-size: 12px;
+      font-family: 'Caveat', cursive;
+      z-index: 2;
+    }
+
+    #left-front .page-number, #left-under .page-number { left: 16px; }
+    #right-front .page-number, #right-under .page-number { right: 16px; }
+    .flap-content.is-left .page-number { left: 16px; right: auto; }
+    .flap-content.is-right .page-number { right: 16px; left: auto; }
+
+    /* Handwriting annotations */
+    .hw {
+      position: absolute;
+      z-index: 3;
+      pointer-events: none;
+      line-height: 1.3;
+    }
+
+    .hw .ch {
+      display: inline-block;
+    }
+
+    /* Cover page */
+    .cover {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      background: #3d2510;
+      padding: 40px;
+      text-align: center;
+    }
+
+    .cover::before {
+      content: '';
+      position: absolute;
+      inset: 12px;
+      border: 2px solid rgba(201,168,76,0.25);
+      pointer-events: none;
+    }
+
+    .cover h2 {
+      font-family: 'Caveat', cursive;
+      font-size: 38px;
+      color: #c9a84c;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .cover p {
+      font-family: 'Caveat', cursive;
+      font-size: 18px;
+      color: rgba(201,168,76,0.4);
+      margin-top: 8px;
+    }
+
+    .cover .line {
+      width: 50px;
+      height: 2px;
+      background: rgba(201,168,76,0.3);
+      margin: 12px auto;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .info {
+      text-align: center;
+      min-width: 180px;
+    }
+
+    .info-title {
+      font-family: 'Caveat', cursive;
+      font-size: 20px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .info-sub {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .hint {
+      position: fixed;
+      bottom: 10px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.12);
+      font-family: 'Caveat', cursive;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="book-container" id="book">
+    <div class="page" id="left-under"></div>
+    <div class="page" id="right-under"></div>
+    <div class="page front-page" id="left-front"></div>
+    <div class="page front-page" id="right-front"></div>
+    <div class="flap" id="flap">
+      <div class="flap-content" id="flapContent"></div>
+      <div class="fold-gradient" id="foldGradient"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="info">
+      <div class="info-title" id="infoTitle">Sketchbook</div>
+      <div class="info-sub" id="infoSub">drag a corner to flip</div>
+    </div>
+  </div>
+</div>
+
+<div class="hint">drag corners to flip pages</div>
+
+<script>
+// ========= HANDWRITING =========
+const HW_FONTS = ['Caveat','Indie Flower','Nothing You Could Do','Reenie Beanie','Shadows Into Light'];
+
+function seededRand(s) { let x = Math.sin(s) * 10000; return x - Math.floor(x); }
+
+function hw(text, seed, color, size) {
+  let h = '';
+  let s = seed;
+  for (let i = 0; i < text.length; i++) {
+    if (text[i] === ' ') { h += ' '; continue; }
+    s++;
+    const f = HW_FONTS[Math.floor(seededRand(s) * HW_FONTS.length)];
+    const r = (seededRand(s+99) - 0.5) * 7;
+    const y = (seededRand(s+199) - 0.5) * 2;
+    h += `<span class="ch" style="font-family:'${f}',cursive;transform:rotate(${r.toFixed(1)}deg) translateY(${y.toFixed(1)}px)">${text[i]}</span>`;
+  }
+  return `<div class="hw" style="color:${color};font-size:${size}">${h}</div>`;
+}
+
+// ========= PAGES =========
+const SKETCHES = [
+  { img: 'sketch-clara.png',    title: 'CLARA — CivicAid',   sub: 'React + Flask + Gemini 2.5',
+    notes: [{t:'hackathon winner!',x:'5%',y:'3%',c:'rgba(180,40,40,0.6)',s:'20px',seed:10},
+            {t:'WhatsApp first',x:'5%',y:'90%',c:'rgba(40,40,150,0.45)',s:'13px',seed:20},
+            {t:'Gemini + ElevenLabs + Whisper',x:'5%',y:'94%',c:'rgba(40,120,40,0.4)',s:'11px',seed:30}]},
+  { img: 'sketch-photo.png',    title: 'Capturing Moments',  sub: 'Vite + GSAP + Tailwind',
+    notes: [{t:'no framework!!',x:'60%',y:'3%',c:'rgba(180,40,40,0.6)',s:'18px',seed:40},
+            {t:'GSAP parallax + Lenis',x:'5%',y:'91%',c:'rgba(40,40,150,0.45)',s:'12px',seed:50},
+            {t:'mobile first design',x:'5%',y:'95%',c:'rgba(40,120,40,0.4)',s:'11px',seed:60}]},
+  { img: 'sketch-robotics.png', title: 'Zumo 32U4 Robot',    sub: 'C++ + Arduino + 3D Print',
+    notes: [{t:'finalista nacional!',x:'5%',y:'3%',c:'rgba(180,40,40,0.6)',s:'20px',seed:70},
+            {t:'carcasa PLA impresa 3D',x:'55%',y:'55%',c:'rgba(40,40,150,0.45)',s:'12px',seed:80},
+            {t:'Pololu 3126 · 75:1HP',x:'5%',y:'93%',c:'rgba(40,120,40,0.4)',s:'11px',seed:90}]},
+  { img: 'sketch-todo.png',     title: 'Task Dashboard',     sub: 'React 19 + localStorage',
+    notes: [{t:'12 widgets!',x:'5%',y:'3%',c:'rgba(180,40,40,0.6)',s:'20px',seed:100},
+            {t:'no backend needed',x:'55%',y:'91%',c:'rgba(40,40,150,0.45)',s:'13px',seed:110},
+            {t:'Context API + hooks',x:'5%',y:'94%',c:'rgba(40,120,40,0.4)',s:'11px',seed:120}]},
+  { img: 'sketch-os.png',       title: 'Kernel Sim',         sub: 'C + gcc + Linux',
+    notes: [{t:'round robin scheduler',x:'5%',y:'3%',c:'rgba(180,40,40,0.6)',s:'18px',seed:130},
+            {t:'FIFO + SJF + RR',x:'5%',y:'91%',c:'rgba(40,40,150,0.45)',s:'13px',seed:140},
+            {t:'escrito en C puro',x:'55%',y:'94%',c:'rgba(40,120,40,0.4)',s:'12px',seed:150}]},
+];
+
+function buildSketchPage(sk, num) {
+  let notesHTML = '';
+  if (sk.notes) {
+    sk.notes.forEach(n => {
+      notesHTML += `<div style="position:absolute;left:${n.x};top:${n.y};z-index:3">${hw(n.t, n.seed, n.c, n.s).replace('class="hw"','class="hw" style="position:relative"')}</div>`;
+    });
+  }
+  return `<div class="page-content">
+    <img src="${sk.img}" alt="${sk.title}" draggable="false">
+    ${notesHTML}
+    <div class="page-number">${num}</div>
+  </div>`;
+}
+
+// Build pages array (pairs: left + right)
+const pages = [];
+// Page 0: cover left
+pages.push(`<div class="cover"><h2>Andrea Avila</h2><div class="line"></div><p>sketchbook</p></div>`);
+// Page 1: cover right (blank cream)
+pages.push(`<div style="height:100%;display:flex;align-items:center;justify-content:center">
+  <div style="font-family:'Caveat',cursive;font-size:16px;color:rgba(0,0,0,0.12);transform:rotate(-2deg)">project planning notes · 2025-2026</div>
+</div>`);
+
+// Sketch pages
+SKETCHES.forEach((sk, i) => {
+  pages.push(buildSketchPage(sk, i + 1));
+});
+
+// Pad to even if needed
+if (pages.length % 2 !== 0) {
+  pages.push(`<div style="height:100%"></div>`);
+}
+
+// Back cover
+pages.push(`<div class="cover" style="background:#3d2510"><p style="color:rgba(201,168,76,0.3)">fin</p></div>`);
+if (pages.length % 2 !== 0) {
+  pages.push(`<div class="cover" style="background:#3d2510"></div>`);
+}
+
+// ========= PAGE FLIP ENGINE (from Liam Egan) =========
+const book = document.getElementById('book');
+
+const state = {
+  width: 0, height: 0, pageWidth: 0, spineX: 0, diagonal: 0,
+  leftIndex: 0, activeSide: null, activeCorner: null,
+  isDragging: false, cornerThreshold: 100,
+};
+
+function handleResize() {
+  const rect = book.getBoundingClientRect();
+  state.width = rect.width;
+  state.height = rect.height;
+  state.pageWidth = rect.width / 2;
+  state.spineX = state.pageWidth;
+  state.diagonal = Math.sqrt(state.pageWidth ** 2 + state.height ** 2);
+  if (!state.isDragging) renderPages();
+}
+
+const ro = new ResizeObserver(handleResize);
+ro.observe(book);
+
+function renderPages() {
+  document.getElementById('left-front').innerHTML = pages[state.leftIndex] || '';
+  document.getElementById('right-front').innerHTML = pages[state.leftIndex + 1] || '';
+  document.getElementById('left-front').style.display = state.leftIndex < 0 ? 'none' : 'block';
+  document.getElementById('right-front').style.display = state.leftIndex + 1 >= pages.length ? 'none' : 'block';
+  updateInfo();
+}
+renderPages();
+
+function updateInfo() {
+  const idx = state.leftIndex;
+  let title = 'Sketchbook';
+  let sub = 'drag a corner to flip';
+  // Map page index to sketch
+  const sketchIdx = Math.floor((idx - 2) / 1);
+  if (idx >= 2 && sketchIdx < SKETCHES.length) {
+    const sk = SKETCHES[sketchIdx];
+    if (sk) { title = sk.title; sub = sk.sub; }
+  }
+  document.getElementById('infoTitle').textContent = title;
+  document.getElementById('infoSub').textContent = sub;
+}
+
+function clipPolygon(points, a, b, c, keepInside) {
+  let result = [];
+  for (let i = 0; i < points.length; i++) {
+    let p1 = points[i], p2 = points[(i + 1) % points.length];
+    let d1 = a * p1[0] + b * p1[1] + c;
+    let d2 = a * p2[0] + b * p2[1] + c;
+    let in1 = keepInside ? d1 <= 0 : d1 > 0;
+    let in2 = keepInside ? d2 <= 0 : d2 > 0;
+    if (in1) result.push(p1);
+    if (in1 !== in2) {
+      let t = d1 / (d1 - d2);
+      result.push([p1[0] + t * (p2[0] - p1[0]), p1[1] + t * (p2[1] - p1[1])]);
+    }
+  }
+  return result;
+}
+
+function reflectPoint(p, a, b, c) {
+  let d = (a * p[0] + b * p[1] + c) / (a * a + b * b);
+  return [p[0] - 2 * d * a, p[1] - 2 * d * b];
+}
+
+function toClipPath(points) {
+  if (points.length === 0) return 'polygon(0 0)';
+  return 'polygon(' + points.map(p => `${p[0]}px ${p[1]}px`).join(', ') + ')';
+}
+
+function constrainPoint(mx, my) {
+  const { pageWidth, height, spineX, diagonal } = state;
+  for (let i = 0; i < 3; i++) {
+    let c1x = spineX, c1y = state.activeCorner[1];
+    let dx1 = mx - c1x, dy1 = my - c1y;
+    let dist1 = Math.sqrt(dx1*dx1 + dy1*dy1);
+    if (dist1 > pageWidth) { mx = c1x + (dx1/dist1)*pageWidth; my = c1y + (dy1/dist1)*pageWidth; }
+    let c2x = spineX, c2y = state.activeCorner[1] === 0 ? height : 0;
+    let dx2 = mx - c2x, dy2 = my - c2y;
+    let dist2 = Math.sqrt(dx2*dx2 + dy2*dy2);
+    if (dist2 > diagonal) { mx = c2x + (dx2/dist2)*diagonal; my = c2y + (dy2/dist2)*diagonal; }
+  }
+  return [mx, my];
+}
+
+function updateFold(X, Y) {
+  if (X === state.activeCorner[0] && Y === state.activeCorner[1]) return;
+  const { width, height, pageWidth, activeCorner } = state;
+  let [mx, my] = constrainPoint(X, Y);
+  const frontPage = document.getElementById(`${state.activeSide}-front`);
+  let a = activeCorner[0] - mx, b = activeCorner[1] - my;
+  let midx = (activeCorner[0] + mx) / 2, midy = (activeCorner[1] + my) / 2;
+  let c = -(a * midx + b * midy);
+
+  let basePage, p1_front, p2_front, shiftX;
+  if (state.activeSide === 'right') {
+    basePage = [[pageWidth,0],[pageWidth,height],[width,height],[width,0]];
+    p1_front = [width,0]; p2_front = [pageWidth,0]; shiftX = pageWidth;
+  } else {
+    basePage = [[0,0],[0,height],[pageWidth,height],[pageWidth,0]];
+    p1_front = [pageWidth,0]; p2_front = [0,0]; shiftX = 0;
+  }
+
+  let frontPoints = clipPolygon(basePage, a, b, c, true);
+  frontPage.style.clipPath = toClipPath(frontPoints.map(p => [p[0]-shiftX, p[1]]));
+
+  let awayPoints = clipPolygon(basePage, a, b, c, false);
+  flap.style.clipPath = toClipPath(awayPoints.map(p => reflectPoint(p, a, b, c)));
+
+  let p1_flap = reflectPoint(p1_front, a, b, c);
+  let p2_flap = reflectPoint(p2_front, a, b, c);
+  let angleRot = Math.atan2(p2_flap[1]-p1_flap[1], p2_flap[0]-p1_flap[0]);
+
+  flapContent.style.transformOrigin = '0 0';
+  flapContent.style.transform = `translate(${p1_flap[0]}px, ${p1_flap[1]}px) rotate(${angleRot}rad)`;
+
+  let dxG = mx - activeCorner[0], dyG = my - activeCorner[1];
+  foldGradient.style.transform = `translate(${midx}px, ${midy}px) rotate(${Math.atan2(dyG, dxG)}rad)`;
+  foldGradient.style.opacity = Math.sin(Math.abs(mx - activeCorner[0]) / width * Math.PI).toFixed(3);
+}
+
+function startDrag(side, corner, x, y) {
+  state.activeSide = side;
+  state.activeCorner = corner;
+  state.isDragging = true;
+  flap.style.display = 'block';
+
+  if (side === 'right') {
+    document.getElementById('right-under').innerHTML = pages[state.leftIndex + 3] || '';
+    flapContent.innerHTML = pages[state.leftIndex + 2] || '';
+    flapContent.className = 'flap-content is-left';
+  } else {
+    document.getElementById('left-under').innerHTML = pages[state.leftIndex - 2] || '';
+    flapContent.innerHTML = pages[state.leftIndex - 1] || '';
+    flapContent.className = 'flap-content is-right';
+  }
+  updateFold(x, y);
+}
+
+book.addEventListener('pointerdown', (e) => {
+  let rect = book.getBoundingClientRect();
+  let x = e.clientX - rect.left, y = e.clientY - rect.top;
+  const { width, height, cornerThreshold: TH, leftIndex } = state;
+  book.setPointerCapture(e.pointerId);
+
+  if (x > width - TH && y < TH && leftIndex + 1 < pages.length - 1)
+    startDrag('right', [width, 0], x, y);
+  else if (x > width - TH && y > height - TH && leftIndex + 1 < pages.length - 1)
+    startDrag('right', [width, height], x, y);
+  else if (x < TH && y < TH && leftIndex > 0)
+    startDrag('left', [0, 0], x, y);
+  else if (x < TH && y > height - TH && leftIndex > 0)
+    startDrag('left', [0, height], x, y);
+});
+
+book.addEventListener('pointermove', (e) => {
+  if (!state.isDragging) return;
+  let rect = book.getBoundingClientRect();
+  updateFold(e.clientX - rect.left, e.clientY - rect.top);
+});
+
+book.addEventListener('pointerup', (e) => {
+  if (!state.isDragging) return;
+  state.isDragging = false;
+  let rect = book.getBoundingClientRect();
+  let x = e.clientX - rect.left;
+  const { width, activeSide } = state;
+
+  let isComplete = (activeSide === 'right' && x < width/2+100) || (activeSide === 'left' && x > width/2-100);
+  let targetX = isComplete ? (activeSide === 'right' ? 0 : width) : state.activeCorner[0];
+  let targetY = state.activeCorner[1];
+  let startX = x, startY = e.clientY - rect.top;
+  let startTime = performance.now();
+
+  function animate(time) {
+    let progress = Math.min((time - startTime) / 300, 1);
+    let ease = 1 - Math.pow(1 - progress, 3);
+    updateFold(startX + (targetX - startX) * ease, startY + (targetY - startY) * ease);
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      flap.style.display = 'none';
+      document.getElementById(`${state.activeSide}-front`).style.clipPath = 'none';
+      if (isComplete) {
+        state.leftIndex += activeSide === 'right' ? 2 : -2;
+        renderPages();
+      }
+      state.activeSide = null;
+    }
+  }
+  requestAnimationFrame(animate);
+});
+
+// Keyboard nav
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' && state.leftIndex + 1 < pages.length - 1) {
+    e.preventDefault();
+    startDrag('right', [state.width, state.height], state.width, state.height);
+    let st = performance.now();
+    function anim(t) {
+      let p = Math.min((t - st) / 500, 1);
+      let ease = 1 - Math.pow(1 - p, 3);
+      updateFold(state.width * (1 - ease), state.height * (1 - ease * 0.3));
+      if (p < 1) requestAnimationFrame(anim);
+      else {
+        flap.style.display = 'none';
+        document.getElementById('right-front').style.clipPath = 'none';
+        state.leftIndex += 2;
+        state.isDragging = false;
+        state.activeSide = null;
+        renderPages();
+      }
+    }
+    requestAnimationFrame(anim);
+  }
+  if (e.key === 'ArrowLeft' && state.leftIndex > 0) {
+    e.preventDefault();
+    startDrag('left', [0, state.height], 0, state.height);
+    let st = performance.now();
+    function anim(t) {
+      let p = Math.min((t - st) / 500, 1);
+      let ease = 1 - Math.pow(1 - p, 3);
+      updateFold(state.width * ease, state.height * (1 - ease * 0.3));
+      if (p < 1) requestAnimationFrame(anim);
+      else {
+        flap.style.display = 'none';
+        document.getElementById('left-front').style.clipPath = 'none';
+        state.leftIndex -= 2;
+        state.isDragging = false;
+        state.activeSide = null;
+        renderPages();
+      }
+    }
+    requestAnimationFrame(anim);
+  }
+});
+</script>
+</body>
+</html>
