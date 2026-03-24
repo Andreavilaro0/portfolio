@@ -1,4 +1,4 @@
-import { HeroAssembly } from './HeroAssembly'
+import { HeroScroll } from './HeroScroll'
 import { ProjectsSection } from './ProjectsSection'
 import { SkillsSection } from './SkillsSection'
 import { AboutSection } from './AboutSection'
@@ -47,7 +47,7 @@ function GradientDivider() {
 export function PortfolioContent() {
   return (
     <main style={{ background: '#000', color: '#e8e6e3', position: 'relative' }}>
-      <HeroAssembly />
+      <HeroScroll />
       <div style={{ position: 'relative', zIndex: 2 }}>
         <ProjectsSection />
         <SkillsSection />
