@@ -1,10 +1,16 @@
 'use client'
 
-import { Suspense, useRef, useMemo } from 'react'
+import { Component, Suspense, useRef, useMemo, type ReactNode } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls, Environment } from '@react-three/drei'
 import * as THREE from 'three'
+
+class WebGLErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  render() { return this.state.hasError ? this.props.fallback : this.props.children }
+}
 
 function RobotModel() {
   const geometry = useLoader(STLLoader, '/models/zumo-robot.stl')
@@ -66,26 +72,28 @@ export function RobotViewer() {
       position: 'relative',
       overflow: 'hidden',
     }}>
-      <Canvas
-        camera={{ position: [3, 2, 3], fov: 40 }}
-        style={{ width: '100%', height: '100%' }}
-        gl={{ antialias: true, alpha: true }}
-      >
-        <Suspense fallback={null}>
-          <Environment preset="city" environmentIntensity={0.5} />
-          <ambientLight intensity={0.3} />
-          <directionalLight position={[5, 5, 5]} intensity={0.8} color="#BEFF00" />
-          <directionalLight position={[-3, 3, -3]} intensity={0.3} color="#00E5FF" />
-          <RobotModel />
-          <OrbitControls
-            enableZoom={false}
-            enablePan={false}
-            autoRotate={false}
-            minPolarAngle={Math.PI / 4}
-            maxPolarAngle={Math.PI / 2}
-          />
-        </Suspense>
-      </Canvas>
+      <WebGLErrorBoundary fallback={<Fallback />}>
+        <Canvas
+          camera={{ position: [3, 2, 3], fov: 40 }}
+          style={{ width: '100%', height: '100%' }}
+          gl={{ antialias: true, alpha: true }}
+        >
+          <Suspense fallback={null}>
+            <Environment preset="city" environmentIntensity={0.5} />
+            <ambientLight intensity={0.3} />
+            <directionalLight position={[5, 5, 5]} intensity={0.8} color="#BEFF00" />
+            <directionalLight position={[-3, 3, -3]} intensity={0.3} color="#00E5FF" />
+            <RobotModel />
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              autoRotate={false}
+              minPolarAngle={Math.PI / 4}
+              maxPolarAngle={Math.PI / 2}
+            />
+          </Suspense>
+        </Canvas>
+      </WebGLErrorBoundary>
 
       {/* Labels */}
       <div style={{
