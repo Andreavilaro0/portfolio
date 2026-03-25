@@ -42,15 +42,21 @@ interface DeskSceneProps {
   onIntroComplete: () => void
   onProjectSelect?: (projectId: string) => void
   onObjectFocus?: (objectName: string) => void
+  onHoverChange?: (name: string | null) => void
+  onGrabChange?: (grabbing: boolean) => void
+  playSound?: (name: 'hover' | 'click' | 'grab' | 'throw' | 'bounce') => void
   focusedObject?: string | null
 }
 
-function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, onObjectFocus, focusedObject }: {
+function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, onObjectFocus, onHoverChange, onGrabChange, playSound, focusedObject }: {
   onLoaded: () => void
   mode: ExperienceMode
   onIntroComplete: () => void
   onProgress: (p: number) => void
   onObjectFocus?: (objectName: string) => void
+  onHoverChange?: (name: string | null) => void
+  onGrabChange?: (grabbing: boolean) => void
+  playSound?: (name: 'hover' | 'click' | 'grab' | 'throw' | 'bounce') => void
   focusedObject?: string | null
   onProjectSelect?: (projectId: string) => void
 }) {
@@ -221,7 +227,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
       <color attach="background" args={['#FAC8A5']} />
 
       {/* Environment map */}
-      <Environment preset="studio" environmentIntensity={0.4} />
+      <Environment files="/models/studio.hdr" environmentIntensity={0.4} />
 
       <primitive object={scene} />
 
@@ -246,7 +252,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
           <div style={{
             width: '100%',
             height: '100%',
-            background: '#08080f',
+            background: '#000',
             overflow: 'hidden',
             borderRadius: '16px',
             position: 'relative',
@@ -262,7 +268,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
               height: '100%',
               border: 'none',
               borderRadius: '8px',
-              background: '#08080f',
+              background: '#000',
             }}
             title="Andrea Avila Portfolio"
           />
@@ -281,7 +287,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
         color="#FFF8F0"
       />
 
-      <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} onObjectFocus={onObjectFocus} />
+      <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} onObjectFocus={onObjectFocus} onHoverChange={onHoverChange} onGrabChange={onGrabChange} playSound={playSound} />
       <DustParticles />
 
       {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
@@ -291,7 +297,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
   )
 }
 
-export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProjectSelect, onObjectFocus, focusedObject }: DeskSceneProps) {
+export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProjectSelect, onObjectFocus, onHoverChange, onGrabChange, playSound, focusedObject }: DeskSceneProps) {
   const handleLowFPS = useCallback((avgFPS: number) => {
     console.warn(`[FPS Monitor] Low FPS detected — avg: ${avgFPS}`)
   }, [])
@@ -314,6 +320,9 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
           onProgress={onProgress}
           onProjectSelect={onProjectSelect}
           onObjectFocus={onObjectFocus}
+          onHoverChange={onHoverChange}
+          onGrabChange={onGrabChange}
+          playSound={playSound}
           focusedObject={focusedObject}
         />
         <EffectComposer multisampling={0}>
