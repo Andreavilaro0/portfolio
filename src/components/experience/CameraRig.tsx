@@ -273,19 +273,24 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
   }, [mode, focusedObject, animateCamera])
 
   // ─── MOUSE-LOOK: First person feel ───
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (isAnimating.current || reducedMotion) return
 
     // Early return if mouse hasn't moved — avoids redundant matrix updates
     const dx = Math.abs(mouseRef.current.x - prevMouse.current.x)
     const dy = Math.abs(mouseRef.current.y - prevMouse.current.y)
-    if (dx < 0.001 && dy < 0.001) return
+    const mouseIdle = dx < 0.001 && dy < 0.001
 
     if (mode === 'overview' || mode === 'seated' || mode === 'project') {
       // Parallax-style: mouse offsets the lookAt point, cursor stays usable
       const range = LOOK_RANGE[mode as keyof typeof LOOK_RANGE] || LOOK_RANGE.seated
-      const lookX = baseLookAt.current.x + mouseRef.current.x * range.x
-      const lookY = baseLookAt.current.y + mouseRef.current.y * range.y
+
+      // Idle breathing sway when mouse hasn't moved
+      const breathe = mouseIdle ? Math.sin(clock.elapsedTime * 0.8) * 0.015 : 0
+      const sway = mouseIdle ? Math.sin(clock.elapsedTime * 0.3) * 0.008 : 0
+
+      const lookX = baseLookAt.current.x + mouseRef.current.x * range.x + sway
+      const lookY = baseLookAt.current.y + mouseRef.current.y * range.y + breathe
       _targetLookAt.set(lookX, lookY, baseLookAt.current.z)
 
       camera.getWorldDirection(_currentDir)
