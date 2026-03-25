@@ -18,7 +18,7 @@ function useIsMobile(breakpoint = 768) {
   return isMobile
 }
 
-export function CinematicProject({ project }: { project: Project }) {
+export function CinematicProject({ project, isFirst }: { project: Project; isFirst?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const isMobile = useIsMobile()
 
@@ -28,115 +28,101 @@ export function CinematicProject({ project }: { project: Project }) {
     if (prefersReducedMotion) return
 
     const ctx = gsap.context(() => {
-      // Phase 1: Letter stagger on title
+      const hookEl = containerRef.current!.querySelector('[data-phase="hook"]')
+
+      // Phase 1: Letter stagger — single trigger, batch animation
       const letters = containerRef.current!.querySelectorAll('[data-letter]')
-      gsap.fromTo(letters,
-        { yPercent: 100, opacity: 0 },
-        {
-          yPercent: 0, opacity: 1,
-          stagger: 0.03, duration: 0.6, ease: 'power3.out',
-          scrollTrigger: {
-            trigger: containerRef.current!.querySelector('[data-phase="hook"]'),
-            start: 'top 80%',
-          },
-        }
-      )
-
-      // Accent line grows
-      const accentLine = containerRef.current!.querySelector('[data-accent-line]')
-      if (accentLine) {
-        gsap.fromTo(accentLine,
-          { width: 0 },
+      if (letters.length) {
+        gsap.fromTo(letters,
+          { yPercent: 100, opacity: 0 },
           {
-            width: 200, duration: 0.8, ease: 'power2.out',
-            scrollTrigger: {
-              trigger: containerRef.current!.querySelector('[data-phase="hook"]'),
-              start: 'top 70%',
-            },
+            yPercent: 0, opacity: 1,
+            stagger: 0.03, duration: 0.5, ease: 'power3.out',
+            scrollTrigger: { trigger: hookEl, start: 'top 75%' },
           }
         )
       }
 
-      // Subtitle fade
+      // Subtitle + accent line — combined on same trigger
       const subtitle = containerRef.current!.querySelector('[data-subtitle]')
-      if (subtitle) {
-        gsap.fromTo(subtitle,
-          { opacity: 0, y: 10 },
-          {
-            opacity: 1, y: 0, duration: 0.5, delay: 0.4, ease: 'power2.out',
-            scrollTrigger: {
-              trigger: containerRef.current!.querySelector('[data-phase="hook"]'),
-              start: 'top 70%',
-            },
-          }
-        )
+      const accentLine = containerRef.current!.querySelector('[data-accent-line]')
+      if (subtitle && accentLine) {
+        const tl = gsap.timeline({
+          scrollTrigger: { trigger: hookEl, start: 'top 65%' },
+        })
+        tl.fromTo(subtitle, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' })
+          .fromTo(accentLine, { width: 0 }, { width: 200, duration: 0.6, ease: 'power2.out' }, '-=0.2')
       }
 
-      // Phase 2: Lines reveal
+      // Phase 2: Narrative lines — simple fade, no parallax on mobile
       const narrativeLines = containerRef.current!.querySelectorAll('[data-narrative-line]')
-      narrativeLines.forEach((line) => {
-        gsap.fromTo(line,
-          { opacity: 0, y: 30 },
+      if (narrativeLines.length) {
+        gsap.fromTo(narrativeLines,
+          { opacity: 0, y: 20 },
           {
-            opacity: 1, y: 0, duration: 0.6, ease: 'power2.out',
+            opacity: 1, y: 0, stagger: 0.15, duration: 0.5, ease: 'power2.out',
             scrollTrigger: {
-              trigger: line,
-              start: 'top 85%',
-            },
-          }
-        )
-      })
-
-      // Phase 2: Process image parallax
-      const processImg = containerRef.current!.querySelector('[data-process-img]')
-      if (processImg) {
-        gsap.fromTo(processImg,
-          { yPercent: 20, opacity: 0 },
-          {
-            yPercent: -10, opacity: 1,
-            ease: 'none',
-            scrollTrigger: {
-              trigger: processImg,
-              start: 'top bottom',
-              end: 'bottom top',
-              scrub: 1,
+              trigger: containerRef.current!.querySelector('[data-phase="story"]'),
+              start: 'top 80%',
             },
           }
         )
       }
 
-      // Phase 3: Screenshot scale + clip-path reveal
+      // Phase 2: Process image — parallax only on desktop
+      if (!isMobile) {
+        const processImg = containerRef.current!.querySelector('[data-process-img]')
+        if (processImg) {
+          gsap.fromTo(processImg,
+            { y: 60, opacity: 0.3 },
+            {
+              y: -30, opacity: 1,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: processImg,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: 2,
+              },
+            }
+          )
+        }
+      }
+
+      // Phase 3: Screenshot scale reveal — scrub for smooth feel
       const heroMedia = containerRef.current!.querySelector('[data-hero-media]')
       if (heroMedia) {
         gsap.fromTo(heroMedia,
-          { scale: 0.6, clipPath: 'inset(15% 15% 15% 15% round 16px)' },
+          { scale: 0.7, clipPath: 'inset(12% round 16px)', opacity: 0.5 },
           {
-            scale: 1, clipPath: 'inset(0% 0% 0% 0% round 8px)',
-            ease: 'power2.out',
+            scale: 1, clipPath: 'inset(0% round 8px)', opacity: 1,
+            ease: 'none',
             scrollTrigger: {
               trigger: heroMedia,
-              start: 'top 80%',
-              end: 'top 20%',
-              scrub: 1,
+              start: 'top 85%',
+              end: 'top 30%',
+              scrub: 2,
             },
           }
         )
       }
 
-      // Phase 3: Tags stagger
+      // Phase 3: Tags — simple batch fade
       const tags = containerRef.current!.querySelectorAll('[data-tag]')
-      gsap.fromTo(tags,
-        { opacity: 0, y: 10 },
-        {
-          opacity: 1, y: 0, stagger: 0.05, duration: 0.4,
-          scrollTrigger: {
-            trigger: containerRef.current!.querySelector('[data-phase="solution"]'),
-            start: 'top 40%',
-          },
-        }
-      )
+      if (tags.length) {
+        gsap.fromTo(tags,
+          { opacity: 0, y: 8 },
+          {
+            opacity: 1, y: 0, stagger: 0.04, duration: 0.3,
+            scrollTrigger: {
+              trigger: containerRef.current!.querySelector('[data-phase="solution"]'),
+              start: 'top 35%',
+            },
+          }
+        )
+      }
 
-      // Phase 4: CountUp metrics
+      // Phase 4: Metrics count-up
       const metricEls = containerRef.current!.querySelectorAll('[data-metric-value]')
       metricEls.forEach((el) => {
         const target = el.getAttribute('data-metric-value') || ''
@@ -147,7 +133,7 @@ export function CinematicProject({ project }: { project: Project }) {
           const obj = { val: 0 }
           gsap.to(obj, {
             val: endVal,
-            duration: 1.5,
+            duration: 1.2,
             ease: 'power2.out',
             scrollTrigger: { trigger: el, start: 'top 85%' },
             onUpdate: () => {
@@ -157,35 +143,41 @@ export function CinematicProject({ project }: { project: Project }) {
         }
       })
 
-      // Phase 4: CTA fade in
+      // Phase 4: CTA fade
       const cta = containerRef.current!.querySelector('[data-cta]')
       if (cta) {
         gsap.fromTo(cta,
-          { opacity: 0, y: 15 },
+          { opacity: 0, y: 12 },
           {
-            opacity: 1, y: 0, duration: 0.5,
+            opacity: 1, y: 0, duration: 0.4,
             scrollTrigger: { trigger: cta, start: 'top 85%' },
           }
         )
       }
-
     }, containerRef)
 
     return () => ctx.revert()
   }, [isMobile])
 
-  const titleParts = project.title.split(/[\n—]/)[0] === project.title
-    ? project.title.split(' ')
-    : project.title.split(/[\n—]/)
+  // Split title into display lines
+  const titleParts = project.title.includes('—')
+    ? project.title.split('—').map(s => s.trim())
+    : project.title.split(' ')
 
   return (
-    <article ref={containerRef} style={{ position: 'relative' }}>
-
+    <article
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        // Smooth gradient transition from hero for first project
+        ...(isFirst ? { paddingTop: '10vh' } : {}),
+      }}
+    >
       {/* PHASE 1: HOOK */}
       <div
         data-phase="hook"
         style={{
-          minHeight: isMobile ? '70vh' : '100vh',
+          minHeight: isMobile ? '60vh' : '90vh',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -195,24 +187,27 @@ export function CinematicProject({ project }: { project: Project }) {
         }}
       >
         {/* Giant number */}
-        <div style={{
-          position: 'absolute',
-          top: isMobile ? '10%' : '50%',
-          right: isMobile ? '-5%' : '5%',
-          transform: isMobile ? 'none' : 'translateY(-50%)',
-          fontFamily: 'var(--font-display)',
-          fontSize: isMobile ? '30vw' : '20vw',
-          fontWeight: 900,
-          color: 'transparent',
-          WebkitTextStroke: `2px ${project.color}22`,
-          lineHeight: 1,
-          pointerEvents: 'none',
-          userSelect: 'none',
-        }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: isMobile ? '10%' : '50%',
+            right: isMobile ? '-5%' : '5%',
+            transform: isMobile ? 'none' : 'translateY(-50%)',
+            fontFamily: 'var(--font-display)',
+            fontSize: isMobile ? '30vw' : '20vw',
+            fontWeight: 900,
+            color: 'transparent',
+            WebkitTextStroke: `2px ${project.color}22`,
+            lineHeight: 1,
+            pointerEvents: 'none',
+            userSelect: 'none',
+          }}
+        >
           {project.num}
         </div>
 
-        {/* Title — letter by letter */}
+        {/* Title */}
         <h2 style={{
           fontFamily: 'var(--font-display)',
           fontSize: isMobile ? 'clamp(3rem, 12vw, 5rem)' : 'clamp(5rem, 10vw, 10rem)',
@@ -231,7 +226,11 @@ export function CinematicProject({ project }: { project: Project }) {
                 <span
                   key={`${lineIdx}-${charIdx}`}
                   data-letter
-                  style={{ display: 'inline-block', opacity: 0 }}
+                  style={{
+                    display: 'inline-block',
+                    opacity: 0,
+                    willChange: 'transform, opacity',
+                  }}
                 >
                   {char === ' ' ? '\u00A0' : char}
                 </span>
@@ -240,7 +239,6 @@ export function CinematicProject({ project }: { project: Project }) {
           ))}
         </h2>
 
-        {/* Subtitle */}
         <p
           data-subtitle
           style={{
@@ -258,7 +256,6 @@ export function CinematicProject({ project }: { project: Project }) {
           {project.subtitle}
         </p>
 
-        {/* Accent line */}
         <div
           data-accent-line
           style={{
@@ -275,12 +272,12 @@ export function CinematicProject({ project }: { project: Project }) {
       <div
         data-phase="story"
         style={{
-          minHeight: isMobile ? 'auto' : '80vh',
+          minHeight: isMobile ? 'auto' : '70vh',
           display: 'flex',
           flexDirection: isMobile ? 'column' : 'row',
           alignItems: 'center',
           gap: 'clamp(32px, 5vw, 80px)',
-          padding: 'clamp(60px, 10vh, 120px) clamp(24px, 6vw, 80px)',
+          padding: 'clamp(40px, 8vh, 100px) clamp(24px, 6vw, 80px)',
         }}
       >
         <div style={{ flex: 1, maxWidth: '600px' }}>
@@ -290,10 +287,10 @@ export function CinematicProject({ project }: { project: Project }) {
               data-narrative-line
               style={{
                 fontFamily: 'var(--font-body)',
-                fontSize: isMobile ? 'clamp(1.3rem, 5vw, 1.8rem)' : 'clamp(1.5rem, 2.5vw, 2.2rem)',
+                fontSize: isMobile ? 'clamp(1.2rem, 5vw, 1.6rem)' : 'clamp(1.4rem, 2.2vw, 2rem)',
                 lineHeight: 1.4,
                 color: 'rgba(255,255,255,0.85)',
-                margin: i === 0 ? '0' : '16px 0 0 0',
+                margin: i === 0 ? '0' : '12px 0 0 0',
                 fontWeight: 400,
               }}
             >
@@ -302,19 +299,20 @@ export function CinematicProject({ project }: { project: Project }) {
           ))}
         </div>
 
-        <div style={{ flex: 1, maxWidth: '500px', width: '100%' }}>
+        <div style={{ flex: 1, maxWidth: '480px', width: '100%' }}>
           <div
             data-process-img
             style={{
               borderRadius: '12px',
               overflow: 'hidden',
               border: `1px solid ${project.color}33`,
-              boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 40px ${project.color}11`,
+              boxShadow: `0 16px 48px rgba(0,0,0,0.4), 0 0 30px ${project.color}11`,
+              willChange: isMobile ? 'auto' : 'transform, opacity',
             }}
           >
             <img
               src={project.processImage}
-              alt={`${project.title} — behind the scenes`}
+              alt={`${project.title} — proceso`}
               loading="lazy"
               style={{ width: '100%', height: 'auto', display: 'block' }}
             />
@@ -326,22 +324,23 @@ export function CinematicProject({ project }: { project: Project }) {
       <div
         data-phase="solution"
         style={{
-          minHeight: isMobile ? 'auto' : '100vh',
+          minHeight: isMobile ? 'auto' : '90vh',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 'clamp(60px, 10vh, 120px) clamp(24px, 6vw, 80px)',
+          padding: 'clamp(40px, 8vh, 100px) clamp(24px, 6vw, 80px)',
         }}
       >
         <div
           data-hero-media
           style={{
             width: '100%',
-            maxWidth: '1100px',
+            maxWidth: '1000px',
             borderRadius: '8px',
             overflow: 'hidden',
-            boxShadow: `0 30px 80px rgba(0,0,0,0.6), 0 0 60px ${project.color}15`,
+            boxShadow: `0 24px 64px rgba(0,0,0,0.5), 0 0 40px ${project.color}15`,
+            willChange: 'transform, clip-path, opacity',
           }}
         >
           {project.heroVideo ? (
@@ -351,7 +350,7 @@ export function CinematicProject({ project }: { project: Project }) {
           ) : (
             <img
               src={project.heroImage}
-              alt={`${project.title} — screenshot`}
+              alt={`${project.title} — resultado`}
               loading="lazy"
               style={{ width: '100%', display: 'block' }}
             />
@@ -361,8 +360,8 @@ export function CinematicProject({ project }: { project: Project }) {
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
-          gap: '12px',
-          marginTop: '32px',
+          gap: '10px',
+          marginTop: '28px',
           justifyContent: 'center',
         }}>
           {project.tags.map((tag) => (
@@ -371,11 +370,11 @@ export function CinematicProject({ project }: { project: Project }) {
               data-tag
               style={{
                 fontFamily: 'var(--font-code)',
-                fontSize: '13px',
+                fontSize: '12px',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: project.color,
-                padding: '6px 16px',
+                padding: '5px 14px',
                 border: `1px solid ${project.color}44`,
                 borderRadius: '100px',
                 background: `${project.color}11`,
@@ -391,20 +390,20 @@ export function CinematicProject({ project }: { project: Project }) {
       <div
         data-phase="impact"
         style={{
-          minHeight: isMobile ? 'auto' : '50vh',
+          minHeight: isMobile ? 'auto' : '40vh',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
           alignItems: 'center',
-          padding: 'clamp(60px, 10vh, 100px) clamp(24px, 6vw, 80px)',
+          padding: 'clamp(40px, 8vh, 80px) clamp(24px, 6vw, 80px)',
         }}
       >
         <div style={{
           display: 'flex',
-          gap: isMobile ? '32px' : 'clamp(48px, 6vw, 96px)',
+          gap: isMobile ? '28px' : 'clamp(40px, 5vw, 80px)',
           flexWrap: 'wrap',
           justifyContent: 'center',
-          marginBottom: '48px',
+          marginBottom: '40px',
         }}>
           {project.metrics.map((m) => (
             <div key={m.label} style={{ textAlign: 'center' }}>
@@ -412,7 +411,7 @@ export function CinematicProject({ project }: { project: Project }) {
                 data-metric-value={m.value}
                 style={{
                   fontFamily: 'var(--font-display)',
-                  fontSize: isMobile ? 'clamp(2.5rem, 10vw, 4rem)' : 'clamp(3.5rem, 5vw, 5rem)',
+                  fontSize: isMobile ? 'clamp(2rem, 10vw, 3.5rem)' : 'clamp(3rem, 4.5vw, 4.5rem)',
                   fontWeight: 900,
                   color: '#fff',
                   lineHeight: 1,
@@ -422,11 +421,12 @@ export function CinematicProject({ project }: { project: Project }) {
               </div>
               <div style={{
                 fontFamily: 'var(--font-code)',
-                fontSize: '12px',
+                fontSize: '11px',
                 letterSpacing: '0.15em',
                 textTransform: 'uppercase',
-                color: 'rgba(255,255,255,0.45)',
+                color: 'rgba(255,255,255,0.4)',
                 marginTop: '8px',
+                maxWidth: '140px',
               }}>
                 {m.label}
               </div>
@@ -434,7 +434,7 @@ export function CinematicProject({ project }: { project: Project }) {
           ))}
         </div>
 
-        <div data-cta style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', justifyContent: 'center', opacity: 0 }}>
+        <div data-cta style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'center', opacity: 0 }}>
           {project.links.map((link) => (
             <a
               key={link.label}
@@ -443,17 +443,17 @@ export function CinematicProject({ project }: { project: Project }) {
               rel="noopener noreferrer"
               style={{
                 fontFamily: 'var(--font-code)',
-                fontSize: '14px',
+                fontSize: '13px',
                 letterSpacing: '0.1em',
                 textTransform: 'uppercase',
                 color: '#fff',
                 textDecoration: 'none',
-                padding: '14px 32px',
+                padding: '12px 28px',
                 border: `2px solid ${project.color}`,
                 borderRadius: 0,
                 background: 'transparent',
                 transition: 'background 0.3s, color 0.3s',
-                boxShadow: `4px 4px 0px ${project.color}44`,
+                boxShadow: `3px 3px 0px ${project.color}44`,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = project.color
@@ -472,10 +472,11 @@ export function CinematicProject({ project }: { project: Project }) {
 
       {/* Separator */}
       <div style={{
-        width: '60px',
+        width: '40px',
         height: '1px',
-        background: `linear-gradient(90deg, transparent, ${project.color}44, transparent)`,
+        background: `linear-gradient(90deg, transparent, ${project.color}33, transparent)`,
         margin: '0 auto',
+        padding: '40px 0',
       }} />
     </article>
   )

@@ -25,8 +25,8 @@ export function ProjectsSection() {
 
   return (
     <section ref={sectionRef} id="projects">
-      {projects.map((project) => (
-        <CinematicProject key={project.id} project={project} />
+      {projects.map((project, i) => (
+        <CinematicProject key={project.id} project={project} isFirst={i === 0} />
       ))}
     </section>
   )

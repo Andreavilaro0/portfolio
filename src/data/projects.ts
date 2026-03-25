@@ -137,7 +137,7 @@ export const projects: Project[] = [
       'Sprint 6. Un dashboard que organiza el caos.',
       'Widgets, mapa, calendario, filtros.',
     ],
-    processImage: '/projects/todo-desktop.png',
+    processImage: '/sketches/sketch-todo.png',
     heroImage: '/projects/todo-desktop.png',
     metrics: [
       { value: '6', label: 'Interactive widgets' },
@@ -164,7 +164,7 @@ export const projects: Project[] = [
       'FIFO vs SJF vs Round Robin.',
       'Quien gana? Visualizacion en tiempo real.',
     ],
-    processImage: '/projects/os-simulator.png',
+    processImage: '/sketches/sketch-os.png',
     heroImage: '/projects/os-simulator.png',
     metrics: [
       { value: '3', label: 'Scheduling algorithms' },
