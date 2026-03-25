@@ -60,18 +60,17 @@ const OBJECT_CAMERAS: Record<string, { position: THREE.Vector3; lookAt: THREE.Ve
   'Desk_Plant': { position: new THREE.Vector3(1.0, 10.5, -5.5), lookAt: new THREE.Vector3(4.8, 7.0, 1.5) },
 }
 
-// Spherical mouse-look ranges per mode
+// Mouse-look intensity per mode — parallax style (cursor stays usable for clicking objects)
 const LOOK_RANGE = {
-  overview: { h: 1.8, v: 0.6, damping: 0.06 },   // ~100° H, ~35° V
-  seated:   { h: 0.8, v: 0.3, damping: 0.04 },    // ~45° H, ~17° V
-  project:  { h: 0.4, v: 0.15, damping: 0.04 },   // ~23° H, ~9° V
+  overview: { x: 1.5, y: 0.8, damping: 0.06 },
+  seated:   { x: 0.2, y: 0.1, damping: 0.04 },
+  project:  { x: 0.15, y: 0.08, damping: 0.04 },
 }
 
 // Module-level reusable vectors — allocated once, never per-frame
 const _targetLookAt = new THREE.Vector3()
 const _currentDir = new THREE.Vector3()
 const _currentLookAt = new THREE.Vector3()
-const _spherical = new THREE.Spherical()
 
 interface CameraRigProps {
   mode: ExperienceMode
@@ -283,19 +282,12 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
     if (dx < 0.001 && dy < 0.001) return
 
     if (mode === 'overview' || mode === 'seated' || mode === 'project') {
+      // Parallax-style: mouse offsets the lookAt point, cursor stays usable
       const range = LOOK_RANGE[mode as keyof typeof LOOK_RANGE] || LOOK_RANGE.seated
-      const yaw = mouseRef.current.x * range.h
-      const pitch = mouseRef.current.y * range.v
+      const lookX = baseLookAt.current.x + mouseRef.current.x * range.x
+      const lookY = baseLookAt.current.y + mouseRef.current.y * range.y
+      _targetLookAt.set(lookX, lookY, baseLookAt.current.z)
 
-      // Compute base direction from camera to lookAt target
-      _currentDir.subVectors(baseLookAt.current, basePosition.current).normalize()
-      _spherical.setFromVector3(_currentDir)
-      _spherical.theta += yaw
-      _spherical.phi = THREE.MathUtils.clamp(_spherical.phi - pitch, 0.4, 2.6)
-
-      _targetLookAt.setFromSpherical(_spherical).add(camera.position)
-
-      // Smooth damping — get current lookAt from camera direction
       camera.getWorldDirection(_currentDir)
       _currentLookAt.copy(_currentDir).multiplyScalar(10).add(camera.position)
       _currentLookAt.lerp(_targetLookAt, range.damping)
