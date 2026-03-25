@@ -227,7 +227,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
       <color attach="background" args={['#FAC8A5']} />
 
       {/* Environment map */}
-      <Environment files="/models/studio.hdr" environmentIntensity={0.4} />
+      <Environment preset="studio" environmentIntensity={0.4} />
 
       <primitive object={scene} />
 
