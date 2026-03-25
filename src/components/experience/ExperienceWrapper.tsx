@@ -11,7 +11,6 @@ import { PortfolioContent } from '../layout/PortfolioContent'
 import { SketchbookViewer } from './SketchbookViewer'
 import { RetroFocusOverlay } from './RetroFocusOverlay'
 import { RetroHUD, RetroCrosshair } from './RetroHUD'
-import { FPSHands } from './FPSHands'
 import { GameHUD } from './GameHUD'
 import { useAudio } from '../../hooks/useAudio'
 
@@ -366,9 +365,6 @@ export function ExperienceWrapper() {
           )}
         </button>
       )}
-
-      {/* FPS Hands */}
-      <FPSHands mode={mode} hovered={hoveredObject} grabbing={isGrabbing} />
 
       {/* Game HUD */}
       <GameHUD

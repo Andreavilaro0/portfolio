@@ -1,16 +1,33 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
-import gsap from 'gsap'
+
+import { useEffect, useRef, useMemo } from 'react'
+import { useFrame } from '@react-three/fiber'
+import { useGLTF, useAnimations, Hud, PerspectiveCamera } from '@react-three/drei'
+import * as THREE from 'three'
 import type { ExperienceMode } from './ExperienceWrapper'
 
-type HandPose = 'idle' | 'reach' | 'grab' | 'throw' | 'hidden'
+const MODEL_PATH = '/models/fps-hands.glb'
 
-const SPRITES: Record<Exclude<HandPose, 'hidden'>, string> = {
-  idle:  '/sprites/hand-idle.webp',
-  reach: '/sprites/hand-reach.webp',
-  grab:  '/sprites/hand-grab.webp',
-  throw: '/sprites/hand-throw.webp',
-}
+// Toon gradient texture — 3 discrete shading steps for retro look
+const TOON_GRADIENT = (() => {
+  const canvas = document.createElement('canvas')
+  canvas.width = 4
+  canvas.height = 1
+  const ctx = canvas.getContext('2d')!
+  // 3 steps: shadow, mid, highlight
+  ctx.fillStyle = '#444'
+  ctx.fillRect(0, 0, 1, 1)
+  ctx.fillStyle = '#999'
+  ctx.fillRect(1, 0, 1, 1)
+  ctx.fillStyle = '#ccc'
+  ctx.fillRect(2, 0, 1, 1)
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(3, 0, 1, 1)
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.minFilter = THREE.NearestFilter
+  tex.magFilter = THREE.NearestFilter
+  return tex
+})()
 
 interface FPSHandsProps {
   mode: ExperienceMode
@@ -18,69 +35,112 @@ interface FPSHandsProps {
   grabbing: boolean
 }
 
-export function FPSHands({ mode, hovered, grabbing }: FPSHandsProps) {
-  const imgRef = useRef<HTMLImageElement>(null)
-  const [pose, setPose] = useState<HandPose>('hidden')
-  const idleTl = useRef<gsap.core.Timeline | null>(null)
+function HandModel({ mode, hovered, grabbing }: FPSHandsProps) {
+  const { scene, animations } = useGLTF(MODEL_PATH)
+  const groupRef = useRef<THREE.Group>(null)
+  const { actions } = useAnimations(animations, groupRef)
+  const mouseRef = useRef({ x: 0, y: 0 })
+  const smoothMouse = useRef({ x: 0, y: 0 })
+  const bobPhase = useRef(0)
 
-  // Determine pose from state
+  // Track mouse for hand sway
   useEffect(() => {
-    if (mode !== 'overview' && mode !== 'seated') {
-      setPose('hidden')
-      return
+    const onMove = (e: MouseEvent) => {
+      mouseRef.current.x = (e.clientX / window.innerWidth) * 2 - 1
+      mouseRef.current.y = (e.clientY / window.innerHeight) * 2 - 1
     }
-    if (grabbing) setPose('grab')
-    else if (hovered) setPose('reach')
-    else setPose('idle')
-  }, [mode, hovered, grabbing])
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [])
 
-  // Animate pose transitions
+  // Hide the AKM weapon mesh, apply toon material to arms
   useEffect(() => {
-    if (!imgRef.current || pose === 'hidden') return
-    gsap.fromTo(imgRef.current,
-      { y: 15, scaleX: 0.95, scaleY: 0.95 },
-      { y: 0, scaleX: 1, scaleY: 1, duration: 0.12, ease: 'power2.out' }
+    scene.traverse((child) => {
+      if (child.name === 'AKM_model' || child.name === 'Magazine' || child.name === 'Trigger' || child.name === 'Bolt') {
+        child.visible = false
+      }
+      if (child instanceof THREE.Mesh && child.name === 'ArmModel') {
+        // Apply toon material for retro look
+        const skinColor = new THREE.Color('#c68642')
+        child.material = new THREE.MeshToonMaterial({
+          color: skinColor,
+          gradientMap: TOON_GRADIENT,
+        })
+      }
+    })
+  }, [scene])
+
+  // Play idle animation
+  useEffect(() => {
+    const idle = actions['Armature|Idle']
+    if (idle) {
+      idle.reset().fadeIn(0.3).play()
+      idle.timeScale = 0.6 // Slower idle for calm portfolio vibe
+    }
+    return () => { idle?.fadeOut(0.3) }
+  }, [actions])
+
+  // Visibility based on mode
+  const visible = mode === 'overview' || mode === 'seated'
+
+  // Animate: mouse sway + idle bob
+  useFrame((_, delta) => {
+    if (!groupRef.current) return
+
+    // Smooth mouse following
+    smoothMouse.current.x += (mouseRef.current.x - smoothMouse.current.x) * 3 * delta
+    smoothMouse.current.y += (mouseRef.current.y - smoothMouse.current.y) * 3 * delta
+
+    // Idle bob
+    bobPhase.current += delta * 1.5
+    const bobY = Math.sin(bobPhase.current) * 0.02
+    const bobX = Math.sin(bobPhase.current * 0.5) * 0.01
+
+    // Hand sway follows mouse (opposite direction for natural feel)
+    const swayX = -smoothMouse.current.x * 0.15
+    const swayY = -smoothMouse.current.y * 0.08
+
+    // Grab: pull hands closer
+    const grabOffset = grabbing ? 0.1 : 0
+
+    groupRef.current.position.set(
+      0.3 + swayX + bobX,
+      -0.45 + swayY + bobY - grabOffset,
+      -0.5
     )
-  }, [pose])
 
-  // Idle breathing bob
-  useEffect(() => {
-    idleTl.current?.kill()
-    idleTl.current = null
-    if (pose !== 'idle' || !imgRef.current) return
-    const tl = gsap.timeline({ repeat: -1, yoyo: true })
-    tl.to(imgRef.current, { y: -6, rotation: 1.5, duration: 2, ease: 'sine.inOut' })
-    idleTl.current = tl
-    return () => { tl.kill() }
-  }, [pose])
+    // Slight rotation following mouse
+    groupRef.current.rotation.y = swayX * 0.3
+    groupRef.current.rotation.x = swayY * 0.2 + (grabbing ? 0.15 : 0)
 
-  if (pose === 'hidden') return null
+    // Reach: tilt forward slightly when hovering
+    if (hovered && !grabbing) {
+      groupRef.current.rotation.x += 0.08
+      groupRef.current.position.z = -0.45
+    }
+  })
+
+  if (!visible) return null
 
   return (
-    <div style={{
-      position: 'fixed',
-      bottom: -20,
-      right: '15%',
-      zIndex: 35,
-      pointerEvents: 'none',
-      filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.5))',
-    }}>
-      <img
-        ref={imgRef}
-        src={SPRITES[pose]}
-        alt=""
-        aria-hidden="true"
-        style={{
-          width: 280,
-          height: 280,
-          imageRendering: 'auto',
-          opacity: 0.9,
-        }}
-        onError={(e) => {
-          // Hide if sprite not found
-          (e.target as HTMLImageElement).style.display = 'none'
-        }}
-      />
-    </div>
+    <group ref={groupRef} scale={0.35} rotation={[0, Math.PI, 0]}>
+      <primitive object={scene} />
+    </group>
   )
 }
+
+export function FPSHands({ mode, hovered, grabbing }: FPSHandsProps) {
+  const visible = mode === 'overview' || mode === 'seated'
+  if (!visible) return null
+
+  return (
+    <Hud renderPriority={2}>
+      <PerspectiveCamera makeDefault position={[0, 0, 1]} fov={65} />
+      <ambientLight intensity={0.6} color="#FFF8F0" />
+      <directionalLight position={[2, 3, 1]} intensity={0.8} color="#FFF8F0" />
+      <HandModel mode={mode} hovered={hovered} grabbing={grabbing} />
+    </Hud>
+  )
+}
+
+useGLTF.preload(MODEL_PATH)

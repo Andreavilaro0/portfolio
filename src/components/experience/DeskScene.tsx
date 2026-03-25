@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
+import { Suspense, useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { useGLTF, Environment, Html } from '@react-three/drei'
 import { EffectComposer, Vignette, ToneMapping, Noise, ChromaticAberration } from '@react-three/postprocessing'
@@ -10,6 +10,7 @@ import { CameraRig } from './CameraRig'
 import { DeskInteractions } from './DeskInteractions'
 import { DustParticles } from './DustParticles'
 import { DeskObjects } from './DeskObjects'
+import { FPSHands } from './FPSHands'
 // Portfolio loads as iframe from /portfolio route
 import type { ExperienceMode } from './ExperienceWrapper'
 import { useFPSMonitor } from '@/hooks/useFPSMonitor'
@@ -304,6 +305,20 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
 
   useFPSMonitor({ onLowFPS: handleLowFPS })
 
+  // Local state for FPSHands (inside Canvas)
+  const [hoveredObj, setHoveredObj] = useState<string | null>(null)
+  const [isGrabbing, setIsGrabbing] = useState(false)
+
+  const handleHover = useCallback((name: string | null) => {
+    setHoveredObj(name)
+    onHoverChange?.(name)
+  }, [onHoverChange])
+
+  const handleGrab = useCallback((grabbing: boolean) => {
+    setIsGrabbing(grabbing)
+    onGrabChange?.(grabbing)
+  }, [onGrabChange])
+
   return (
     <Canvas
       style={{ width: '100%', height: '100%', background: 'transparent' }}
@@ -320,11 +335,12 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
           onProgress={onProgress}
           onProjectSelect={onProjectSelect}
           onObjectFocus={onObjectFocus}
-          onHoverChange={onHoverChange}
-          onGrabChange={onGrabChange}
+          onHoverChange={handleHover}
+          onGrabChange={handleGrab}
           playSound={playSound}
           focusedObject={focusedObject}
         />
+        <FPSHands mode={mode} hovered={hoveredObj} grabbing={isGrabbing} />
         <EffectComposer multisampling={0}>
           <Vignette eskil={false} offset={0.25} darkness={0.7} />
           <Noise opacity={0.025} blendFunction={BlendFunction.OVERLAY} />
