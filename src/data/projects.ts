@@ -3,6 +3,11 @@ export interface ProjectLink {
   href: string
 }
 
+export interface ProjectMetric {
+  value: string
+  label: string
+}
+
 export interface Project {
   id: string
   num: string
@@ -14,6 +19,11 @@ export interface Project {
   highlights: string[]
   tags: string[]
   links: ProjectLink[]
+  narrative: string[]
+  processImage: string
+  heroImage: string
+  heroVideo?: string
+  metrics: ProjectMetric[]
 }
 
 export const projects: Project[] = [
@@ -36,6 +46,18 @@ export const projects: Project[] = [
       { label: 'demo', href: 'https://andreavilaro0.github.io/civicaid-voice/' },
       { label: 'code', href: 'https://github.com/Andreavilaro0/civicaid-voice' },
     ],
+    narrative: [
+      '300+ participantes. 8 idiomas.',
+      'Una voz para quien no tiene acceso.',
+    ],
+    processImage: '/projects/process/clara-whatsapp.png',
+    heroImage: '/projects/clara-desktop.png',
+    heroVideo: '/projects/clara-mobile.mp4',
+    metrics: [
+      { value: '1st', label: 'Place — OdiseIA4Good' },
+      { value: '469+', label: 'Automated tests' },
+      { value: '8', label: 'Languages supported' },
+    ],
   },
   {
     id: 'photo',
@@ -52,6 +74,16 @@ export const projects: Project[] = [
     tags: ['HTML/CSS', 'JavaScript', 'GSAP'],
     links: [
       { label: 'view', href: 'https://andreavilaro0.github.io/plantilla/' },
+    ],
+    narrative: [
+      'Street photography. Madrid a traves de mi lente.',
+      'Scroll animations. Editorial layout.',
+    ],
+    processImage: '/projects/photo-dark-hero.png',
+    heroImage: '/projects/photo-fullpage-1920.png',
+    metrics: [
+      { value: '100%', label: 'Responsive design' },
+      { value: 'GSAP', label: 'Scroll animations' },
     ],
   },
   {
@@ -70,6 +102,17 @@ export const projects: Project[] = [
     tags: ['C++', 'Arduino'],
     links: [
       { label: 'info', href: 'https://www.udit.es/proyectos-de-exito/tres-nuevos-equipos-de-estudiantes-de-udit-se-clasifican-para-la-final-del-asti-robotics-challenge/' },
+    ],
+    narrative: [
+      '50 equipos. Un ring en Burgos.',
+      'Un robot de 10cm con casco impreso en 3D.',
+    ],
+    processImage: '/projects/process/zumo-battle.png',
+    heroImage: '/projects/process/zumo-battle.png',
+    metrics: [
+      { value: 'Finalist', label: 'National — ASTI Challenge' },
+      { value: '50+', label: 'University teams' },
+      { value: 'C++', label: 'Bare metal code' },
     ],
   },
   {
@@ -90,6 +133,16 @@ export const projects: Project[] = [
       { label: 'demo', href: 'https://andreavilaro0.github.io/todo-list-dashboard/' },
       { label: 'code', href: 'https://github.com/Andreavilaro0/todo-list-dashboard' },
     ],
+    narrative: [
+      'Sprint 6. Un dashboard que organiza el caos.',
+      'Widgets, mapa, calendario, filtros.',
+    ],
+    processImage: '/projects/todo-desktop.png',
+    heroImage: '/projects/todo-desktop.png',
+    metrics: [
+      { value: '6', label: 'Interactive widgets' },
+      { value: '1', label: 'Integrated map' },
+    ],
   },
   {
     id: 'os',
@@ -106,6 +159,16 @@ export const projects: Project[] = [
     tags: ['C', 'Sistemas'],
     links: [
       { label: 'code', href: 'https://github.com/gabrielcclv/SistemasOperativos' },
+    ],
+    narrative: [
+      'FIFO vs SJF vs Round Robin.',
+      'Quien gana? Visualizacion en tiempo real.',
+    ],
+    processImage: '/projects/os-simulator.png',
+    heroImage: '/projects/os-simulator.png',
+    metrics: [
+      { value: '3', label: 'Scheduling algorithms' },
+      { value: 'RT', label: 'Real-time visualization' },
     ],
   },
 ]
