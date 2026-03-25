@@ -2,9 +2,9 @@
 
 import { Suspense, useEffect, useRef, useState, useCallback } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { useGLTF, Preload, Environment, Html } from '@react-three/drei'
-import { EffectComposer, Vignette, ToneMapping } from '@react-three/postprocessing'
-import { ToneMappingMode } from 'postprocessing'
+import { useGLTF, Environment, Html } from '@react-three/drei'
+import { EffectComposer, Vignette, ToneMapping, Noise, ChromaticAberration } from '@react-three/postprocessing'
+import { ToneMappingMode, BlendFunction } from 'postprocessing'
 import * as THREE from 'three'
 import { CameraRig } from './CameraRig'
 import { DeskInteractions } from './DeskInteractions'
@@ -13,6 +13,22 @@ import { DeskObjects } from './DeskObjects'
 // Portfolio loads as iframe from /portfolio route
 import type { ExperienceMode } from './ExperienceWrapper'
 import { useFPSMonitor } from '@/hooks/useFPSMonitor'
+
+// FIX 12: Build the bezel shape once at module level — not inside JSX on every render
+const BEZEL_SHAPE = (() => {
+  const w = 7.4, h = 4.4, r = 0.15
+  const s = new THREE.Shape()
+  s.moveTo(-w / 2 + r, -h / 2)
+  s.lineTo(w / 2 - r, -h / 2)
+  s.quadraticCurveTo(w / 2, -h / 2, w / 2, -h / 2 + r)
+  s.lineTo(w / 2, h / 2 - r)
+  s.quadraticCurveTo(w / 2, h / 2, w / 2 - r, h / 2)
+  s.lineTo(-w / 2 + r, h / 2)
+  s.quadraticCurveTo(-w / 2, h / 2, -w / 2, h / 2 - r)
+  s.lineTo(-w / 2, -h / 2 + r)
+  s.quadraticCurveTo(-w / 2, -h / 2, -w / 2 + r, -h / 2)
+  return s
+})()
 
 const MODEL_PATH = '/models/desk-scene-web-v2.glb'
 
@@ -162,13 +178,41 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
     }
   }, [scene, onLoaded])
 
-  // Send boot signal to iframe when camera arrives at monitor
+  // FIX 5: Send boot signal to iframe when camera arrives at monitor.
+  // Retry every 500ms for up to 5s in case the iframe hasn't loaded yet.
   useEffect(() => {
-    if (mode === 'seated') {
+    if (mode !== 'seated') return
+
+    let attempts = 0
+    const MAX_ATTEMPTS = 10 // 10 * 500ms = 5s total
+    let ackReceived = false
+
+    const tryBoot = () => {
+      if (ackReceived) return
       const iframe = document.getElementById('portfolio-iframe') as HTMLIFrameElement
       if (iframe?.contentWindow) {
-        iframe.contentWindow.postMessage({ type: 'boot' }, '*')
+        iframe.contentWindow.postMessage({ type: 'boot' }, window.location.origin)
       }
+      attempts++
+      if (attempts < MAX_ATTEMPTS && !ackReceived) {
+        intervalId = setTimeout(tryBoot, 500)
+      }
+    }
+
+    // Listen for ACK from iframe so we stop retrying once it responds
+    const onMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'boot-ack') {
+        ackReceived = true
+      }
+    }
+    window.addEventListener('message', onMessage)
+
+    let intervalId: ReturnType<typeof setTimeout>
+    tryBoot()
+
+    return () => {
+      clearTimeout(intervalId)
+      window.removeEventListener('message', onMessage)
     }
   }, [mode])
 
@@ -183,20 +227,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
 
       {/* Dark bezel frame with rounded corners */}
       <mesh position={[0, 10.45, 0.5]}>
-        <shapeGeometry args={[(() => {
-          const w = 7.4, h = 4.4, r = 0.15
-          const shape = new THREE.Shape()
-          shape.moveTo(-w/2 + r, -h/2)
-          shape.lineTo(w/2 - r, -h/2)
-          shape.quadraticCurveTo(w/2, -h/2, w/2, -h/2 + r)
-          shape.lineTo(w/2, h/2 - r)
-          shape.quadraticCurveTo(w/2, h/2, w/2 - r, h/2)
-          shape.lineTo(-w/2 + r, h/2)
-          shape.quadraticCurveTo(-w/2, h/2, -w/2, h/2 - r)
-          shape.lineTo(-w/2, -h/2 + r)
-          shape.quadraticCurveTo(-w/2, -h/2, -w/2 + r, -h/2)
-          return shape
-        })()]} />
+        <shapeGeometry args={[BEZEL_SHAPE]} />
         <meshStandardMaterial color="#6a6a75" metalness={0.9} roughness={0.1} side={2} />
       </mesh>
 
@@ -215,7 +246,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
           <div style={{
             width: '100%',
             height: '100%',
-            background: '#000',
+            background: '#08080f',
             overflow: 'hidden',
             borderRadius: '16px',
             position: 'relative',
@@ -231,7 +262,7 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
               height: '100%',
               border: 'none',
               borderRadius: '8px',
-              background: '#0a0a0f',
+              background: '#08080f',
             }}
             title="Andrea Avila Portfolio"
           />
@@ -273,6 +304,7 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
       camera={{ fov: 45, near: 0.1, far: 200, position: [0, 20, -25] }}
       gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
       shadows={false}
+      dpr={[1, 2]}
     >
       <Suspense fallback={null}>
         <Scene
@@ -286,9 +318,10 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
         />
         <EffectComposer multisampling={0}>
           <Vignette eskil={false} offset={0.25} darkness={0.7} />
+          <Noise opacity={0.025} blendFunction={BlendFunction.OVERLAY} />
+          <ChromaticAberration offset={[0.0004, 0.0004]} radialModulation />
           <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
         </EffectComposer>
-        <Preload all />
       </Suspense>
     </Canvas>
   )
