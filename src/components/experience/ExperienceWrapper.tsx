@@ -11,6 +11,8 @@ import { PortfolioContent } from '../layout/PortfolioContent'
 import { SketchbookViewer } from './SketchbookViewer'
 import { RetroFocusOverlay } from './RetroFocusOverlay'
 import { RetroHUD, RetroCrosshair } from './RetroHUD'
+import { FPSHands } from './FPSHands'
+import { GameHUD } from './GameHUD'
 import { useAudio } from '../../hooks/useAudio'
 
 const DeskScene = dynamic(
@@ -33,6 +35,9 @@ export function ExperienceWrapper() {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [activeProject, setActiveProject] = useState<string | null>(null)
   const [focusedObject, setFocusedObject] = useState<string | null>(null)
+  const [hoveredObject, setHoveredObject] = useState<string | null>(null)
+  const [isGrabbing, setIsGrabbing] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
   const [clickFlash, setClickFlash] = useState(false)
   const monitorOverlayRef = useRef<HTMLDivElement>(null)
   const sceneLoadStartRef = useRef<number>(performance.now())
@@ -87,6 +92,11 @@ export function ExperienceWrapper() {
     if (mode === 'seated') audio.startAmbient()
     if (mode === 'loading') audio.stopAmbient()
   }, [mode, audio])
+
+  const handleToggleMute = useCallback(() => {
+    audio.toggleMute()
+    setIsMuted(prev => !prev)
+  }, [audio])
 
   // Sync overlay visibility with mode
   useEffect(() => {
@@ -244,10 +254,10 @@ export function ExperienceWrapper() {
             right: '32px',
             zIndex: 40,
             fontFamily: 'var(--font-code)',
-            fontSize: '10px',
+            fontSize: '11px',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            padding: '8px 16px',
+            padding: '12px 20px',
             color: 'rgba(255,255,255,0.5)',
             background: 'transparent',
             border: '1px solid rgba(255,255,255,0.2)',
@@ -274,6 +284,9 @@ export function ExperienceWrapper() {
           onIntroComplete={onIntroComplete}
           onProjectSelect={goToProject}
           onObjectFocus={focusObject}
+          onHoverChange={setHoveredObject}
+          onGrabChange={setIsGrabbing}
+          playSound={audio.play}
           focusedObject={focusedObject}
         />
       </div>
@@ -288,10 +301,10 @@ export function ExperienceWrapper() {
             transform: 'translateX(-50%)',
             zIndex: 40,
             fontFamily: 'var(--font-code)',
-            fontSize: '9px',
+            fontSize: '10px',
             letterSpacing: '0.15em',
             textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.3)',
+            color: 'rgba(255,255,255,0.4)',
           }}
           aria-live="polite"
         >
@@ -353,6 +366,18 @@ export function ExperienceWrapper() {
           )}
         </button>
       )}
+
+      {/* FPS Hands */}
+      <FPSHands mode={mode} hovered={hoveredObject} grabbing={isGrabbing} />
+
+      {/* Game HUD */}
+      <GameHUD
+        mode={mode}
+        focusedObject={focusedObject}
+        hoveredObject={hoveredObject}
+        onToggleMute={handleToggleMute}
+        isMuted={isMuted}
+      />
 
       {/* Retro FPS overlays */}
       <RetroFocusOverlay mode={mode} />

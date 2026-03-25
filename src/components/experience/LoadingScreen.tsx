@@ -14,10 +14,10 @@ const SUBTITLES = ['developer', 'photographer', 'F1 fan', 'sketch artist', 'buil
 export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) {
   const nameRef = useRef<HTMLHeadingElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const [subtitleIdx, setSubtitleIdx] = useState(0)
-  const [displayedSubtitle, setDisplayedSubtitle] = useState('')
+  const subtitleRef = useRef<HTMLSpanElement>(null)
   const hasAnimated = useRef(false)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const subtitleIdxRef = useRef(0)
   const [exiting, setExiting] = useState(false)
 
   // Stagger animation on name letters
@@ -32,31 +32,47 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
     )
   }, [])
 
-  // Typewriter subtitle cycling
+  // Ref-based typewriter — zero React re-renders per character
   useEffect(() => {
-    const word = SUBTITLES[subtitleIdx]
-    let charIdx = 0
-    setDisplayedSubtitle('')
+    let intervalId: ReturnType<typeof setInterval> | null = null
+    let cancelled = false
 
-    const typeInterval = setInterval(() => {
-      charIdx++
-      setDisplayedSubtitle(word.slice(0, charIdx))
-      if (charIdx >= word.length) {
-        clearInterval(typeInterval)
-        timeoutRef.current = setTimeout(() => {
-          setSubtitleIdx((prev) => (prev + 1) % SUBTITLES.length)
-        }, 1500)
-      }
-    }, 80)
+    const cycleSubtitle = () => {
+      const word = SUBTITLES[subtitleIdxRef.current]
+      let charIdx = 0
+
+      if (subtitleRef.current) subtitleRef.current.textContent = ''
+
+      intervalId = setInterval(() => {
+        if (cancelled) { if (intervalId) clearInterval(intervalId); return }
+        charIdx++
+        if (subtitleRef.current) {
+          subtitleRef.current.textContent = word.slice(0, charIdx)
+        }
+        if (charIdx >= word.length) {
+          if (intervalId) clearInterval(intervalId)
+          // FIX 6: Reduced pause between words from 1500ms to 800ms
+          timeoutRef.current = setTimeout(() => {
+            if (cancelled) return
+            subtitleIdxRef.current = (subtitleIdxRef.current + 1) % SUBTITLES.length
+            cycleSubtitle()
+          }, 800)
+        }
+      // FIX 6: Reduced char interval from 80ms to 60ms for snappier typing
+      }, 60)
+    }
+
+    cycleSubtitle()
 
     return () => {
-      clearInterval(typeInterval)
+      cancelled = true
+      if (intervalId) clearInterval(intervalId)
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
       }
     }
-  }, [subtitleIdx])
+  }, [])
 
   const handleEnter = () => {
     if (exiting) return
@@ -86,7 +102,7 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: '#0A0A0A',
+        background: '#000',
         gap: '24px',
         cursor: ready ? 'pointer' : 'default',
       }}
@@ -99,9 +115,9 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
       {/* Tagline */}
       <p style={{
         fontFamily: 'var(--font-code)',
-        fontSize: '10px',
+        fontSize: '12px',
         letterSpacing: '0.2em',
-        color: 'rgba(255,255,255,0.35)',
+        color: 'rgba(255,255,255,0.5)',
         margin: 0,
         textTransform: 'uppercase',
       }}>
@@ -125,18 +141,18 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
         ))}
       </h1>
 
-      {/* Typewriter subtitle */}
+      {/* Typewriter subtitle — DOM-direct updates, no React re-renders */}
       <p
         style={{
           fontFamily: 'var(--font-code)',
           fontSize: '12px',
           letterSpacing: '0.15em',
-          color: 'rgba(255,255,255,0.4)',
+          color: 'rgba(255,255,255,0.55)',
           margin: 0,
           height: '18px',
         }}
       >
-        {displayedSubtitle}
+        <span ref={subtitleRef} />
         <span style={{ opacity: 0.5, animation: 'blink 1s steps(1) infinite' }}>|</span>
       </p>
 
@@ -163,7 +179,7 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
         <p
           style={{
             fontFamily: 'var(--font-code)',
-            fontSize: '10px',
+            fontSize: '12px',
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.5)',
@@ -176,7 +192,7 @@ export function LoadingScreen({ progress, ready, onEnter }: LoadingScreenProps) 
         <p
           style={{
             fontFamily: 'var(--font-code)',
-            fontSize: '10px',
+            fontSize: '12px',
             letterSpacing: '0.2em',
             textTransform: 'uppercase',
             color: 'rgba(255,255,255,0.55)',
