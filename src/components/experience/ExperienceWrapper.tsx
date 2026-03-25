@@ -11,6 +11,7 @@ import { PortfolioContent } from '../layout/PortfolioContent'
 import { SketchbookViewer } from './SketchbookViewer'
 import { RetroFocusOverlay } from './RetroFocusOverlay'
 import { RetroHUD, RetroCrosshair } from './RetroHUD'
+import { useAudio } from '../../hooks/useAudio'
 
 const DeskScene = dynamic(
   () => import('./DeskScene').then((m) => ({ default: m.DeskScene })),
@@ -21,6 +22,7 @@ export type ExperienceMode = 'loading' | 'intro' | 'overview' | 'seated' | 'proj
 
 export function ExperienceWrapper() {
   const { track } = useAnalytics()
+  const audio = useAudio()
   const [mode, setMode] = useState<ExperienceMode>('loading')
   const [loadProgress, setLoadProgress] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
@@ -34,6 +36,12 @@ export function ExperienceWrapper() {
   const [clickFlash, setClickFlash] = useState(false)
   const monitorOverlayRef = useRef<HTMLDivElement>(null)
   const sceneLoadStartRef = useRef<number>(performance.now())
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  // Cleanup all tracked timeouts on unmount
+  useEffect(() => {
+    return () => timers.current.forEach(clearTimeout)
+  }, [])
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
@@ -74,6 +82,12 @@ export function ExperienceWrapper() {
     return () => clearTimeout(timeout)
   }, [sceneReady])
 
+  // Start/stop ambient audio based on mode
+  useEffect(() => {
+    if (mode === 'seated') audio.startAmbient()
+    if (mode === 'loading') audio.stopAmbient()
+  }, [mode, audio])
+
   // Sync overlay visibility with mode
   useEffect(() => {
     if (mode === 'seated') {
@@ -88,32 +102,11 @@ export function ExperienceWrapper() {
   // Focus management — auto-focus monitor overlay when content becomes visible
   useEffect(() => {
     if ((activeScreen === 'portfolio' || activeScreen === 'project') && monitorOverlayRef.current) {
-      setTimeout(() => {
+      timers.current.push(setTimeout(() => {
         monitorOverlayRef.current?.focus()
-      }, 200)
+      }, 200))
     }
   }, [activeScreen])
-
-  // Escape key exits focused/project/sketchbook mode → back to seated
-  useEffect(() => {
-    if (mode !== 'project' && mode !== 'focused' && mode !== 'sketchbook') return
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (mode === 'sketchbook') {
-          closeSketchbook()
-        } else if (mode === 'focused') {
-          setFocusedObject(null)
-          setIsTransitioning(true)
-          setMode('overview')
-          setTimeout(() => setIsTransitioning(false), 1000)
-        } else {
-          exitProject()
-        }
-      }
-    }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [mode])
 
   const onSceneLoaded = useCallback(() => {
     const loadTimeMs = performance.now() - sceneLoadStartRef.current
@@ -139,14 +132,14 @@ export function ExperienceWrapper() {
     setMode('sketchbook')
     track('object_focused', { object: 'sketchbook' })
     // Shorter delay — sketchbook overlay has its own entry animation
-    setTimeout(() => setIsTransitioning(false), 500)
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 500))
   }, [track])
 
   const closeSketchbook = useCallback(() => {
     setFocusedObject(null)
     setIsTransitioning(true)
     setMode('overview')
-    setTimeout(() => setIsTransitioning(false), 1000)
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 1000))
   }, [])
 
   const focusObject = useCallback((objectName: string) => {
@@ -158,16 +151,16 @@ export function ExperienceWrapper() {
     setIsTransitioning(true)
     setMode('focused')
     setClickFlash(true)
-    setTimeout(() => setClickFlash(false), 200)
+    timers.current.push(setTimeout(() => setClickFlash(false), 200))
     track('object_focused', { object: objectName })
-    setTimeout(() => setIsTransitioning(false), 1000)
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 1000))
   }, [track, openSketchbook])
 
   const unfocusObject = useCallback(() => {
     setFocusedObject(null)
     setIsTransitioning(true)
     setMode('overview')
-    setTimeout(() => setIsTransitioning(false), 1000)
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 1000))
   }, [])
 
   const goToProject = useCallback((projectId: string) => {
@@ -176,7 +169,8 @@ export function ExperienceWrapper() {
     setIsTransitioning(true)
     setMode('project')
     track('project_viewed', { project: projectId })
-    setTimeout(() => setIsTransitioning(false), 2000)
+    // FIX 4: Camera takes 0.7s — reduce dead time from 800ms to 300ms wait
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 300))
   }, [track])
 
   const exitProject = useCallback(() => {
@@ -184,8 +178,31 @@ export function ExperienceWrapper() {
     setActiveProject(null)
     setIsTransitioning(true)
     setMode('seated')
-    setTimeout(() => setIsTransitioning(false), 2000)
+    // FIX 4: Reduced from 2000ms to 1000ms — camera animation is 0.7s
+    timers.current.push(setTimeout(() => setIsTransitioning(false), 1000))
   }, [])
+
+  // Escape key exits focused/project/sketchbook mode → back to seated
+  // Declared after closeSketchbook and exitProject to avoid TDZ errors
+  useEffect(() => {
+    if (mode !== 'project' && mode !== 'focused' && mode !== 'sketchbook') return
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (mode === 'sketchbook') {
+          closeSketchbook()
+        } else if (mode === 'focused') {
+          setFocusedObject(null)
+          setIsTransitioning(true)
+          setMode('overview')
+          timers.current.push(setTimeout(() => setIsTransitioning(false), 1000))
+        } else {
+          exitProject()
+        }
+      }
+    }
+    window.addEventListener('keydown', handleKey)
+    return () => window.removeEventListener('keydown', handleKey)
+  }, [mode, closeSketchbook, exitProject])
 
   // Track fallback activation
   const fallbackTracked = useRef(false)
@@ -288,7 +305,7 @@ export function ExperienceWrapper() {
           onClick={() => {
             setIsTransitioning(true)
             setMode(mode === 'seated' ? 'overview' : 'seated')
-            setTimeout(() => setIsTransitioning(false), 2000)
+            timers.current.push(setTimeout(() => setIsTransitioning(false), 2000))
           }}
           style={{
             position: 'fixed',
@@ -365,7 +382,7 @@ export function ExperienceWrapper() {
           onClose={closeSketchbook}
           onProjectSelect={(projectId) => {
             closeSketchbook()
-            setTimeout(() => goToProject(projectId), 800)
+            timers.current.push(setTimeout(() => goToProject(projectId), 800))
           }}
         />
       )}
