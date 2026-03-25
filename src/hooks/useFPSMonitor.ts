@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 
 interface FPSMonitorOptions {
   sampleInterval?: number // ms between samples (default 2000)
@@ -7,9 +7,11 @@ interface FPSMonitorOptions {
   onLowFPS?: (avgFPS: number) => void
 }
 
+// fps and avgFPS are exposed as refs — callers read .current directly.
+// This avoids triggering Canvas re-renders on every sample.
 interface FPSMonitorResult {
-  fps: number
-  avgFPS: number
+  fpsRef: React.MutableRefObject<number>
+  avgFPSRef: React.MutableRefObject<number>
 }
 
 export function useFPSMonitor({
@@ -18,8 +20,8 @@ export function useFPSMonitor({
   lowFPSConsecutive = 3,
   onLowFPS,
 }: FPSMonitorOptions = {}): FPSMonitorResult {
-  const [fps, setFPS] = useState(0)
-  const [avgFPS, setAvgFPS] = useState(0)
+  const fpsRef = useRef(0)
+  const avgFPSRef = useRef(0)
 
   const samplesRef = useRef<number[]>([])
   const frameCountRef = useRef(0)
@@ -56,8 +58,9 @@ export function useFPSMonitor({
         samplesRef.current.reduce((a, b) => a + b, 0) / samplesRef.current.length
       )
 
-      setFPS(currentFPS)
-      setAvgFPS(avg)
+      // Write to refs — zero re-renders
+      fpsRef.current = currentFPS
+      avgFPSRef.current = avg
 
       // Check for consecutive low FPS
       if (currentFPS < lowFPSThreshold) {
@@ -79,5 +82,5 @@ export function useFPSMonitor({
     return () => cancelAnimationFrame(rafIdRef.current)
   }, [tick])
 
-  return { fps, avgFPS }
+  return { fpsRef, avgFPSRef }
 }

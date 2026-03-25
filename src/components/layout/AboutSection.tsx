@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, type CSSProperties } from 'react'
 import { animate, stagger, utils } from 'animejs'
 // GitHubCalendar moved to SkillsSection
 
@@ -33,7 +33,6 @@ export function AboutSection() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [visible, setVisible] = useState(false)
-  const [showCursor, setShowCursor] = useState(true)
   const hasAnimated = useRef(false)
 
   // Detect when section enters viewport
@@ -86,13 +85,7 @@ export function AboutSection() {
     }
   }, [visible, runAnimation])
 
-  // Blinking cursor
-  useEffect(() => {
-    const interval = setInterval(() => setShowCursor(prev => !prev), 530)
-    return () => clearInterval(interval)
-  }, [])
-
-  const codeFont: React.CSSProperties = {
+  const codeFont: CSSProperties = {
     fontFamily: 'var(--font-code)',
     fontSize: 'clamp(11px, 1.2vw, 14px)',
     lineHeight: 1.8,
@@ -114,7 +107,7 @@ export function AboutSection() {
       ref={sectionRef}
       style={{
         padding: 'clamp(48px, 8vh, 96px) clamp(16px, 4vw, 80px)',
-        maxWidth: '1200px',
+        maxWidth: 'var(--max-width-content)',
         margin: '0 auto',
         borderTop: '1px solid rgba(255,255,255,0.06)',
       }}
@@ -130,7 +123,7 @@ export function AboutSection() {
 
       {/* Terminal window */}
       <div style={{
-        background: '#0d0d14',
+        background: '#000',
         border: '1px solid rgba(0,229,255,0.1)',
         borderRadius: '10px',
         overflow: 'hidden',
@@ -145,7 +138,7 @@ export function AboutSection() {
           alignItems: 'center',
           gap: '8px',
           padding: '12px 16px',
-          background: '#08080c',
+          background: '#000',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}>
           <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#ff5f57' }} />
@@ -154,7 +147,7 @@ export function AboutSection() {
           <span style={{
             marginLeft: '12px',
             fontFamily: 'var(--font-code)',
-            fontSize: '12px',
+            fontSize: '14px',
             color: 'rgba(255,255,255,0.3)',
           }}>
             andrea@portfolio — kitty
@@ -197,7 +190,7 @@ export function AboutSection() {
               <div data-animate style={{ color: '#FF2D9B', fontWeight: 700, fontSize: 'clamp(14px, 1.5vw, 18px)' }}>
                 andrea avila
               </div>
-              <div data-animate style={{ color: 'rgba(255,255,255,0.15)', marginBottom: '6px' }}>
+              <div data-animate style={{ color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>
                 ──────────────────
               </div>
 
@@ -252,8 +245,7 @@ export function AboutSection() {
             {prompt}
             <span style={{
               color: '#e8e6e3',
-              opacity: showCursor ? 1 : 0,
-              transition: 'opacity 0.1s',
+              animation: 'cursor-blink 1.06s step-end infinite',
             }}>█</span>
           </div>
         </div>

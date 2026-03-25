@@ -289,9 +289,8 @@ function Scene({ onLoaded, mode, onIntroComplete, onProgress, onProjectSelect, o
       />
 
       <DeskInteractions scene={scene} mode={mode} onProjectSelect={onProjectSelect} onObjectFocus={onObjectFocus} onHoverChange={onHoverChange} onGrabChange={onGrabChange} playSound={playSound} />
+      <FPSHands mode={mode} hovered={null} grabbing={false} />
       <DustParticles />
-
-      {/* Arcade is rendered as DOM overlay in ExperienceWrapper */}
 
       <CameraRig mode={mode} onIntroComplete={onIntroComplete} focusedObject={focusedObject} />
     </>
@@ -340,7 +339,6 @@ export function DeskScene({ mode, onLoaded, onProgress, onIntroComplete, onProje
           playSound={playSound}
           focusedObject={focusedObject}
         />
-        <FPSHands mode={mode} hovered={hoveredObj} grabbing={isGrabbing} />
         <EffectComposer multisampling={0}>
           <Vignette eskil={false} offset={0.25} darkness={0.7} />
           <Noise opacity={0.025} blendFunction={BlendFunction.OVERLAY} />

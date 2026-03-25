@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useRef } from 'react'
+import { Suspense, useRef, useMemo } from 'react'
 import { Canvas, useFrame, useLoader } from '@react-three/fiber'
 import { STLLoader } from 'three/examples/jsm/loaders/STLLoader.js'
 import { OrbitControls, Environment } from '@react-three/drei'
@@ -10,13 +10,16 @@ function RobotModel() {
   const geometry = useLoader(STLLoader, '/models/zumo-robot.stl')
   const meshRef = useRef<THREE.Mesh>(null)
 
-  geometry.computeBoundingBox()
-  geometry.center()
-  const box = geometry.boundingBox!
-  const size = new THREE.Vector3()
-  box.getSize(size)
-  const maxDim = Math.max(size.x, size.y, size.z)
-  const scale = 2.5 / maxDim
+  // FIX 13: Memoize geometry computation — only recomputes when geometry reference changes
+  const scale = useMemo(() => {
+    geometry.computeBoundingBox()
+    geometry.center()
+    const box = geometry.boundingBox!
+    const size = new THREE.Vector3()
+    box.getSize(size)
+    const maxDim = Math.max(size.x, size.y, size.z)
+    return 2.5 / maxDim
+  }, [geometry])
 
   useFrame((_, delta) => {
     if (meshRef.current) {
@@ -45,7 +48,7 @@ function Fallback() {
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: 'var(--font-code)',
-      fontSize: '11px',
+      fontSize: '14px',
       color: 'rgba(190,255,0,0.4)',
     }}>
       Loading 3D model...
@@ -59,7 +62,7 @@ export function RobotViewer() {
       width: '100%',
       height: '100%',
       minHeight: '280px',
-      background: '#0a0a10',
+      background: '#000',
       position: 'relative',
       overflow: 'hidden',
     }}>
@@ -105,7 +108,7 @@ export function RobotViewer() {
         </div>
         <div style={{
           fontFamily: 'var(--font-code, monospace)',
-          fontSize: '10px',
+          fontSize: '15px',
           color: 'rgba(255,255,255,0.4)',
           letterSpacing: '0.1em',
           textTransform: 'uppercase',

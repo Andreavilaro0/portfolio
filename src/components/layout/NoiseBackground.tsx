@@ -15,22 +15,20 @@ export function NoiseBackground() {
       {/* Secondary blobs — warmth and depth */}
       <div className="noise-bg__blob noise-bg__blob--peach" />
       <div className="noise-bg__blob noise-bg__blob--lavender" />
-      <div className="noise-bg__blob noise-bg__blob--lime" />
 
       <style jsx>{`
         .noise-bg {
           position: fixed;
           inset: 0;
           overflow: hidden;
-          background: linear-gradient(160deg, #08080f 0%, #0d0a14 40%, #0a0d12 100%);
+          background: #000;
           z-index: 0;
         }
 
         .noise-bg__blob {
           position: absolute;
           border-radius: 50%;
-          filter: blur(100px);
-          will-change: transform;
+          filter: blur(70px);
           mix-blend-mode: screen;
         }
 
@@ -79,15 +77,6 @@ export function NoiseBackground() {
           animation: drift-5 26s ease-in-out infinite alternate;
         }
 
-        .noise-bg__blob--lime {
-          width: 350px;
-          height: 350px;
-          background: radial-gradient(circle, rgba(190,255,0,0.12) 0%, rgba(190,255,0,0.02) 60%, transparent 100%);
-          bottom: 30%;
-          right: 35%;
-          animation: drift-6 16s ease-in-out infinite alternate;
-        }
-
         @keyframes drift-1 {
           0% { transform: translate(0, 0) scale(1); }
           33% { transform: translate(100px, -80px) scale(1.15); }
@@ -118,12 +107,6 @@ export function NoiseBackground() {
           30% { transform: translate(50px, -40px) scale(1.08); }
           70% { transform: translate(-60px, 30px) scale(0.92); }
           100% { transform: translate(30px, -20px) scale(1.05); }
-        }
-
-        @keyframes drift-6 {
-          0% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(-40px, -50px) scale(1.15); }
-          100% { transform: translate(50px, 30px) scale(0.9); }
         }
 
         @media (prefers-reduced-motion: reduce) {

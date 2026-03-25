@@ -1,11 +1,17 @@
 import type { Metadata } from 'next'
-import { Bebas_Neue, Inter, JetBrains_Mono } from 'next/font/google'
+import { Bebas_Neue, Caveat, Inter, JetBrains_Mono, Space_Grotesk } from 'next/font/google'
 import '@/styles/globals.css'
 
 const bebasNeue = Bebas_Neue({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-display',
+  display: 'swap',
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-hand',
   display: 'swap',
 })
 
@@ -21,6 +27,13 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '700'],
   variable: '--font-code',
   display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-space',
+  display: 'swap',
+  weight: ['400', '500', '700'],
 })
 
 export const metadata: Metadata = {
@@ -46,7 +59,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${bebasNeue.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${bebasNeue.variable} ${caveat.variable} ${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable}`}
     >
       <body className="antialiased">
         <a href="#main-content" className="skip-link">Skip to content</a>

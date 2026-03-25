@@ -25,7 +25,7 @@ export function PhoneMockup({ children, color = 'rgba(255,255,255,0.2)' }: Phone
           justifyContent: 'space-between',
           padding: '6px 12px',
           borderBottom: `3px solid ${color}`,
-          background: '#0d0d14',
+          background: '#000',
         }}
       >
         <span
@@ -65,7 +65,7 @@ export function PhoneMockup({ children, color = 'rgba(255,255,255,0.2)' }: Phone
           display: 'flex',
           justifyContent: 'center',
           borderTop: `3px solid ${color}`,
-          background: '#0d0d14',
+          background: '#000',
         }}
       >
         <div

@@ -83,7 +83,7 @@ export function GlassNav() {
             }}
             style={{
               fontFamily: 'var(--font-code)',
-              fontSize: '11px',
+              fontSize: '14px',
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
               textDecoration: 'none',

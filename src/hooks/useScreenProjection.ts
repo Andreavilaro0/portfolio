@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import React, { useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
@@ -15,10 +15,13 @@ interface ScreenRect {
 const DEFAULT_RECT: ScreenRect = { top: 0, left: 0, width: 0, height: 0, visible: false }
 
 /**
- * Projects 4 world-space corner points onto the viewport and returns pixel-space rect.
+ * Projects 4 world-space corner points onto the viewport and returns a ref to a
+ * pixel-space rect. Callers must read `.current` to get the latest value.
+ * Returning the ref (not .current) keeps the reference stable and makes the
+ * value reactive inside RAF/useFrame callbacks without causing re-renders.
  * corners order: [topLeft, topRight, bottomLeft, bottomRight]
  */
-export function useScreenProjection(corners: THREE.Vector3[]): ScreenRect {
+export function useScreenProjection(corners: THREE.Vector3[]): React.RefObject<ScreenRect> {
   const rectRef = useRef<ScreenRect>(DEFAULT_RECT)
   const { camera, gl } = useThree()
   const projected = useRef<THREE.Vector3[]>([
@@ -60,5 +63,7 @@ export function useScreenProjection(corners: THREE.Vector3[]): ScreenRect {
       : DEFAULT_RECT
   })
 
-  return rectRef.current
+  // FIX 15: Return the ref object — not ref.current — so callers always read
+  // the latest value via .current without stale closure captures.
+  return rectRef
 }

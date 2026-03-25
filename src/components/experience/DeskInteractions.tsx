@@ -18,17 +18,17 @@ export const DESK_OBJECTS: {
   projectId?: string
   section?: string
 }[] = [
-  { name: 'razer_mouse', label: 'Mi Razer', description: 'Cada pixel cuenta cuando programas interfaces' },
-  { name: 'keyboard001', label: 'Teclado', description: 'Donde nacen las ideas a las 4am' },
-  { name: 'coffee_cup', label: 'Café de Casa', description: 'De Veracruz a Madrid — siempre con café', projectId: 'clara' },
-  { name: 'leica_camera', label: 'Leica', description: 'La fotografía me enseñó a ver el detalle' },
-  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'Finalista nacional — mi primer robot autónomo', projectId: 'robotics' },
-  { name: 'F1_Car', label: 'F1 Car', description: 'La ingeniería más rápida del mundo me inspira' },
+  { name: 'razer_mouse', label: 'My Razer', description: 'Every pixel matters when you build interfaces' },
+  { name: 'keyboard001', label: 'Keyboard', description: 'Where ideas are born at 4am' },
+  { name: 'coffee_cup', label: 'Coffee', description: 'From Veracruz to Madrid — always with coffee', projectId: 'clara' },
+  { name: 'leica_camera', label: 'Leica', description: 'Photography taught me to see the detail' },
+  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National finalist — my first autonomous robot', projectId: 'robotics' },
+  { name: 'F1_Car', label: 'F1 Car', description: 'The fastest engineering in the world inspires me' },
   // Separate GLBs — loaded via DeskObjects.tsx
-  { name: 'Mexican_Skull', label: 'Calavera', description: 'México siempre presente — nunca olvido de dónde vengo' },
-  { name: 'Rubiks_Cube', label: 'Cubo Rubik', description: 'Todo problema tiene solución si lo descompones' },
-  { name: 'Desk_Plant', label: 'Suculenta', description: 'Hasta las ingenieras necesitamos algo vivo cerca' },
-  { name: 'Box003', label: 'Sketchbook', description: 'Primero dibujo, después programo', section: 'work', projectId: 'sketchbook' },
+  { name: 'Mexican_Skull', label: 'Calavera', description: 'Mexico always present — never forget where I come from' },
+  { name: 'Rubiks_Cube', label: "Rubik's Cube", description: 'Every problem has a solution if you break it down' },
+  { name: 'Desk_Plant', label: 'Succulent', description: 'Even engineers need something alive nearby' },
+  { name: 'Box003', label: 'Sketchbook', description: 'I sketch first, then I code', section: 'work', projectId: 'sketchbook' },
 ]
 
 // Grabbable objects — excludes keyboard and monitor

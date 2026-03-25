@@ -48,7 +48,7 @@ export function LaptopMockup({ children }: LaptopMockupProps) {
       <div
         style={{
           height: '14px',
-          background: '#0d0d14',
+          background: '#000',
           border: '1px solid rgba(255,255,255,0.1)',
           borderTop: '1px solid rgba(255,255,255,0.15)',
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)',

@@ -41,17 +41,7 @@ interface MonitorPortfolioProps {
 }
 
 export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProject }: MonitorPortfolioProps) {
-  // Show project detail when a project is selected
-  if (activeProject && onExitProject && onNavigateProject) {
-    return (
-      <ProjectDetail
-        projectId={activeProject}
-        onBack={onExitProject}
-        onNavigate={onNavigateProject}
-      />
-    )
-  }
-
+  // All hooks must be called unconditionally before any early return (Rules of Hooks)
   const { track } = useAnalytics()
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -90,6 +80,17 @@ export function MonitorPortfolio({ activeProject, onExitProject, onNavigateProje
     container.addEventListener('scroll', handleScroll)
     return () => container.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Conditional render after all hooks
+  if (activeProject && onExitProject && onNavigateProject) {
+    return (
+      <ProjectDetail
+        projectId={activeProject}
+        onBack={onExitProject}
+        onNavigate={onNavigateProject}
+      />
+    )
+  }
 
   function scrollToSection(id: string) {
     const container = scrollRef.current

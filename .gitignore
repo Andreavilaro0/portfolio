@@ -31,3 +31,4 @@ public/hero-loop-mobile.mp4
 test-results/
 test-errors.mjs
 src/app/portfolio-lite/
+.vercel

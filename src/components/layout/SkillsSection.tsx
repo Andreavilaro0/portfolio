@@ -70,11 +70,11 @@ export function SkillsSection() {
       ref={sectionRef}
       id="skills"
       style={{
-        background: '#0a0a10',
+        background: '#000',
         padding: 'clamp(60px, 10vh, 120px) clamp(24px, 6vw, 80px)',
       }}
     >
-      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+      <div style={{ maxWidth: 'var(--max-width-content)', margin: '0 auto' }}>
 
         {/* Title */}
         <h2
@@ -103,7 +103,7 @@ export function SkillsSection() {
         {/* Two column layout */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(400px, 100%), 1fr))',
           gap: '48px',
           marginBottom: '64px',
         }}>
@@ -112,7 +112,7 @@ export function SkillsSection() {
           <div ref={barsRef}>
             <div style={{
               fontFamily: 'var(--font-code)',
-              fontSize: '12px',
+              fontSize: '14px',
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               color: 'rgba(255,255,255,0.35)',
@@ -138,7 +138,7 @@ export function SkillsSection() {
                   </span>
                   <span style={{
                     fontFamily: 'var(--font-code)',
-                    fontSize: '13px',
+                    fontSize: '15px',
                     color: skill.color,
                   }}>
                     {skill.level}%
@@ -169,7 +169,7 @@ export function SkillsSection() {
           <div>
             <div style={{
               fontFamily: 'var(--font-code)',
-              fontSize: '12px',
+              fontSize: '14px',
               letterSpacing: '0.15em',
               textTransform: 'uppercase',
               color: 'rgba(255,255,255,0.35)',
@@ -196,19 +196,12 @@ export function SkillsSection() {
                     cursor: 'default',
                     transition: 'background 0.2s, border-color 0.2s',
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-                    e.currentTarget.style.borderColor = 'rgba(0,229,255,0.2)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'
-                  }}
+                  className="tool-card"
                 >
                   <div style={{ fontSize: '24px', marginBottom: '8px' }}>{tool.icon}</div>
                   <div style={{
                     fontFamily: 'var(--font-code)',
-                    fontSize: '12px',
+                    fontSize: '14px',
                     color: 'rgba(255,255,255,0.7)',
                     letterSpacing: '0.03em',
                   }}>
@@ -234,6 +227,13 @@ export function SkillsSection() {
         </div>
 
       </div>
+
+      <style>{`
+        .tool-card:hover {
+          background: rgba(255,255,255,0.08) !important;
+          border-color: rgba(0,229,255,0.2) !important;
+        }
+      `}</style>
     </section>
   )
 }

@@ -5,16 +5,32 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 const TOTAL_FRAMES = 120
 const DESKTOP_PATH = '/hero-frames/frame-'
 const MOBILE_PATH = '/hero-frames-mobile/frame-'
+const INITIAL_BATCH = 10
+const BATCH_SIZE = 10
+const BATCH_DELAY_MS = 50
 
 export function HeroScroll() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const framesRef = useRef<HTMLImageElement[]>([])
+  const sizeRef = useRef({ w: 0, h: 0, dpr: 1 })
   const [loaded, setLoaded] = useState(false)
   const [inView, setInView] = useState(true)
   const [progress, setProgress] = useState(0)
   const [isMobile, setIsMobile] = useState(false)
   const currentFrameIndex = useRef(0)
+  const inViewRef = useRef(true)
+
+  // Keep inViewRef in sync so handleScroll can read it without a stale closure
+  useEffect(() => {
+    inViewRef.current = inView
+    // FIX 1: Unload frames when hero scrolls out of view to free RAM
+    if (!inView) {
+      framesRef.current = []
+    }
+    // When inView becomes true again, the loading useEffect re-runs because
+    // framesRef.current is empty — the loadImage calls will refill it.
+  }, [inView])
 
   // Detect mobile
   useEffect(() => {
@@ -24,69 +40,114 @@ export function HeroScroll() {
     return () => window.removeEventListener('resize', check)
   }, [])
 
+  // Canvas resize handler — only sets canvas dimensions here, NOT in drawFrame
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const applySize = () => {
+      const dpr = window.devicePixelRatio || 1
+      const w = document.documentElement.clientWidth
+      const h = document.documentElement.clientHeight
+      sizeRef.current = { w, h, dpr }
+      canvas.width = w * dpr
+      canvas.height = h * dpr
+    }
+
+    applySize()
+    window.addEventListener('resize', applySize)
+    return () => window.removeEventListener('resize', applySize)
+  }, [])
+
   const drawFrame = useCallback((index: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    const img = framesRef.current[index]
+
+    // Walk backwards to find the closest loaded frame
+    let img = framesRef.current[index]
+    let actualIndex = index
+    while (actualIndex > 0 && (!img || !img.naturalWidth)) {
+      actualIndex--
+      img = framesRef.current[actualIndex]
+    }
     if (!img || !img.naturalWidth) return
 
-    const dpr = window.devicePixelRatio || 1
-    const w = document.documentElement.clientWidth
-    const h = document.documentElement.clientHeight
-    canvas.width = w * dpr
-    canvas.height = h * dpr
-    ctx.scale(dpr, dpr)
+    const { w, h, dpr } = sizeRef.current
 
-    // Contain fit — image fits inside canvas with padding
-    const padding = w < 640 ? 24 : 48
-    const availW = w - padding * 2
-    const availH = h - padding * 2
+    // Reset transform, fill with page background color, then apply DPR scale
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.fillStyle = '#000'
+    ctx.fillRect(0, 0, w, h)
+
+    // Cover fit — image covers entire canvas (no black borders visible)
     const imgRatio = img.naturalWidth / img.naturalHeight
-    const availRatio = availW / availH
-    let drawW, drawH, drawX, drawY
-    if (imgRatio > availRatio) {
-      drawW = availW
-      drawH = availW / imgRatio
+    const canvasRatio = w / h
+    let drawW: number, drawH: number, drawX: number, drawY: number
+    if (imgRatio > canvasRatio) {
+      // Image is wider — fit height, crop sides
+      drawH = h
+      drawW = h * imgRatio
     } else {
-      drawH = availH
-      drawW = availH * imgRatio
+      // Image is taller — fit width, crop top/bottom
+      drawW = w
+      drawH = w / imgRatio
     }
     drawX = (w - drawW) / 2
     drawY = (h - drawH) / 2
     ctx.drawImage(img, drawX, drawY, drawW, drawH)
   }, [])
 
-  // Preload all frames — mobile uses vertical frames, desktop uses horizontal
+  // Progressive frame loading: first 10 frames → show immediately, then rest in batches.
+  // Re-runs when inView becomes true (frames were cleared on out-of-view) or isMobile changes.
   useEffect(() => {
+    // Only load when section is visible — avoids loading while scrolled past
+    if (!inView) return
+
+    // If frames are already loaded (non-empty array), nothing to do
+    if (framesRef.current.length > 0 && framesRef.current[0]?.naturalWidth) return
+
     let cancelled = false
-    const frames: HTMLImageElement[] = []
-    let loadedCount = 0
+    const frames: HTMLImageElement[] = new Array(TOTAL_FRAMES)
+    framesRef.current = frames
     const basePath = isMobile ? MOBILE_PATH : DESKTOP_PATH
 
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      const img = new Image()
-      img.src = `${basePath}${String(i + 1).padStart(3, '0')}.jpg`
-      img.onload = () => {
-        loadedCount++
-        if (loadedCount === TOTAL_FRAMES && !cancelled) {
-          setLoaded(true)
-          drawFrame(0)
-        }
-      }
-      img.onerror = () => {
-        loadedCount++
-        if (loadedCount === TOTAL_FRAMES && !cancelled) {
-          setLoaded(true)
-          drawFrame(0)
-        }
-      }
-      frames[i] = img
+    const loadImage = (i: number): Promise<void> => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.src = `${basePath}${String(i + 1).padStart(3, '0')}.webp`
+        img.onload = () => { frames[i] = img; resolve() }
+        img.onerror = () => { resolve() }
+        frames[i] = img
+      })
     }
-    framesRef.current = frames
+
+    // Load frame 0 first → show immediately, then load rest in background
+    loadImage(0).then(() => {
+      if (cancelled) return
+      setLoaded(true)
+      drawFrame(0)
+
+      // Load remaining frames in batches with breathing room for main thread
+      let batchStart = 1
+      const loadNextBatch = () => {
+        if (cancelled || batchStart >= TOTAL_FRAMES) return
+        const end = Math.min(batchStart + BATCH_SIZE, TOTAL_FRAMES)
+        const batchPromises: Promise<void>[] = []
+        for (let i = batchStart; i < end; i++) {
+          batchPromises.push(loadImage(i))
+        }
+        batchStart = end
+        Promise.all(batchPromises).then(() => {
+          if (!cancelled) setTimeout(loadNextBatch, BATCH_DELAY_MS)
+        })
+      }
+      loadNextBatch()
+    })
+
     return () => { cancelled = true }
-  }, [drawFrame, isMobile])
+  }, [drawFrame, isMobile, inView])
 
   // Scroll handler
   useEffect(() => {
@@ -100,6 +161,7 @@ export function HeroScroll() {
       const windowH = document.documentElement.clientHeight
       // Hero is in view only while we haven't scrolled past the spacer
       const visible = rect.bottom > windowH * 0.1
+      const wasHidden = !inViewRef.current && visible
       setInView(visible)
       if (!visible) return
 
@@ -111,7 +173,8 @@ export function HeroScroll() {
       setProgress(p)
       const frameIndex = Math.round(p * (TOTAL_FRAMES - 1))
 
-      if (frameIndex !== currentFrameIndex.current) {
+      // Redraw when scrolling back into view (canvas was unmounted, so it's blank)
+      if (wasHidden || frameIndex !== currentFrameIndex.current) {
         currentFrameIndex.current = frameIndex
         requestAnimationFrame(() => drawFrame(frameIndex))
       }
@@ -123,11 +186,14 @@ export function HeroScroll() {
   }, [loaded, drawFrame])
 
   // Subtitle appears after 70% scroll (name is mostly assembled)
-  const showSubtitle = progress > 0.7
-  const subtitleOpacity = Math.min(1, (progress - 0.7) / 0.2)
+  const showSubtitle = progress > 0.3
+  const subtitleOpacity = Math.min(1, (progress - 0.3) / 0.2)
 
-  // Detect if inside iframe — reduce hero height
-  const isIframe = typeof window !== 'undefined' && window.self !== window.top
+  // Detect if inside iframe — reduce hero height (use state to avoid hydration mismatch)
+  const [isIframe, setIsIframe] = useState(false)
+  useEffect(() => {
+    setIsIframe(window.self !== window.top)
+  }, [])
 
   return (
     <>
@@ -141,20 +207,38 @@ export function HeroScroll() {
         }}
       />
 
-      {/* Fixed canvas */}
-      {inView && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100vh',
-            zIndex: 1,
-            pointerEvents: 'none',
-            background: '#000',
-          }}
-        >
+      {/* Fixed canvas — hidden via visibility+opacity instead of unmounting to preserve canvas state */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100vh',
+          zIndex: 1,
+          pointerEvents: 'none',
+          background: '#000',
+          visibility: inView ? 'visible' : 'hidden',
+          opacity: inView ? 1 : 0,
+        }}
+      >
+          {/* Static image for LCP — always in DOM, hidden behind canvas once loaded.
+               Never depends on framesRef so it's always available as fallback. */}
+          <img
+            src="/hero-frames/frame-001.webp"
+            alt=""
+            aria-hidden="true"
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              zIndex: 0,
+              opacity: loaded ? 0 : 1,
+              transition: 'opacity 0.5s',
+            }}
+          />
           <canvas
             ref={canvasRef}
             style={{
@@ -163,10 +247,14 @@ export function HeroScroll() {
               height: '100%',
               opacity: loaded ? 1 : 0,
               transition: 'opacity 0.5s',
+              position: 'relative',
+              zIndex: 1,
             }}
           />
 
-          {/* Subtitle as code — fades in when name is assembled */}
+          {/* Minimal scroll hint — no name, just atmosphere */}
+
+          {/* Subtitle as code — fades in at 30% scroll */}
           {showSubtitle && (
             <div
               style={{
@@ -180,6 +268,7 @@ export function HeroScroll() {
                 fontSize: 'clamp(11px, 1.2vw, 14px)',
                 lineHeight: 1.7,
                 whiteSpace: 'nowrap',
+                zIndex: 2,
               }}
             >
               <div>
@@ -193,6 +282,34 @@ export function HeroScroll() {
               </div>
             </div>
           )}
+
+          {/* Blue pulse lines — evoke the hero animation */}
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            zIndex: 1,
+            opacity: 0.15 + progress * 0.3,
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '35%',
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent 5%, #00E5FF 30%, transparent 50%, #00E5FF 70%, transparent 95%)',
+              boxShadow: '0 0 20px #00E5FF, 0 0 60px rgba(0,229,255,0.3)',
+            }} />
+            <div style={{
+              position: 'absolute',
+              top: '65%',
+              left: 0,
+              right: 0,
+              height: '1px',
+              background: 'linear-gradient(90deg, transparent 10%, #7B2FFF 40%, transparent 55%, #00E5FF 75%, transparent 90%)',
+              boxShadow: '0 0 15px rgba(123,47,255,0.5), 0 0 40px rgba(0,229,255,0.2)',
+            }} />
+          </div>
 
           {/* Scroll hint — only at the beginning */}
           {loaded && progress < 0.1 && (
@@ -209,10 +326,10 @@ export function HeroScroll() {
               <p
                 style={{
                   fontFamily: 'var(--font-code)',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',
-                  color: '#6B6B7B',
+                  color: 'rgba(255,255,255,0.4)',
                   margin: '0 0 8px 0',
                 }}
               >
@@ -229,7 +346,6 @@ export function HeroScroll() {
             </div>
           )}
         </div>
-      )}
     </>
   )
 }

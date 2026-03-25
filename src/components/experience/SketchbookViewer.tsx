@@ -19,6 +19,15 @@ function seededRand(s: number) {
   return x - Math.floor(x)
 }
 
+function escapeHtml(ch: string): string {
+  return ch
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function renderHandwriting(text: string, seed: number): string {
   let html = ''
   let s = seed
@@ -28,9 +37,26 @@ function renderHandwriting(text: string, seed: number): string {
     const f = HW_FONTS[Math.floor(seededRand(s) * HW_FONTS.length)]
     const r = (seededRand(s + 99) - 0.5) * 7
     const y = (seededRand(s + 199) - 0.5) * 2
-    html += `<span style="display:inline-block;font-family:'${f}',cursive;transform:rotate(${r.toFixed(1)}deg) translateY(${y.toFixed(1)}px)">${text[i]}</span>`
+    // escapeHtml prevents XSS if text ever contains < > & " '
+    html += `<span style="display:inline-block;font-family:'${f}',cursive;transform:rotate(${r.toFixed(1)}deg) translateY(${y.toFixed(1)}px)">${escapeHtml(text[i])}</span>`
   }
   return html
+}
+
+/**
+ * Removes dangerous tags and event-handler attributes from an HTML string.
+ * This is a lightweight defence-in-depth layer — the primary content is
+ * already generated from trusted static data in this file.
+ */
+function sanitizeHtml(html: string): string {
+  return html
+    // Remove script and iframe blocks (including contents)
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+    .replace(/<iframe\b[^<]*(?:(?!<\/iframe>)<[^<]*)*<\/iframe>/gi, '')
+    // Remove inline event handlers (on*)
+    .replace(/\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+    // Remove javascript: hrefs/srcs
+    .replace(/(href|src)\s*=\s*["']?\s*javascript:[^"'\s>]*/gi, '')
 }
 
 // Sketch page annotations per project
@@ -94,6 +120,8 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
   const [currentSub, setCurrentSub] = useState('')
   const [showInstructions, setShowInstructions] = useState(true)
   const pagesRef = useRef<string[]>([])
+  // FIX 14: Single ref to track the active RAF id — cancelled in every cleanup path
+  const rafId = useRef<number>(0)
 
   // Build pages array
   useEffect(() => {
@@ -127,11 +155,11 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
     const leftFront = document.getElementById('sb-left-front')
     const rightFront = document.getElementById('sb-right-front')
     if (leftFront) {
-      leftFront.innerHTML = pages[s.leftIndex] || ''
+      leftFront.innerHTML = sanitizeHtml(pages[s.leftIndex] || '')
       leftFront.style.display = s.leftIndex < 0 ? 'none' : 'block'
     }
     if (rightFront) {
-      rightFront.innerHTML = pages[s.leftIndex + 1] || ''
+      rightFront.innerHTML = sanitizeHtml(pages[s.leftIndex + 1] || '')
       rightFront.style.display = s.leftIndex + 1 >= pages.length ? 'none' : 'block'
     }
     // Update title
@@ -252,12 +280,12 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
       const leftUnder = document.getElementById('sb-left-under')!
       const rightUnder = document.getElementById('sb-right-under')!
       if (side === 'right') {
-        rightUnder.innerHTML = pages[s.leftIndex + 3] || ''
-        flapContent!.innerHTML = pages[s.leftIndex + 2] || ''
+        rightUnder.innerHTML = sanitizeHtml(pages[s.leftIndex + 3] || '')
+        flapContent!.innerHTML = sanitizeHtml(pages[s.leftIndex + 2] || '')
         flapContent!.className = 'sb-flap-content is-left'
       } else {
-        leftUnder.innerHTML = pages[s.leftIndex - 2] || ''
-        flapContent!.innerHTML = pages[s.leftIndex - 1] || ''
+        leftUnder.innerHTML = sanitizeHtml(pages[s.leftIndex - 2] || '')
+        flapContent!.innerHTML = sanitizeHtml(pages[s.leftIndex - 1] || '')
         flapContent!.className = 'sb-flap-content is-right'
       }
       updateFold(x, y)
@@ -300,7 +328,7 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
         const ease = 1 - Math.pow(1 - progress, 3)
         updateFold(startX + (targetX - startX) * ease, startY + (targetY - startY) * ease)
         if (progress < 1) {
-          requestAnimationFrame(animate)
+          rafId.current = requestAnimationFrame(animate)
         } else {
           flap!.style.display = 'none'
           document.getElementById(`sb-${s.activeSide}-front`)!.style.clipPath = 'none'
@@ -311,7 +339,7 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
           s.activeSide = null
         }
       }
-      requestAnimationFrame(animate)
+      rafId.current = requestAnimationFrame(animate)
     }
 
     book.addEventListener('pointerdown', onPointerDown)
@@ -325,11 +353,11 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
         e.preventDefault()
         startDrag('right', [s.width, s.height], s.width, s.height)
         const st = performance.now()
-        function anim(t: number) {
+        function animRight(t: number) {
           const p = Math.min((t - st) / 500, 1)
           const ease = 1 - Math.pow(1 - p, 3)
           updateFold(s.width * (1 - ease), s.height * (1 - ease * 0.3))
-          if (p < 1) requestAnimationFrame(anim)
+          if (p < 1) { rafId.current = requestAnimationFrame(animRight) }
           else {
             if (flap) flap.style.display = 'none'
             const rf = document.getElementById('sb-right-front')
@@ -338,17 +366,17 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
             renderPages()
           }
         }
-        requestAnimationFrame(anim)
+        rafId.current = requestAnimationFrame(animRight)
       }
       if (e.key === 'ArrowLeft' && s.leftIndex > 0) {
         e.preventDefault()
         startDrag('left', [0, s.height], 0, s.height)
         const st = performance.now()
-        function anim(t: number) {
+        function animLeft(t: number) {
           const p = Math.min((t - st) / 500, 1)
           const ease = 1 - Math.pow(1 - p, 3)
           updateFold(s.width * ease, s.height * (1 - ease * 0.3))
-          if (p < 1) requestAnimationFrame(anim)
+          if (p < 1) { rafId.current = requestAnimationFrame(animLeft) }
           else {
             if (flap) flap.style.display = 'none'
             const lf = document.getElementById('sb-left-front')
@@ -357,13 +385,14 @@ export function SketchbookViewer({ onClose, onProjectSelect }: SketchbookViewerP
             renderPages()
           }
         }
-        requestAnimationFrame(anim)
+        rafId.current = requestAnimationFrame(animLeft)
       }
     }
     document.addEventListener('keydown', onKeyDown)
 
     return () => {
       ro.disconnect()
+      cancelAnimationFrame(rafId.current)
       book.removeEventListener('pointerdown', onPointerDown)
       book.removeEventListener('pointermove', onPointerMove)
       book.removeEventListener('pointerup', onPointerUp)

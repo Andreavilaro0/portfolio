@@ -15,6 +15,7 @@ const SPEED = 0.08
  */
 export function DustParticles() {
   const pointsRef = useRef<THREE.Points>(null)
+  const frameCount = useRef(0)
 
   const { positions, velocities } = useMemo(() => {
     const positions = new Float32Array(PARTICLE_COUNT * 3)
@@ -37,14 +38,19 @@ export function DustParticles() {
   }, [])
 
   useFrame((_, delta) => {
+    frameCount.current++
+    // Process every other frame — halves GPU buffer uploads; speed compensated below
+    if (frameCount.current % 2 !== 0) return
     if (!pointsRef.current) return
     const pos = pointsRef.current.geometry.attributes.position.array as Float32Array
+    // Compensate for skipped frame so particles move at correct speed
+    const compensatedDelta = delta * 2
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const i3 = i * 3
-      pos[i3] += velocities[i3] * delta
-      pos[i3 + 1] += velocities[i3 + 1] * delta
-      pos[i3 + 2] += velocities[i3 + 2] * delta
+      pos[i3] += velocities[i3] * compensatedDelta
+      pos[i3 + 1] += velocities[i3 + 1] * compensatedDelta
+      pos[i3 + 2] += velocities[i3 + 2] * compensatedDelta
 
       // Wrap around bounds
       if (pos[i3] > SPREAD / 2) pos[i3] = -SPREAD / 2

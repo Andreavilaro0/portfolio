@@ -12,7 +12,7 @@ const INPUT_BASE: React.CSSProperties = {
   color: '#e8e6e3',
   padding: '12px 16px',
   fontFamily: 'var(--font-body)',
-  fontSize: '0.9rem',
+  fontSize: '1rem',
   outline: 'none',
   boxSizing: 'border-box',
   transition: 'border-color 0.2s',
@@ -38,9 +38,9 @@ function ContactForm() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          service_id: 'service_fgljb76',
-          template_id: 'template_moyvd0k',
-          user_id: 'ITA22gpie8HhFEhs7',
+          service_id: process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+          template_id: process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+          user_id: process.env.NEXT_PUBLIC_EMAILJS_USER_ID,
           template_params: {
             from_name: name,
             from_email: email,
@@ -78,31 +78,35 @@ function ContactForm() {
       {/* Name + Email row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <label htmlFor="contact-name" style={{ fontFamily: 'var(--font-code)', fontSize: '15px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
             Name
           </label>
           <input
+            id="contact-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             onFocus={() => setFocusedField('name')}
             onBlur={() => setFocusedField(null)}
             required
+            autoComplete="name"
             placeholder="Your name"
             style={{ ...INPUT_BASE, ...borderFor('name') }}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+          <label htmlFor="contact-email" style={{ fontFamily: 'var(--font-code)', fontSize: '15px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
             Email
           </label>
           <input
+            id="contact-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setFocusedField('email')}
             onBlur={() => setFocusedField(null)}
             required
+            autoComplete="email"
             placeholder="you@example.com"
             style={{ ...INPUT_BASE, ...borderFor('email') }}
           />
@@ -111,10 +115,11 @@ function ContactForm() {
 
       {/* Message */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-        <label style={{ fontFamily: 'var(--font-code)', fontSize: '10px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase' }}>
+        <label htmlFor="contact-message" style={{ fontFamily: 'var(--font-code)', fontSize: '15px', letterSpacing: '0.1em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>
           Message
         </label>
         <textarea
+          id="contact-message"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onFocus={() => setFocusedField('message')}
@@ -144,7 +149,7 @@ function ContactForm() {
             borderRadius: '6px',
             border: 'none',
             fontFamily: 'var(--font-code)',
-            fontSize: '12px',
+            fontSize: '14px',
             fontWeight: 600,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
@@ -152,13 +157,12 @@ function ContactForm() {
             opacity: formState === 'sending' ? 0.7 : 1,
             transition: 'opacity 0.2s, background 0.3s',
           }}
-          onMouseEnter={(e) => { if (formState !== 'sending') e.currentTarget.style.opacity = '0.8' }}
-          onMouseLeave={(e) => { e.currentTarget.style.opacity = formState === 'sending' ? '0.7' : '1' }}
+          className="submit-btn"
         >
           {buttonLabel}
         </button>
         {formState === 'error' && (
-          <span style={{ fontFamily: 'var(--font-code)', fontSize: '11px', color: '#e03e3e' }}>
+          <span style={{ fontFamily: 'var(--font-code)', fontSize: '14px', color: '#e03e3e' }}>
             Something went wrong. Try emailing directly.
           </span>
         )}
@@ -172,12 +176,12 @@ export function Footer() {
     <footer
       id="contact"
       style={{
-        background: '#050508',
+        background: '#000',
         padding: 'clamp(64px, 10vh, 120px) clamp(24px, 6vw, 80px)',
         borderTop: '1px solid rgba(255,255,255,0.06)',
       }}
     >
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ maxWidth: 'var(--max-width-content)', margin: '0 auto' }}>
         {/* Blue signal line — connects about to contact */}
         <div style={{
           width: '1px',
@@ -190,7 +194,7 @@ export function Footer() {
         {/* Section label */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '48px' }}>
           <span style={{
-            fontFamily: 'var(--font-code)', fontSize: '12px', letterSpacing: '0.15em',
+            fontFamily: 'var(--font-code)', fontSize: '14px', letterSpacing: '0.15em',
             background: 'linear-gradient(90deg, #FF2D9B, #7B2FFF)',
             WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent',
             textTransform: 'uppercase',
@@ -218,8 +222,7 @@ export function Footer() {
                 color: '#BEFF00', textDecoration: 'none',
                 transition: 'opacity 0.2s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.7' }}
-              onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+              className="email-link"
             >
               &quot;mailto:andrea15one@icloud.com&quot;
             </a>
@@ -241,7 +244,7 @@ export function Footer() {
         <div style={{ display: 'flex', gap: '24px', marginBottom: '64px', flexWrap: 'wrap' }}>
           {[
             { label: 'GitHub', href: 'https://github.com/Andreavilaro0' },
-            { label: 'LinkedIn', href: 'https://www.linkedin.com/feed/' },
+            { label: 'LinkedIn', href: 'https://www.linkedin.com/in/andreavilaro0/' },
             { label: 'Email', href: 'mailto:andrea15one@icloud.com' },
           ].map((link) => (
             <a
@@ -250,13 +253,12 @@ export function Footer() {
               target={link.label !== 'Email' ? '_blank' : undefined}
               rel={link.label !== 'Email' ? 'noopener noreferrer' : undefined}
               style={{
-                fontFamily: 'var(--font-code)', fontSize: '12px', color: 'rgba(255,255,255,0.4)',
+                fontFamily: 'var(--font-code)', fontSize: '14px', color: 'rgba(255,255,255,0.4)',
                 textDecoration: 'none', letterSpacing: '0.06em', textTransform: 'uppercase',
                 padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.1)',
                 transition: 'color 0.2s, border-color 0.2s',
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = '#fff' }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+              className="social-link"
             >
               {link.label} ↗
             </a>
@@ -270,7 +272,7 @@ export function Footer() {
         <div style={{ maxWidth: '600px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
             <span style={{
-              fontFamily: 'var(--font-code)', fontSize: '11px', letterSpacing: '0.12em',
+              fontFamily: 'var(--font-code)', fontSize: '14px', letterSpacing: '0.12em',
               color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase',
             }}>Send a message</span>
             <div style={{ flex: 1, height: '1px', background: 'rgba(255,255,255,0.06)' }} />
@@ -283,19 +285,25 @@ export function Footer() {
           display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
           paddingTop: '48px', marginTop: '64px', borderTop: '1px solid rgba(255,255,255,0.04)',
         }}>
-          <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: 'rgba(255,255,255,0.2)', letterSpacing: '0.08em' }}>
+          <span style={{ fontFamily: 'var(--font-code)', fontSize: '15px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.08em' }}>
             Andrea Avila © 2026 — Madrid, Spain
           </span>
           <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: 'rgba(255,255,255,0.15)', letterSpacing: '0.05em' }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: '15px', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.05em' }}>
               React · Three.js · Next.js
             </span>
-            <span style={{ fontFamily: 'var(--font-code)', fontSize: '10px', color: '#BEFF00', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+            <span style={{ fontFamily: 'var(--font-code)', fontSize: '15px', color: '#BEFF00', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
               Open to work
             </span>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .email-link:hover { opacity: 0.7; }
+        .submit-btn:hover:not(:disabled) { opacity: 0.8 !important; }
+        .social-link:hover { color: #fff !important; border-color: #fff !important; }
+      `}</style>
     </footer>
   )
 }
