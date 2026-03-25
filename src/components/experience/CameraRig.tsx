@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import { useThree, useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import gsap from 'gsap'
@@ -36,8 +36,8 @@ const CAMERAS = {
 const OBJECT_CAMERAS: Record<string, { position: THREE.Vector3; lookAt: THREE.Vector3 }> = {
   // Monitor — lean forward a bit to read closer
   'FRHIeNGciselOUD': { position: new THREE.Vector3(0, 10.5, -6.0), lookAt: new THREE.Vector3(0, 10.5, 2) },
-  // Keyboard — look down in front, lean forward
-  'keyboard.001': { position: new THREE.Vector3(0, 10.5, -5.5), lookAt: new THREE.Vector3(0, 6.7, 1) },
+  // Keyboard — look down in front, lean forward (matches DeskInteractions name: keyboard001)
+  'keyboard001': { position: new THREE.Vector3(0, 10.5, -5.5), lookAt: new THREE.Vector3(0, 6.7, 1) },
   // Coffee cup — lean slightly right, look down-right
   'coffee_cup': { position: new THREE.Vector3(0.8, 10.5, -5.5), lookAt: new THREE.Vector3(3.0, 6.6, 1.8) },
   // F1 Car — lean slightly left
@@ -52,13 +52,26 @@ const OBJECT_CAMERAS: Record<string, { position: THREE.Vector3; lookAt: THREE.Ve
   'Box003': { position: new THREE.Vector3(-1.2, 10.5, -5.0), lookAt: new THREE.Vector3(-4.87, 6.3, -3.48) },
   // Mouse — lean slightly right, look down
   'razer_mouse': { position: new THREE.Vector3(0.5, 10.5, -5.5), lookAt: new THREE.Vector3(2.0, 6.4, 1.0) },
-  // Mexican Skull — lean right
-  'Mexican_Skull': { position: new THREE.Vector3(0.8, 10.5, -5.5), lookAt: new THREE.Vector3(3.5, 8.2, -0.5) },
-  // Rubik's Cube — lean slightly left
-  'Rubiks_Cube': { position: new THREE.Vector3(-0.4, 10.5, -5.5), lookAt: new THREE.Vector3(-1.5, 8.1, -2.5) },
+  // Mexican Skull — lean LEFT toward skull at X=-5.0
+  'Mexican_Skull': { position: new THREE.Vector3(-0.8, 10.5, -5.5), lookAt: new THREE.Vector3(-5.0, 7.0, 0.5) },
+  // Rubik's Cube — lean RIGHT toward cube at X=5.0
+  'Rubiks_Cube': { position: new THREE.Vector3(0.6, 10.5, -5.5), lookAt: new THREE.Vector3(5.0, 7.0, 0.2) },
   // Desk Plant — lean right, look at plant behind monitor
   'Desk_Plant': { position: new THREE.Vector3(1.0, 10.5, -5.5), lookAt: new THREE.Vector3(4.8, 7.0, 1.5) },
 }
+
+// Spherical mouse-look ranges per mode
+const LOOK_RANGE = {
+  overview: { h: 1.8, v: 0.6, damping: 0.06 },   // ~100° H, ~35° V
+  seated:   { h: 0.8, v: 0.3, damping: 0.04 },    // ~45° H, ~17° V
+  project:  { h: 0.4, v: 0.15, damping: 0.04 },   // ~23° H, ~9° V
+}
+
+// Module-level reusable vectors — allocated once, never per-frame
+const _targetLookAt = new THREE.Vector3()
+const _currentDir = new THREE.Vector3()
+const _currentLookAt = new THREE.Vector3()
+const _spherical = new THREE.Spherical()
 
 interface CameraRigProps {
   mode: ExperienceMode
@@ -69,9 +82,11 @@ interface CameraRigProps {
 export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigProps) {
   const { camera } = useThree()
   const mouseRef = useRef({ x: 0, y: 0 })
+  const prevMouse = useRef({ x: 0, y: 0 })
   const baseLookAt = useRef(new THREE.Vector3())
   const basePosition = useRef(new THREE.Vector3())
   const isAnimating = useRef(false)
+  const activeTween = useRef<gsap.core.Tween | gsap.core.Timeline | null>(null)
   const prevMode = useRef<ExperienceMode>('loading')
 
   const [reducedMotion, setReducedMotion] = useState(false)
@@ -94,13 +109,17 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
   }, [])
 
   // Helper: animate camera with cinematic easing
-  const animateCamera = (
+  // Wrapped in useCallback so downstream effects don't re-run when unrelated state changes
+  const animateCamera = useCallback((
     targetPos: THREE.Vector3,
     targetLookAt: THREE.Vector3,
     duration: number,
     ease: string,
     onDone?: () => void,
   ) => {
+    // Kill any in-flight tween before starting a new one to avoid conflicts
+    activeTween.current?.kill()
+
     isAnimating.current = true
     const startPos = camera.position.clone()
     const startDir = new THREE.Vector3()
@@ -110,7 +129,7 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
     const proxy = { t: 0 }
     const lookTarget = new THREE.Vector3()
 
-    gsap.to(proxy, {
+    activeTween.current = gsap.to(proxy, {
       t: 1,
       duration: reducedMotion ? 0.3 : duration,
       ease,
@@ -128,7 +147,7 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
         onDone?.()
       },
     })
-  }
+  }, [camera, reducedMotion])
 
   // ─── INTRO: Cinematic 3-stage crane shot ───
   useEffect(() => {
@@ -159,6 +178,7 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
     }
 
     const tl = gsap.timeline()
+    activeTween.current = tl
     const proxy = { t: 0 }
 
     // Stage 1: Crane down
@@ -186,17 +206,17 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
       },
     })
 
-    // Stage 3: Settle with overshoot
-    tl.to(proxy, {
-      t: 1,
+    // Stage 3: Settle with overshoot — uses own 0→1 proxy to avoid normalization issues
+    const settleProxy = { s: 0 }
+    tl.to(settleProxy, {
+      s: 1,
       duration: 0.7,
       ease: 'back.out(1.2)',
       onUpdate: () => {
-        const p = (proxy.t - 0.9) / 0.1
-        // Tiny push forward then back
-        const overshoot = new THREE.Vector3().copy(CAMERAS.seated.position)
-        overshoot.z += (1 - p) * -0.5
-        camera.position.copy(overshoot)
+        // s goes 0→1 with back.out overshoot (briefly >1 then settles)
+        // Push forward (z decreases) then snap back to seated
+        const overshootZ = CAMERAS.seated.position.z + (1 - settleProxy.s) * -0.5
+        camera.position.set(CAMERAS.seated.position.x, CAMERAS.seated.position.y, overshootZ)
         camera.lookAt(CAMERAS.seated.lookAt)
       },
       onComplete: () => {
@@ -208,6 +228,11 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
         onIntroComplete()
       },
     })
+
+    return () => {
+      tl.kill()
+      activeTween.current = null
+    }
   }, [mode, camera, onIntroComplete, reducedMotion])
 
   // ─── MODE TRANSITIONS (seated ↔ overview ↔ project) ───
@@ -229,7 +254,7 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
       isReturnFromFocus ? 0.8 : 1.2,
       'power2.inOut',
     )
-  }, [mode, camera, reducedMotion])
+  }, [mode, animateCamera])
 
   // ─── FOCUSED/SKETCHBOOK: Snap to object ───
   useEffect(() => {
@@ -246,42 +271,40 @@ export function CameraRig({ mode, onIntroComplete, focusedObject }: CameraRigPro
       0.7,
       'power3.out', // quick head turn — no overshoot, natural stop
     )
-  }, [mode, focusedObject, camera, reducedMotion])
+  }, [mode, focusedObject, animateCamera])
 
   // ─── MOUSE-LOOK: First person feel ───
   useFrame(() => {
     if (isAnimating.current || reducedMotion) return
 
-    if (mode === 'overview') {
-      // Subtle head movement — enough to feel alive, not enough to feel like the camera moves alone
-      const lookX = baseLookAt.current.x + mouseRef.current.x * 1.2
-      const lookY = baseLookAt.current.y + mouseRef.current.y * 0.6
-      const lookZ = baseLookAt.current.z
+    // Early return if mouse hasn't moved — avoids redundant matrix updates
+    const dx = Math.abs(mouseRef.current.x - prevMouse.current.x)
+    const dy = Math.abs(mouseRef.current.y - prevMouse.current.y)
+    if (dx < 0.001 && dy < 0.001) return
 
-      const targetLookAt = new THREE.Vector3(lookX, lookY, lookZ)
-      // Smooth damping for natural head movement
-      const currentDir = new THREE.Vector3()
-      camera.getWorldDirection(currentDir)
-      const currentLookAt = currentDir.multiplyScalar(10).add(camera.position)
+    if (mode === 'overview' || mode === 'seated' || mode === 'project') {
+      const range = LOOK_RANGE[mode as keyof typeof LOOK_RANGE] || LOOK_RANGE.seated
+      const yaw = mouseRef.current.x * range.h
+      const pitch = mouseRef.current.y * range.v
 
-      currentLookAt.lerp(targetLookAt, 0.06)
-      camera.lookAt(currentLookAt)
-    } else if (mode === 'seated' || mode === 'project') {
-      // Minimal parallax — just enough to feel alive, not enough to interfere with iframe
-      const offsetX = mouseRef.current.x * 0.15
-      const offsetY = mouseRef.current.y * 0.08
-      const targetLookAt = new THREE.Vector3(
-        baseLookAt.current.x + offsetX,
-        baseLookAt.current.y + offsetY,
-        baseLookAt.current.z,
-      )
-      const currentDir = new THREE.Vector3()
-      camera.getWorldDirection(currentDir)
-      const currentLookAt = currentDir.multiplyScalar(10).add(camera.position)
-      currentLookAt.lerp(targetLookAt, 0.04)
-      camera.lookAt(currentLookAt)
+      // Compute base direction from camera to lookAt target
+      _currentDir.subVectors(baseLookAt.current, basePosition.current).normalize()
+      _spherical.setFromVector3(_currentDir)
+      _spherical.theta += yaw
+      _spherical.phi = THREE.MathUtils.clamp(_spherical.phi - pitch, 0.4, 2.6)
+
+      _targetLookAt.setFromSpherical(_spherical).add(camera.position)
+
+      // Smooth damping — get current lookAt from camera direction
+      camera.getWorldDirection(_currentDir)
+      _currentLookAt.copy(_currentDir).multiplyScalar(10).add(camera.position)
+      _currentLookAt.lerp(_targetLookAt, range.damping)
+      camera.lookAt(_currentLookAt)
     }
     // focused mode: no mouse movement — camera locked on object
+
+    prevMouse.current.x = mouseRef.current.x
+    prevMouse.current.y = mouseRef.current.y
   })
 
   return null
