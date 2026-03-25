@@ -7,6 +7,9 @@ import * as THREE from 'three'
 import gsap from 'gsap'
 import type { ExperienceMode } from './ExperienceWrapper'
 
+// Cached module-level color — avoids allocating a new THREE.Color on every setEmissive call
+const GLOW_COLOR = new THREE.Color('#BEFF00')
+
 // Names must match actual GLB mesh names — each links to a page section
 export const DESK_OBJECTS: {
   name: string
@@ -15,35 +18,53 @@ export const DESK_OBJECTS: {
   projectId?: string
   section?: string
 }[] = [
-  { name: 'razer_mouse', label: 'Razer Mouse', description: 'Precision is everything' },
-  { name: 'keyboard001', label: 'Keyboard', description: '4am coding sessions' },
-  { name: 'coffee_cup', label: 'Coffee', description: 'Fuel from home — MX → ES', projectId: 'clara' },
-  { name: 'leica_camera', label: 'Leica Camera', description: 'I capture moments too' },
-  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'National robotics finalist', projectId: 'robotics' },
-  { name: 'F1_Car', label: 'F1 Car', description: 'Speed is a feature' },
-  // Sketchfab objects (separate GLBs — found via global scene)
-  { name: 'Mexican_Skull', label: 'Calavera', description: 'Never forget where you come from — MX' },
-  { name: 'Rubiks_Cube', label: "Rubik's Cube", description: 'Every problem has a solution' },
-  { name: 'Desk_Plant', label: 'Succulent', description: 'Even engineers need something alive' },
-  { name: 'Box003', label: 'Sketchbook', description: 'Dibujo mis ideas antes de programarlas', section: 'work', projectId: 'sketchbook' },
+  { name: 'razer_mouse', label: 'Mi Razer', description: 'Cada pixel cuenta cuando programas interfaces' },
+  { name: 'keyboard001', label: 'Teclado', description: 'Donde nacen las ideas a las 4am' },
+  { name: 'coffee_cup', label: 'Café de Casa', description: 'De Veracruz a Madrid — siempre con café', projectId: 'clara' },
+  { name: 'leica_camera', label: 'Leica', description: 'La fotografía me enseñó a ver el detalle' },
+  { name: 'Zumo_Robot', label: 'Zumo 32U4', description: 'Finalista nacional — mi primer robot autónomo', projectId: 'robotics' },
+  { name: 'F1_Car', label: 'F1 Car', description: 'La ingeniería más rápida del mundo me inspira' },
+  // Separate GLBs — loaded via DeskObjects.tsx
+  { name: 'Mexican_Skull', label: 'Calavera', description: 'México siempre presente — nunca olvido de dónde vengo' },
+  { name: 'Rubiks_Cube', label: 'Cubo Rubik', description: 'Todo problema tiene solución si lo descompones' },
+  { name: 'Desk_Plant', label: 'Suculenta', description: 'Hasta las ingenieras necesitamos algo vivo cerca' },
+  { name: 'Box003', label: 'Sketchbook', description: 'Primero dibujo, después programo', section: 'work', projectId: 'sketchbook' },
 ]
+
+// Grabbable objects — excludes keyboard and monitor
+const GRABBABLE = new Set(['coffee_cup', 'F1_Car', 'Object_4', 'Zumo_Robot', 'leica_camera', 'razer_mouse', 'Mexican_Skull', 'Rubiks_Cube', 'Desk_Plant'])
 
 interface DeskInteractionsProps {
   scene: THREE.Object3D
   mode: ExperienceMode
   onProjectSelect?: (projectId: string) => void
   onObjectFocus?: (objectName: string) => void
+  onHoverChange?: (name: string | null) => void
+  onGrabChange?: (grabbing: boolean) => void
+  playSound?: (name: 'hover' | 'click' | 'grab' | 'throw' | 'bounce') => void
 }
 
-export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }: DeskInteractionsProps) {
+export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus, onHoverChange, onGrabChange, playSound }: DeskInteractionsProps) {
   const [selected, setSelected] = useState<{ name: string; position: THREE.Vector3 } | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
-  const { gl, scene: rootScene } = useThree()
+  const { gl, camera, scene: rootScene } = useThree()
   const originalMaterials = useRef<Map<string, Map<THREE.Mesh, THREE.Material>>>(new Map())
-  const idleGlowTweens = useRef<gsap.core.Tween[]>([])
+  const idleGlowTween = useRef<gsap.core.Tween | null>(null)
+  const hoveredRef = useRef<string | null>(null)
   const hintShown = useRef(false)
   const [showHint, setShowHint] = useState(false)
   const [hitboxReady, setHitboxReady] = useState(false)
+
+  // Grab & throw state
+  const [grabbedObject, setGrabbedObject] = useState<string | null>(null)
+  const originalPositions = useRef<Map<string, { pos: THREE.Vector3; rot: THREE.Euler }>>(new Map())
+  const mouseVelocity = useRef(new THREE.Vector2())
+  const prevMouseNDC = useRef(new THREE.Vector2())
+
+  // Keep hoveredRef in sync so idle glow tween can read current value without re-creating
+  useEffect(() => {
+    hoveredRef.current = hovered
+  }, [hovered])
 
   // Retry hitbox computation until all objects are loaded (separate GLBs load async)
   useEffect(() => {
@@ -105,7 +126,7 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
 
       const currentMat = child.material as THREE.MeshStandardMaterial
       if (intensity > 0) {
-        currentMat.emissive = new THREE.Color(color || '#BEFF00')
+        currentMat.emissive.copy(color ? new THREE.Color(color) : GLOW_COLOR)
         currentMat.emissiveIntensity = intensity
       } else {
         // Restore original material
@@ -118,48 +139,46 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
         }
       }
     })
-  }, [scene])
+  }, [rootScene])
 
   // Idle glow pulse for project-linked objects (discoverability)
+  // Single shared tween drives all objects in sync — reduces N tweens to 1
   useEffect(() => {
-    // Kill previous tweens
-    idleGlowTweens.current.forEach(t => t.kill())
-    idleGlowTweens.current = []
+    idleGlowTween.current?.kill()
+    idleGlowTween.current = null
 
     if (mode !== 'seated') return
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const projectObjects = DESK_OBJECTS.filter(d => d.projectId)
 
-    projectObjects.forEach((obj, i) => {
-      if (prefersReducedMotion) {
-        setEmissive(obj.name, 0.05)
-        return
-      }
+    if (prefersReducedMotion) {
+      projectObjects.forEach(obj => setEmissive(obj.name, 0.05))
+      return
+    }
 
-      const proxy = { intensity: 0 }
-      const tween = gsap.to(proxy, {
-        intensity: 0.08,
-        duration: 2.5,
-        ease: 'sine.inOut',
-        yoyo: true,
-        repeat: -1,
-        delay: i * 0.8,
-        onUpdate: () => {
-          // Don't override hover glow
-          if (hovered !== obj.name) {
+    const proxy = { intensity: 0 }
+    idleGlowTween.current = gsap.to(proxy, {
+      intensity: 0.08,
+      duration: 2.5,
+      ease: 'sine.inOut',
+      yoyo: true,
+      repeat: -1,
+      onUpdate: () => {
+        projectObjects.forEach((obj) => {
+          // Don't override hover glow — read ref to avoid stale closure / dep churn
+          if (hoveredRef.current !== obj.name) {
             setEmissive(obj.name, proxy.intensity)
           }
-        },
-      })
-      idleGlowTweens.current.push(tween)
+        })
+      },
     })
 
     return () => {
-      idleGlowTweens.current.forEach(t => t.kill())
-      idleGlowTweens.current = []
+      idleGlowTween.current?.kill()
+      idleGlowTween.current = null
     }
-  }, [mode, setEmissive, hovered])
+  }, [mode, setEmissive])
 
   // First-time hint tooltip
   useEffect(() => {
@@ -174,28 +193,136 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
     return () => clearTimeout(timer)
   }, [mode])
 
+  // Store original positions for snap-back
+  useEffect(() => {
+    if (!hitboxReady) return
+    DESK_OBJECTS.forEach(({ name }) => {
+      const obj = rootScene.getObjectByName(name)
+      if (obj && !originalPositions.current.has(name)) {
+        originalPositions.current.set(name, { pos: obj.position.clone(), rot: obj.rotation.clone() })
+      }
+    })
+  }, [rootScene, hitboxReady])
+
+  // Throw with GSAP fake physics
+  const throwObject = useCallback((name: string, velocity: THREE.Vector2) => {
+    const mesh = rootScene.getObjectByName(name)
+    if (!mesh) return
+    const orig = originalPositions.current.get(name)
+    if (!orig) return
+
+    const GRAVITY = -15
+    const BOUNCE = 0.3
+    const FRICTION = 0.92
+    const baseY = orig.pos.y
+
+    const vel = { x: velocity.x * 8, y: 2, z: velocity.y * 8 }
+    const pos = { x: mesh.position.x, y: mesh.position.y, z: mesh.position.z }
+
+    const update = () => {
+      vel.y += GRAVITY * 0.016
+      vel.x *= FRICTION
+      vel.z *= FRICTION
+      pos.x += vel.x * 0.016
+      pos.y += vel.y * 0.016
+      pos.z += vel.z * 0.016
+
+      if (pos.y <= baseY) {
+        pos.y = baseY
+        vel.y *= -BOUNCE
+        playSound?.('bounce')
+        if (Math.abs(vel.y) < 0.1) vel.y = 0
+      }
+
+      mesh.position.set(pos.x, pos.y, pos.z)
+      mesh.rotation.x += vel.z * 0.05
+      mesh.rotation.z -= vel.x * 0.05
+
+      // Snap back if off desk
+      const speed = Math.sqrt(vel.x * vel.x + vel.z * vel.z)
+      if (Math.abs(pos.x - orig.pos.x) > 6 || Math.abs(pos.z - orig.pos.z) > 3) {
+        gsap.ticker.remove(update)
+        gsap.to(mesh.position, { x: orig.pos.x, y: orig.pos.y, z: orig.pos.z, duration: 0.5, ease: 'back.out(1.5)' })
+        gsap.to(mesh.rotation, { x: orig.rot.x, y: orig.rot.y, z: orig.rot.z, duration: 0.5 })
+        return
+      }
+
+      if (speed < 0.05 && Math.abs(pos.y - baseY) < 0.01) {
+        gsap.ticker.remove(update)
+        gsap.to(mesh.rotation, { x: orig.rot.x, z: orig.rot.z, duration: 0.3, ease: 'power2.out' })
+      }
+    }
+    gsap.ticker.add(update)
+  }, [rootScene, playSound])
+
   const handlePointerOver = useCallback((name: string) => {
     if (mode !== 'overview' && mode !== 'seated') return
     gl.domElement.style.cursor = 'pointer'
     setHovered(name)
+    onHoverChange?.(name)
     setEmissive(name, 0.15)
-  }, [gl, mode, setEmissive])
+    playSound?.('hover')
+  }, [gl, mode, setEmissive, onHoverChange, playSound])
 
   const handlePointerOut = useCallback((name: string) => {
     gl.domElement.style.cursor = 'default'
     setHovered(null)
+    onHoverChange?.(null)
     setEmissive(name, 0)
-  }, [gl, setEmissive])
+  }, [gl, setEmissive, onHoverChange])
+
+  const handlePointerDown = useCallback((name: string) => {
+    if (mode !== 'overview' && mode !== 'seated') return
+    if (!GRABBABLE.has(name)) return
+
+    setGrabbedObject(name)
+    onGrabChange?.(true)
+    playSound?.('grab')
+    prevMouseNDC.current.set(0, 0)
+    mouseVelocity.current.set(0, 0)
+  }, [mode, onGrabChange, playSound])
+
+  const handlePointerUp = useCallback(() => {
+    if (!grabbedObject) return
+    const vel = mouseVelocity.current.clone()
+    if (vel.length() > 0.5) {
+      playSound?.('throw')
+      throwObject(grabbedObject, vel)
+    }
+    setGrabbedObject(null)
+    onGrabChange?.(false)
+  }, [grabbedObject, throwObject, onGrabChange, playSound])
+
+  // Global pointer up listener for grab release
+  useEffect(() => {
+    const up = () => handlePointerUp()
+    window.addEventListener('pointerup', up)
+    return () => window.removeEventListener('pointerup', up)
+  }, [handlePointerUp])
+
+  // Track mouse velocity for throw
+  useEffect(() => {
+    const move = (e: PointerEvent) => {
+      if (!grabbedObject) return
+      const nx = (e.clientX / window.innerWidth) * 2 - 1
+      const ny = -(e.clientY / window.innerHeight) * 2 + 1
+      mouseVelocity.current.set(nx - prevMouseNDC.current.x, ny - prevMouseNDC.current.y)
+      prevMouseNDC.current.set(nx, ny)
+    }
+    window.addEventListener('pointermove', move)
+    return () => window.removeEventListener('pointermove', move)
+  }, [grabbedObject])
 
   const handleClick = useCallback((name: string, center: THREE.Vector3) => {
     if (mode !== 'overview' && mode !== 'seated') return
 
+    playSound?.('click')
     // GTA-style: fly camera to the object
     if (onObjectFocus) {
       onObjectFocus(name)
       setSelected(null)
     }
-  }, [mode, onObjectFocus])
+  }, [mode, onObjectFocus, playSound])
 
   // Find coffee cup hitbox for hint position
   const coffeeHitbox = hitboxes.find(h => h.name === 'coffee_cup')
@@ -207,6 +334,7 @@ export function DeskInteractions({ scene, mode, onProjectSelect, onObjectFocus }
           key={name}
           position={center}
           onClick={() => handleClick(name, center)}
+          onPointerDown={() => handlePointerDown(name)}
           onPointerOver={() => handlePointerOver(name)}
           onPointerOut={() => handlePointerOut(name)}
           visible={false}
